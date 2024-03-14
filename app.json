@@ -1,0 +1,11 @@
+{
+  "expo": {
+    "name": "BangFerProject",
+    "slug": "BangFerProject",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  },
+  "name": "BangFerProject"
+}
