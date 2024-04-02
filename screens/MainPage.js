@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import BackGround from '../assets/Back1.png';
+import BackGround from '../assets/Back2.png';
 import TatcticsButtonImage from '../assets/Button1.png';
 import BangusukTeamButtonImage from '../assets/Button2.png';
 import FreeBoardButtonImage from '../assets/Button3.png';
@@ -52,6 +52,8 @@ const ForButtonInThirdView = styled.View`
 const TitleText = styled.Text`
   font-size: 45px;
   font-weight: 600;
+  margin-top: 20px;
+  margin-bottom: 1px;
   color: black;
   text-decoration-line: underline;
 `;
