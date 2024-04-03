@@ -24,38 +24,48 @@ const FirstView = styled.View`
 `;
 
 const SecondView = styled.View`
-  flex: 1;
+  flex: 1.3;
+  flex-direction: column;
+  justify-content: center;
+`;
+
+const ThirdViewForTitleText = styled.View`
+  flex: 1.2;
   flex-direction: column;
   align-items: center;
   justify-content: center;
 `;
 
-const ThirdView = styled.View`
-  flex: 1;
+const FourthViewForButtons = styled.View`
+  flex: 3;
   flex-direction: row;
+  justify-content: center;
+`;
+
+const ForSortInFourthView = styled.View`
   align-items: center;
   justify-content: center;
 `;
 
-const FourthView = styled.View`
-  flex: 1;
-  flex-direction: row;
-  align-items: center;
-`;
-
-const ForButtonInThirdView = styled.View`
-  flex-direction: column;
+const ForSortInFourthView1 = styled.View`
   align-items: center;
   justify-content: center;
 `;
 
-const TitleText = styled.Text`
-  font-size: 45px;
-  font-weight: 600;
-  margin-top: 20px;
-  margin-bottom: 1px;
+const TitleTextBANGUSUK = styled.Text`
+  font-size: 48px;
+  font-weight: 700;
   color: black;
   text-decoration-line: underline;
+  margin-top: -5px;
+`;
+
+const TitleTextFERGUSON = styled.Text`
+  font-size: 48px;
+  font-weight: 700;
+  color: black;
+  text-decoration-line: underline;
+  margin-bottom: 50px;
 `;
 
 const BackGroundImage = styled.Image`
@@ -63,22 +73,35 @@ const BackGroundImage = styled.Image`
   height: 100%;
 `;
 
-const TacticsAndBangusukTeamButton = styled.TouchableOpacity`
-  padding-vertical: 15px;
-  padding-horizontal: 15px;
+const TacticsButton = styled.TouchableOpacity`
   border-radius: 10px;
-  width: 120px;
-  height: 120px;
-  margin: -5px;
+  width: 130px;
+  height: 130px;
+  margin-bottom: 10px;
+  margin-right: 5px;
 `;
 
-const FreeBoardAndMyPageButton = styled.TouchableOpacity`
-  padding-vertical: 15px;
-  padding-horizontal: 15px;
+const BanggsukTeamButton = styled.TouchableOpacity`
   border-radius: 10px;
-  width: 120px;
-  height: 120px;
-  margin: -5px;
+  width: 130px;
+  height: 130px;
+  margin-bottom: 60px;
+  margin-right: 5px;
+`;
+const FreeBoardButton = styled.TouchableOpacity`
+  border-radius: 10px;
+  width: 130px;
+  height: 130px;
+  margin-bottom: 10px;
+  margin-left: 5px;
+`;
+
+const MyPageButton = styled.TouchableOpacity`
+  border-radius: 10px;
+  width: 130px;
+  height: 130px;
+  margin-bottom: 60px;
+  margin-left: 5px;
 `;
 
 const ButtonsImage = styled.Image`
@@ -96,42 +119,40 @@ const MainPage = ({ navigation }) => {
       </BackGroundView>
       <FirstView></FirstView>
       <SecondView>
-        <TitleText>BANGUSUK</TitleText>
-        <TitleText>FERGUSON</TitleText>
+        <ThirdViewForTitleText>
+          <TitleTextBANGUSUK>BANGUSUK</TitleTextBANGUSUK>
+          <TitleTextFERGUSON>FERGUSON</TitleTextFERGUSON>
+        </ThirdViewForTitleText>
+        <FourthViewForButtons>
+          <ForSortInFourthView>
+            <TacticsButton onPress={() => navigation.navigate('Tactics')}>
+              <ButtonsImage
+                source={TatcticsButtonImage}
+                resizeMode={'contain'}
+              />
+            </TacticsButton>
+            <BanggsukTeamButton
+              onPress={() => navigation.navigate('BanggusukTeam')}
+            >
+              <ButtonsImage
+                source={BangusukTeamButtonImage}
+                resizeMode={'contain'}
+              />
+            </BanggsukTeamButton>
+          </ForSortInFourthView>
+          <ForSortInFourthView1>
+            <FreeBoardButton onPress={() => navigation.navigate('FreeBoard')}>
+              <ButtonsImage
+                source={FreeBoardButtonImage}
+                resizeMode={'contain'}
+              />
+            </FreeBoardButton>
+            <MyPageButton onPress={() => navigation.navigate('MyPage')}>
+              <ButtonsImage source={MypageButtonImage} resizeMode={'contain'} />
+            </MyPageButton>
+          </ForSortInFourthView1>
+        </FourthViewForButtons>
       </SecondView>
-      <ThirdView>
-        <ForButtonInThirdView>
-          <TacticsAndBangusukTeamButton
-            onPress={() => navigation.navigate('Tactics')}
-          >
-            <ButtonsImage source={TatcticsButtonImage} resizeMode={'contain'} />
-          </TacticsAndBangusukTeamButton>
-          <TacticsAndBangusukTeamButton
-            onPress={() => navigation.navigate('BanggusukTeam')}
-          >
-            <ButtonsImage
-              source={BangusukTeamButtonImage}
-              resizeMode={'contain'}
-            />
-          </TacticsAndBangusukTeamButton>
-        </ForButtonInThirdView>
-        <ForButtonInThirdView>
-          <FreeBoardAndMyPageButton
-            onPress={() => navigation.navigate('FreeBoard')}
-          >
-            <ButtonsImage
-              source={FreeBoardButtonImage}
-              resizeMode={'contain'}
-            />
-          </FreeBoardAndMyPageButton>
-          <FreeBoardAndMyPageButton
-            onPress={() => navigation.navigate('MyPage')}
-          >
-            <ButtonsImage source={MypageButtonImage} resizeMode={'contain'} />
-          </FreeBoardAndMyPageButton>
-        </ForButtonInThirdView>
-      </ThirdView>
-      <FourthView></FourthView>
     </Container>
   );
 };
