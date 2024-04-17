@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { StatusBar } from 'expo-status-bar';
-import styled from 'styled-components';
-import DropDownPicker from 'react-native-dropdown-picker';
-import TacticsBack from '../assets/TacticsBack.png';
-import { Text, View, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import React, { useState } from "react";
+import { StatusBar } from "expo-status-bar";
+import styled from "styled-components";
+import DropDownPicker from "react-native-dropdown-picker";
+import TacticsBack from "../assets/TacticsBack.png";
+import { Text, View, StyleSheet, Image, TouchableOpacity } from "react-native";
 
-const Container = styled.View`
+const Container = styled.KeyboardAvoidingView`
   flex: 1;
   flex-direction: column;
 `;
@@ -51,6 +51,14 @@ const ViewForMidfielder = styled.View`
   flex-direction: row;
   justify-content: space-around;
 `;
+
+const SecondViewForMidfielder = styled.View`
+  flex: 3;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
+`;
+
 const ViewForDefender = styled.View`
   flex: 3;
   align-items: center;
@@ -102,7 +110,10 @@ const TaticsName = styled.TextInput`
   width: 120px;
   border-width: 4px;
   margin-left: 20px;
-  border-radius: 20px;
+  border-radius: 10px;
+  padding-left: 10px;
+  font-size: 17px;
+  font-weight: bold;
 `;
 
 const DirectorName = styled.TextInput`
@@ -110,7 +121,10 @@ const DirectorName = styled.TextInput`
   width: 120px;
   border-width: 4px;
   margin-right: 20px;
-  border-radius: 20px;
+  border-radius: 10px;
+  padding-left: 10px;
+  font-size: 17px;
+  font-weight: bold;
 `;
 
 const TacticsBackImage = styled.Image`
@@ -120,40 +134,57 @@ const TacticsBackImage = styled.Image`
   z-index: -1;
 `;
 const PlusBanggusukTeam = ({ navigation }) => {
+  const [TacticsNameplaceholder, setTacticsNamePlaceholder] = useState("팀 명");
+  const handleFocus = () => {
+    setTacticsNamePlaceholder("");
+  };
+  const handleBlur = () => {
+    setTacticsNamePlaceholder("팀 명");
+  };
+
+  const [DirectorNameplaceholder, setDirectorNamePlaceholder] =
+    useState("감독명");
+  const handleFocus2 = () => {
+    setDirectorNamePlaceholder("");
+  };
+  const handleBlur2 = () => {
+    setDirectorNamePlaceholder("감독명");
+  };
+
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState({ label: '4-4-2', value: '1' });
+  const [value, setValue] = useState({ label: "4-4-2", value: "1" });
   const [items, setItems] = useState([
-    { label: '4-4-2', value: '1' },
-    { label: '4-3-3', value: '2' },
-    { label: '4-3-2-1', value: '3' },
-    { label: '4-2-3-1', value: '4' },
-    { label: '3-4-3', value: '5' },
-    { label: '3-5-2', value: '6' },
-    { label: '3-2-4-1', value: '7' },
+    { label: "4-4-2", value: "1" },
+    { label: "4-3-3", value: "2" },
+    { label: "4-3-2-1", value: "3" },
+    { label: "4-2-3-1", value: "4" },
+    { label: "3-4-3", value: "5" },
+    { label: "3-5-2", value: "6" },
+    { label: "3-2-4-1", value: "7" },
   ]);
 
   const [currentValue, setCurrentValue] = useState(1);
   const onChange = (value, index) => {
     switch (value) {
-      case '1':
+      case "1":
         setCurrentValue(1);
         break;
-      case '2':
+      case "2":
         setCurrentValue(2);
         break;
-      case '3':
+      case "3":
         setCurrentValue(3);
         break;
-      case '4':
+      case "4":
         setCurrentValue(4);
         break;
-      case '5':
+      case "5":
         setCurrentValue(5);
         break;
-      case '6':
+      case "6":
         setCurrentValue(6);
         break;
-      case '7':
+      case "7":
         setCurrentValue(7);
         break;
       default:
@@ -164,8 +195,16 @@ const PlusBanggusukTeam = ({ navigation }) => {
   return (
     <Container>
       <ViewForTextBar>
-        <TaticsName></TaticsName>
-        <DirectorName></DirectorName>
+        <TaticsName
+          placeholder={TacticsNameplaceholder}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+        />
+        <DirectorName
+          placeholder={DirectorNameplaceholder}
+          onFocus={handleFocus2}
+          onBlur={handleBlur2}
+        ></DirectorName>
       </ViewForTextBar>
       <ViewForTacticBoard>
         <ViewForDropdown>
@@ -180,23 +219,23 @@ const PlusBanggusukTeam = ({ navigation }) => {
             onChangeValue={onChange}
             maxHeight={400}
             style={{
-              backgroundColor: '#000',
+              backgroundColor: "#000",
             }}
             textStyle={{
-              color: '#fff',
-              fontWeight: 'bold',
+              color: "#fff",
+              fontWeight: "bold",
             }}
             dropDownContainerStyle={{
-              backgroundColor: '#000',
+              backgroundColor: "#000",
             }}
             arrowIconStyle={{
-              tintColor: 'white',
+              tintColor: "white",
               borderWidth: 13,
             }}
           />
         </ViewForDropdown>
         <ViewForBoard>
-          <TacticsBackImage source={TacticsBack} resizeMode={'stretch'} />
+          <TacticsBackImage source={TacticsBack} resizeMode={"stretch"} />
 
           {currentValue === 1 && (
             <TestView>
@@ -217,7 +256,195 @@ const PlusBanggusukTeam = ({ navigation }) => {
                 <Defender></Defender>
               </ViewForDefender>
               <ViewForGoalkeeper>
-                <Goalkeeper></Goalkeeper>
+                <Goalkeeper style={{ marginBottom: 15 }}></Goalkeeper>
+              </ViewForGoalkeeper>
+            </TestView>
+          )}
+          {currentValue === 2 && (
+            <TestView>
+              <ViewForForward style={{ justifyContent: "space-around" }}>
+                <Forward></Forward>
+                <Forward style={{ marginBottom: 100 }}></Forward>
+                <Forward></Forward>
+              </ViewForForward>
+              <ViewForMidfielder>
+                <Midfielder style={{ marginLeft: 45 }}></Midfielder>
+                <Midfielder style={{ marginTop: 50 }}></Midfielder>
+                <Midfielder style={{ marginRight: 45 }}></Midfielder>
+              </ViewForMidfielder>
+              <ViewForDefender>
+                <Defender></Defender>
+                <Defender style={{ marginTop: 25 }}></Defender>
+                <Defender style={{ marginTop: 25 }}></Defender>
+                <Defender></Defender>
+              </ViewForDefender>
+              <ViewForGoalkeeper>
+                <Goalkeeper style={{ marginBottom: 15 }}></Goalkeeper>
+              </ViewForGoalkeeper>
+            </TestView>
+          )}
+          {currentValue === 3 && (
+            <TestView>
+              <ViewForForward>
+                <Forward style={{ marginBottom: 70 }}></Forward>
+              </ViewForForward>
+              <SecondViewForMidfielder>
+                <Midfielder
+                  style={{ marginBottom: 60, marginLeft: 50 }}
+                ></Midfielder>
+                <Midfielder
+                  style={{ marginBottom: 60, marginRight: 50 }}
+                ></Midfielder>
+              </SecondViewForMidfielder>
+              <ViewForMidfielder>
+                <Midfielder
+                  style={{ marginLeft: 15, marginBottom: 50 }}
+                ></Midfielder>
+                <Midfielder style={{ marginBottom: 50 }}></Midfielder>
+                <Midfielder
+                  style={{ marginRight: 15, marginBottom: 50 }}
+                ></Midfielder>
+              </ViewForMidfielder>
+              <ViewForDefender>
+                <Defender style={{ marginBottom: 50 }}></Defender>
+                <Defender style={{ marginBottom: 30 }}></Defender>
+                <Defender style={{ marginBottom: 30 }}></Defender>
+                <Defender style={{ marginBottom: 50 }}></Defender>
+              </ViewForDefender>
+              <ViewForGoalkeeper>
+                <Goalkeeper style={{ marginBottom: 30 }}></Goalkeeper>
+              </ViewForGoalkeeper>
+            </TestView>
+          )}
+          {currentValue === 4 && (
+            <TestView>
+              <ViewForForward>
+                <Forward style={{ marginBottom: 70 }}></Forward>
+              </ViewForForward>
+              <SecondViewForMidfielder>
+                <Midfielder
+                  style={{ marginBottom: 50, marginLeft: 5 }}
+                ></Midfielder>
+                <Midfielder style={{ marginBottom: 50 }}></Midfielder>
+                <Midfielder
+                  style={{ marginBottom: 50, marginRight: 5 }}
+                ></Midfielder>
+              </SecondViewForMidfielder>
+              <ViewForMidfielder>
+                <Midfielder
+                  style={{ marginBottom: 40, marginLeft: 35 }}
+                ></Midfielder>
+                <Midfielder
+                  style={{ marginBottom: 40, marginRight: 35 }}
+                ></Midfielder>
+              </ViewForMidfielder>
+              <ViewForDefender>
+                <Defender style={{ marginBottom: 50 }}></Defender>
+                <Defender style={{ marginBottom: 30 }}></Defender>
+                <Defender style={{ marginBottom: 30 }}></Defender>
+                <Defender style={{ marginBottom: 50 }}></Defender>
+              </ViewForDefender>
+              <ViewForGoalkeeper>
+                <Goalkeeper style={{ marginBottom: 30 }}></Goalkeeper>
+              </ViewForGoalkeeper>
+            </TestView>
+          )}
+          {currentValue === 5 && (
+            <TestView>
+              <ViewForForward style={{ justifyContent: "space-around" }}>
+                <Forward></Forward>
+                <Forward style={{ marginBottom: 100 }}></Forward>
+                <Forward></Forward>
+              </ViewForForward>
+              <ViewForMidfielder>
+                <Midfielder style={{}}></Midfielder>
+                <Midfielder style={{ marginTop: 30 }}></Midfielder>
+                <Midfielder style={{ marginTop: 30 }}></Midfielder>
+                <Midfielder style={{}}></Midfielder>
+              </ViewForMidfielder>
+              <ViewForDefender>
+                <Defender
+                  style={{ marginLeft: 25, marginBottom: 25 }}
+                ></Defender>
+                <Defender style={{ marginBottom: 15 }}></Defender>
+                <Defender
+                  style={{ marginRight: 25, marginBottom: 25 }}
+                ></Defender>
+              </ViewForDefender>
+              <ViewForGoalkeeper>
+                <Goalkeeper style={{ marginBottom: 15 }}></Goalkeeper>
+              </ViewForGoalkeeper>
+            </TestView>
+          )}
+          {currentValue === 6 && (
+            <TestView>
+              <ViewForForward>
+                <Forward style={{}}></Forward>
+                <Forward style={{}}></Forward>
+              </ViewForForward>
+              <SecondViewForMidfielder
+                style={{ justifyContent: "space-between" }}
+              >
+                <Midfielder
+                  style={{ marginLeft: 20, marginTop: 70 }}
+                ></Midfielder>
+                <Midfielder style={{ marginTop: 10 }}></Midfielder>
+                <Midfielder
+                  style={{ marginRight: 20, marginTop: 70 }}
+                ></Midfielder>
+              </SecondViewForMidfielder>
+              <ViewForMidfielder>
+                <Midfielder
+                  style={{ marginBottom: 40, marginLeft: 50 }}
+                ></Midfielder>
+                <Midfielder
+                  style={{ marginBottom: 40, marginRight: 50 }}
+                ></Midfielder>
+              </ViewForMidfielder>
+              <ViewForDefender>
+                <Defender
+                  style={{ marginBottom: 70, marginLeft: 25 }}
+                ></Defender>
+                <Defender style={{ marginBottom: 60 }}></Defender>
+                <Defender
+                  style={{ marginBottom: 70, marginRight: 25 }}
+                ></Defender>
+              </ViewForDefender>
+              <ViewForGoalkeeper>
+                <Goalkeeper style={{ marginBottom: 30 }}></Goalkeeper>
+              </ViewForGoalkeeper>
+            </TestView>
+          )}
+          {currentValue === 7 && (
+            <TestView>
+              <ViewForForward>
+                <Forward style={{ marginBottom: 70 }}></Forward>
+              </ViewForForward>
+              <SecondViewForMidfielder>
+                <Midfielder style={{ marginBottom: 50 }}></Midfielder>
+                <Midfielder style={{ marginBottom: 50 }}></Midfielder>
+                <Midfielder style={{ marginBottom: 50 }}></Midfielder>
+                <Midfielder style={{ marginBottom: 50 }}></Midfielder>
+              </SecondViewForMidfielder>
+              <ViewForMidfielder>
+                <Midfielder
+                  style={{ marginLeft: 75, marginBottom: 60 }}
+                ></Midfielder>
+                <Midfielder
+                  style={{ marginRight: 75, marginBottom: 60 }}
+                ></Midfielder>
+              </ViewForMidfielder>
+              <ViewForDefender>
+                <Defender
+                  style={{ marginBottom: 80, marginLeft: 25 }}
+                ></Defender>
+                <Defender style={{ marginBottom: 70 }}></Defender>
+                <Defender
+                  style={{ marginBottom: 80, marginRight: 25 }}
+                ></Defender>
+              </ViewForDefender>
+              <ViewForGoalkeeper>
+                <Goalkeeper style={{ marginBottom: 30 }}></Goalkeeper>
               </ViewForGoalkeeper>
             </TestView>
           )}
