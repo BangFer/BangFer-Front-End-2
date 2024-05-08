@@ -238,6 +238,28 @@ const MainTacticTitle = styled.Text`
   color: white;
 `;
 
+const RegisterButtonView = styled.View`
+  flex: 0.58;
+  align-items: flex-end;
+  justify-content: center;
+`;
+
+const RegisterButton = styled.TouchableOpacity`
+  border-radius: 8px;
+  width: 60px;
+  height: 40px;
+  background-color: #d9d9d9;
+  justify-content: center;
+  align-items: center;
+  margin-right: 20px;
+`;
+
+const RegisterText = styled.Text`
+  font-size: 20px;
+  font-weight: bold;
+  color: black;
+`;
+
 const PlusBanggusukTeam = ({ navigation }) => {
   const [TacticsNameplaceholder, setTacticsNamePlaceholder] = useState("팀 명");
   const [DetailTacticsplaceholder, setDetailTacticsplaceholder] = useState("");
@@ -274,13 +296,13 @@ const PlusBanggusukTeam = ({ navigation }) => {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState({ label: "4-4-2", value: "1" });
   const [items, setItems] = useState([
-    { label: "4-4-2", value: "1" },
-    { label: "4-3-3", value: "2" },
-    { label: "4-3-2-1", value: "3" },
-    { label: "4-2-3-1", value: "4" },
-    { label: "3-4-3", value: "5" },
-    { label: "3-5-2", value: "6" },
-    { label: "3-2-4-1", value: "7" },
+    { label: "내 전술", value: "1" },
+    { label: "클롭", value: "2" },
+    { label: "사비", value: "3" },
+    { label: "알론소", value: "4" },
+    { label: "맨시티식", value: "5" },
+    { label: "맨유", value: "6" },
+    { label: "첼시", value: "7" },
   ]);
 
   const [isAttackerModalVisible, setIsAttackerModalVisible] = useState(false);
@@ -337,7 +359,7 @@ const PlusBanggusukTeam = ({ navigation }) => {
             open={open}
             value={value}
             items={items}
-            placeholder="4-4-2"
+            placeholder="내 전술"
             setOpen={setOpen}
             setValue={setValue}
             setItems={setItems}
@@ -978,7 +1000,11 @@ const PlusBanggusukTeam = ({ navigation }) => {
             ></MainTaticTextBox>
           </SubTacticBox>
         </ScrollView>
-        <View style={{ flex: 0.58 }}></View>
+        <RegisterButtonView>
+          <RegisterButton onPress={() => navigation.navigate("BanggusukTeam")}>
+            <RegisterText>등록</RegisterText>
+          </RegisterButton>
+        </RegisterButtonView>
       </ViewForSlideTactic>
     </Container>
   );
