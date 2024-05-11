@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import {NavigationContainer} from '@react-navigation/native';
 import styled from "styled-components";
 import { FontAwesome6 } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 // your entry point
 import { MenuProvider } from 'react-native-popup-menu';
@@ -46,30 +47,17 @@ const ThirdView = styled.ScrollView`
   flex: 1;
 `;
 
-const HitsRankButton = styled.TouchableOpacity`
-padding: 5px 5px; /* 버튼 내부 패딩 설정 */
-border-radius: 5px; /* 둥근 사각형 테두리 반지름 설정 */
-background-color: tomato; /* 배경색 설정 */
-margin-left: 10px; /* 각 버튼 사이의 간격을 설정합니다. */
-`;
 
-const ThumbsRankButton = styled.TouchableOpacity`
+const PublicPrivateButton = styled.View`
 padding: 5px 5px; /* 버튼 내부 패딩 설정 */
 border-radius: 5px; /* 둥근 사각형 테두리 반지름 설정 */
-background-color: tomato; /* 배경색 설정 */ 
-margin-left: 10px; /* 각 버튼 사이의 간격을 설정합니다. */
-`;
-
-const CommentsRankButton = styled.TouchableOpacity`
-padding: 5px 5px; /* 버튼 내부 패딩 설정 */
-border-radius: 5px; /* 둥근 사각형 테두리 반지름 설정 */
-background-color: tomato; /* 배경색 설정 */
+background-color: blue; /* 배경색 설정 */
 margin-left: 10px; /* 각 버튼 사이의 간격을 설정합니다. */
 `;
 const FormationButton = styled.View`
 padding: 5px 5px; /* 버튼 내부 패딩 설정 */
 border-radius: 5px; /* 둥근 사각형 테두리 반지름 설정 */
-background-color: tomato; /* 배경색 설정 */
+background-color: blue; /* 배경색 설정 */
 margin-left: 10px; /* 각 버튼 사이의 간격을 설정합니다. */
 `;
 
@@ -83,12 +71,12 @@ margin-right: 10px;
 const RankIconInFirstView = styled.View`
 flex-direction: row;
 margin-top: 5px;
-margin-right: 85px;
+margin-right: 210px;
 `
 const ButtonText = styled.Text`
   font-size: 16px;
   font-weight: 500;
-  color: black;
+  color: white;
 `;
 
 const Line = styled.View`
@@ -135,7 +123,7 @@ justify-content: flex-start;
 `
 
 
-const Tactics = ({ navigation }) => {
+const MyTactics = ({ navigation }) => {
   return (
     <Container>
       <StatusBar style="auto" />
@@ -144,20 +132,21 @@ const Tactics = ({ navigation }) => {
 
         <IconAndButtonsInFirstView>
         <RankIconInFirstView>
-          <FontAwesome6 name="ranking-star" size={24} color="tomato" />
-        
+        <MaterialCommunityIcons name="order-bool-descending" size={26} color="blue" />
         </RankIconInFirstView>
-          <HitsRankButton onPress={() => console.log('hitrank')}>
-            <ButtonText>조회순</ButtonText>
-          </HitsRankButton>
           
-          <ThumbsRankButton onPress={() => console.log('thumbrank')}>
-            <ButtonText>따봉순</ButtonText>
-          </ThumbsRankButton>
-          
-          <CommentsRankButton onPress={() => console.log('commentsrank')}>
-            <ButtonText>댓글순</ButtonText>
-          </CommentsRankButton>
+        <Menu>
+          <MenuTrigger>
+          <PublicPrivateButton onPress={() => console.log('commentsrank')}>
+            <ButtonText>공/비공</ButtonText>
+          </PublicPrivateButton>
+          </MenuTrigger>
+          <MenuOptions>
+            <MenuOption onPress={() => console.log('전체')} text='전체' />
+            <MenuOption onPress={() => console.log('공개')} text='공개' />
+            <MenuOption onPress={() => console.log('비공개')} text='비공개' />
+            </MenuOptions>
+          </Menu>
 
         <Menu>
           <MenuTrigger>
@@ -179,35 +168,35 @@ const Tactics = ({ navigation }) => {
       </FirstView>
 
       <SecondView>
-      <Line /><Line />
+      <Line/><Line/>
       </SecondView>
 
       <ThirdView>
         <ScrollView>
-          <ListItem title="Title 1"  description="Description 1"  number="1" formation="4-4-2" name="고민영" navigation={navigation}/>
-          <ListItem title="Title 2"  description="Description 2"  number="2" formation="4-3-3" name="고민영" navigation={navigation}/>
-          <ListItem title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영" navigation={navigation}/>
-          <ListItem title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영" navigation={navigation}/>
-          <ListItem title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영" navigation={navigation}/>
-          <ListItem title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영" navigation={navigation}/>
-          <ListItem title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영" navigation={navigation}/>
-          <ListItem title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영" navigation={navigation}/>
-          <ListItem title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영" navigation={navigation}/>
-          <ListItem title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영" navigation={navigation}/>
-          <ListItem title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영" navigation={navigation}/>
-          <ListItem title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영" navigation={navigation}/>
-          <ListItem title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영" navigation={navigation}/>
-          <ListItem title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영" navigation={navigation}/>
-          <ListItem title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영" navigation={navigation}/>
-          <ListItem title="Title Last"  description="Description 3"  number="3" formation="3-5-2" name="고민영" navigation={navigation}/>
+          <ListItemPublic title="Title 1"  description="Description 1"  number="1" formation="4-4-2" name="고민영"/>
+          <ListItemPublic title="Title 2"  description="Description 2"  number="2" formation="4-3-3" name="고민영"/>
+          <ListItemPublic title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영"/>
+          <ListItemPublic title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영"/>
+          <ListItemPrivate title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영"/>
+          <ListItemPublic title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영"/>
+          <ListItemPublic title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영"/>
+          <ListItemPrivate title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영"/>
+          <ListItemPublic title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영"/>
+          <ListItemPrivate title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영"/>
+          <ListItemPublic title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영"/>
+          <ListItemPublic title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영"/>
+          <ListItemPrivate title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영"/>
+          <ListItemPublic title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영"/>
+          <ListItemPublic title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영"/>
+          <ListItemPublic title="Title Last"  description="Description 3"  number="3" formation="3-5-2" name="고민영"/>
         </ScrollView>
       </ThirdView>
     </Container>
   );
 };
 
-const ListItem = ({ title, description, number, formation, name, navigation}) => (
-  <ItemContainer onPress={() => navigation.navigate('TacticExample')}>
+const ListItemPublic = ({ title, description, number, formation, name}) => (
+  <ItemContainer onPress={() => console.log('Item pressed')}>
     <ItemContent>
       <ItemTitle>{title}</ItemTitle>
       <ItemText>{description}</ItemText>
@@ -222,4 +211,20 @@ const ListItem = ({ title, description, number, formation, name, navigation}) =>
   </ItemContainer>
 );
 
-export default Tactics;
+const ListItemPrivate = ({ title, description, number, formation, name}) => (
+  <ItemContainer onPress={() => console.log('Item pressed')}>
+    <ItemContent>
+      <ItemTitle>{title}</ItemTitle>
+      <ItemText>{description}</ItemText>
+      <InformationView>
+        <ItemText>비공개</ItemText>
+        <ItemText>{number}</ItemText>
+        <ItemText>{formation}</ItemText>
+        <ItemText>{name}</ItemText>
+      </InformationView>
+      <LineForList />
+    </ItemContent>
+  </ItemContainer>
+);
+
+export default MyTactics;
