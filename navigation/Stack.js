@@ -1,10 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { NavigationContainer } from '@react-navigation/native-stack';
+import { Ionicons } from '@expo/vector-icons';
 import { FontAwesome } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
-
-
 import MainPage from '../screens/MainPage';
 import FreeBoard from '../screens/FreeBoard';
 import MyPage from '../screens/MyPage';
@@ -15,7 +13,7 @@ import TacticsSearch from '../screens/TacticsSearch';
 import NewTactic from '../screens/NewTactic';
 import MyTactics from '../screens/MyTactics';
 import TacticExample from '../screens/TacticExample';
-
+import { Calendar, LocaleConfig } from 'react-native-calendars';
 
 import styled from 'styled-components';
 import {
@@ -25,8 +23,51 @@ import {
   Image,
   TouchableOpacity,
   Button,
+  Modal,
 } from 'react-native';
 
+LocaleConfig.locales['fr'] = {
+  monthNames: [
+    '01월',
+    '02월',
+    '03월',
+    '04월',
+    '05월',
+    '06월',
+    '07월',
+    '08월',
+    '09월',
+    '10월',
+    '11월',
+    '12월',
+  ],
+  monthNamesShort: [
+    '01월',
+    '02월',
+    '03월',
+    '04월',
+    '05월',
+    '06월',
+    '07월',
+    '08월',
+    '09월',
+    '10월',
+    '11월',
+    '12월',
+  ],
+  dayNames: [
+    '일요일',
+    '월요일',
+    '화요일',
+    '수요일',
+    '목요일',
+    '금요일',
+    '토요일',
+  ],
+  dayNamesShort: ['일', '월', '화', '수', '목', '금', '토'],
+  today: "Aujourd'hui",
+};
+LocaleConfig.defaultLocale = 'fr';
 // your entry point
 import { MenuProvider } from 'react-native-popup-menu';
 
@@ -44,14 +85,29 @@ import {
   MenuTrigger,
 } from 'react-native-popup-menu';
 
-
 const Stack = createNativeStackNavigator();
 
-const SearchButton = styled.TouchableOpacity`
-margin-right: 10px;
+const TouchCalander = styled.TouchableOpacity`
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  margin-right: 5px;
 `;
 
-const OptionsButton = styled.TouchableOpacity`
+const CalanderEnrollButton = styled.TouchableOpacity`
+  width: 70px;
+  height: 30px;
+  border-radius: 8px;
+  background-color: red;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+  margin-left: 240px;
+`;
+
+const CalandarIcon = styled(Ionicons)``;
+const SearchButton = styled.TouchableOpacity`
   margin-right: 10px;
 `;
 
@@ -62,87 +118,216 @@ const NavigationButtonView = styled.View`
 `;
 
 const navigateToNewTactic = (navigation) => {
-  navigation.navigate("NewTactic");
+  navigation.navigate('NewTactic');
 };
 
 const navigateToMyTactics = (navigation) => {
-  navigation.navigate("MyTactics");
+  navigation.navigate('MyTactics');
 };
 
 const StackNavigation = () => {
+  const [isCallendarVisible, setIsCallendarVisible] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [markedDates, setMarkedDates] = useState({});
+  const [matchRegistered, setMatchRegistered] = useState(false); // 1. 매치 등록 상태 추가
+
+  const markSelectedDate = () => {
+    if (selectedDate) {
+      if (markedDates[selectedDate]) {
+        // 이미 선택된 날짜를 클릭한 경우
+        setMarkedDates((prevMarkedDates) => {
+          const updatedMarkedDates = { ...prevMarkedDates };
+          delete updatedMarkedDates[selectedDate]; // 선택된 날짜의 마킹을 제거
+          return updatedMarkedDates;
+        });
+        setMatchRegistered(false); // 매치 취소 상태로 변경
+      } else {
+        setMarkedDates({
+          ...markedDates,
+          [selectedDate]: {
+            selected: true,
+            selectedColor: 'red',
+          },
+        });
+        setMatchRegistered(true);
+      }
+    }
+  };
   return (
-  <MenuProvider>
-    <Stack.Navigator initialRouteName="MainPage">
-      
-      <Stack.Screen name="MainPage" component={MainPage} options={{ headerShown: false }}/>
+    <MenuProvider>
+      <Stack.Navigator initialRouteName="MainPage">
+        <Stack.Screen
+          name="MainPage"
+          component={MainPage}
+          options={{ headerShown: false }}
+        />
 
-      <Stack.Screen 
-      name='Tactics' 
-      component={Tactics} 
-      options={({ navigation }) => ({
-                headerShown: true ,
-                headerTitleAlign: 'center',
-                headerRight: () => (
-                  <View>
-                    <NavigationButtonView>
-                      <SearchButton onPress={() => navigation.navigate("TacticsSearch")}>
-                        <FontAwesome name="search" size={20} color="black" />
-                      </SearchButton>
-                      <Menu>
-                      <MenuTrigger>
+        <Stack.Screen
+          name="Tactics"
+          component={Tactics}
+          options={({ navigation }) => ({
+            headerShown: true,
+            headerTitleAlign: 'center',
+            headerRight: () => (
+              <View>
+                <NavigationButtonView>
+                  <SearchButton
+                    onPress={() => navigation.navigate('TacticsSearch')}
+                  >
+                    <FontAwesome name="search" size={20} color="black" />
+                  </SearchButton>
+                  <Menu>
+                    <MenuTrigger>
                       <Feather name="more-vertical" size={24} color="black" />
-                      </MenuTrigger>
-                      <MenuOptions>
-                      <MenuOption onSelect={() => navigateToNewTactic(navigation)} text='새 전술 생성' />
-                      <MenuOption onSelect={() => navigateToMyTactics(navigation)}>
-                        <Text style={{color: 'red'}}>내 전술 보기</Text>
-                        </MenuOption>
-                      </MenuOptions>
-                    </Menu>
-                    </NavigationButtonView>
-                  </View>
-                  
-                    ),
-                  })}
-                />
+                    </MenuTrigger>
+                    <MenuOptions>
+                      <MenuOption
+                        onSelect={() => navigateToNewTactic(navigation)}
+                        text="새 전술 생성"
+                      />
+                      <MenuOption
+                        onSelect={() => navigateToMyTactics(navigation)}
+                      >
+                        <Text style={{ color: 'red' }}>내 전술 보기</Text>
+                      </MenuOption>
+                    </MenuOptions>
+                  </Menu>
+                </NavigationButtonView>
+              </View>
+            ),
+          })}
+        />
 
-      <Stack.Screen name ='TacticsSearch' component={TacticsSearch} options={{ headerShown: false ,headerTitleAlign: 'center'}}/>
-      <Stack.Screen name='NewTactic' component={NewTactic} options={{ headerShown: true ,headerTitleAlign: 'center'}}/>
-      <Stack.Screen name='MyTactics' component={MyTactics} options={{ headerShown: true ,headerTitleAlign: 'center'}}/>
-      <Stack.Screen name='TacticExample' component={TacticExample} options={{ headerShown: true ,headerTitleAlign: 'center'}}/>
+        <Stack.Screen
+          name="TacticsSearch"
+          component={TacticsSearch}
+          options={{ headerShown: false, headerTitleAlign: 'center' }}
+        />
+        <Stack.Screen
+          name="NewTactic"
+          component={NewTactic}
+          options={{ headerShown: true, headerTitleAlign: 'center' }}
+        />
+        <Stack.Screen
+          name="MyTactics"
+          component={MyTactics}
+          options={{ headerShown: true, headerTitleAlign: 'center' }}
+        />
+        <Stack.Screen
+          name="TacticExample"
+          component={TacticExample}
+          options={{ headerShown: true, headerTitleAlign: 'center' }}
+        />
 
+        <Stack.Screen
+          name="PlusBanggusukTeam"
+          component={PlusBanggusukTeam}
+          options={({ navigation }) => ({
+            title: '새 팀',
+            headerTitleAlign: 'center',
+            headerRight: () => (
+              <TouchCalander onPress={() => setIsCallendarVisible(true)}>
+                <CalandarIcon name="calendar-outline" size={32}></CalandarIcon>
+              </TouchCalander>
+            ),
+          })}
+        />
 
-      <Stack.Screen
-        name="PlusBanggusukTeam"
-        component={PlusBanggusukTeam}
-        options={({ navigation }) => ({
-          title: '새 팀',
-          headerTitleAlign: 'center',
-        })}
-      />
+        <Stack.Screen
+          name="BanggusukTeam"
+          component={BanggusukTeam}
+          options={({ navigation }) => ({
+            title: '방구석 팀',
+            headerTitleAlign: 'center',
+            headerRight: () => (
+              <TouchableOpacity
+                onPress={() => navigation.navigate('PlusBanggusukTeam')}
+              >
+                <Text style={{ fontSize: 25 }}>+</Text>
+              </TouchableOpacity>
+            ),
+          })}
+        />
+        <Stack.Screen name="FreeBoard" component={FreeBoard} />
 
-      <Stack.Screen
-        name="BanggusukTeam"
-        component={BanggusukTeam}
-        options={({ navigation }) => ({
-          title: '방구석 팀',
-          headerTitleAlign: 'center',
-          headerRight: () => (
-            <TouchableOpacity
-              onPress={() => navigation.navigate('PlusBanggusukTeam')}
+        <Stack.Screen
+          name="MyPage"
+          component={MyPage}
+          options={{ headerShown: false, headerTitleAlign: 'center' }}
+        />
+      </Stack.Navigator>
+      {isCallendarVisible && ( // isCallendarVisible 상태가 true일 때 모달이 보이도록 설정합니다.
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={isCallendarVisible}
+        >
+          <TouchableOpacity
+            style={{
+              flex: 1,
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+            onPress={() => setIsCallendarVisible(false)}
+          >
+            <View
+              style={{
+                flex: 0.46,
+                justifyContent: 'center',
+                alignItems: 'center',
+                borderRadius: 8,
+                borderWidth: 4,
+                backgroundColor: 'white',
+              }}
             >
-              <Text style={{ fontSize: 25 }}>+</Text>
-            </TouchableOpacity>
-          ),
-        })}
-      />
-
-      <Stack.Screen name="FreeBoard" component={FreeBoard} />
-      
-      <Stack.Screen name='MyPage' component={MyPage} options={{ headerShown: false ,headerTitleAlign: 'center'}}/>
-      
-    </Stack.Navigator>
-  </MenuProvider>
+              <Calendar
+                style={{ borderRadius: 8, width: 350, hight: 80 }}
+                current={'2024-05-01'}
+                markedDates={{
+                  ...markedDates,
+                  [selectedDate]: {
+                    selected: true,
+                    selectedColor: 'red',
+                  },
+                }}
+                onDayPress={(day) => {
+                  console.log('선택된 날', day);
+                  setSelectedDate(day.dateString);
+                }}
+                monthFormat={'yyyy.MM'}
+                hideExtraDays={true}
+                firstDay={1}
+                theme={{
+                  'stylesheet.calendar.main': {
+                    selectedDay: {
+                      backgroundColor: 'red',
+                    },
+                  },
+                  'stylesheet.calendar.header': {
+                    dayTextAtIndex0: {
+                      color: '#FF0000',
+                    },
+                    dayTextAtIndex6: {
+                      color: '#007BA4',
+                    },
+                  },
+                  backgroundColor: '#ffffff',
+                  arrowColor: '#5B5B5B',
+                }}
+              ></Calendar>
+              <CalanderEnrollButton onPress={markSelectedDate}>
+                <Text
+                  style={{ color: 'white', fontSize: 14, fontWeight: 'bold' }}
+                >
+                  {markedDates[selectedDate] ? '매치 취소' : '매치 등록'}
+                </Text>
+              </CalanderEnrollButton>
+            </View>
+          </TouchableOpacity>
+        </Modal>
+      )}
+    </MenuProvider>
   );
 };
 
