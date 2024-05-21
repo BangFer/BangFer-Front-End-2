@@ -15,7 +15,10 @@ import TacticsSearch from '../screens/TacticsSearch';
 import NewTactic from '../screens/NewTactic';
 import MyTactics from '../screens/MyTactics';
 import TacticExample from '../screens/TacticExample';
-
+import FreeBoardSearch from '../screens/FreeBoardSearch';
+import MyPosts from '../screens/MyPosts';
+import NewPost from '../screens/NewPost';
+import PostExample from '../screens/PostExample';
 
 import styled from 'styled-components';
 import {
@@ -67,6 +70,14 @@ const navigateToNewTactic = (navigation) => {
 
 const navigateToMyTactics = (navigation) => {
   navigation.navigate("MyTactics");
+};
+
+const navigateToMyPosts = (navigation) => {
+  navigation.navigate("MyPosts");
+};
+
+const navigateToNewPost = (navigation) => {
+  navigation.navigate("NewPost");
 };
 
 const StackNavigation = () => {
@@ -137,10 +148,42 @@ const StackNavigation = () => {
         })}
       />
 
-      <Stack.Screen name="FreeBoard" component={FreeBoard} />
-      
+      <Stack.Screen 
+      name='FreeBoard' 
+      component={FreeBoard} 
+      options={({ navigation }) => ({
+                headerShown: true ,
+                headerTitleAlign: 'center',
+                headerRight: () => (
+                  <View>
+                    <NavigationButtonView>
+                      <SearchButton onPress={() => navigation.navigate("FreeBoardSearch")}>
+                        <FontAwesome name="search" size={20} color="black" />
+                      </SearchButton>
+                      <Menu>
+                      <MenuTrigger>
+                      <Feather name="more-vertical" size={24} color="black" />
+                      </MenuTrigger>
+                      <MenuOptions>
+                      <MenuOption onSelect={() => navigateToNewPost(navigation)} text='글 쓰기' />
+                      <MenuOption onSelect={() => navigateToMyPosts(navigation)}>
+                        <Text style={{color: 'red'}}>내가 쓴 글</Text>
+                        </MenuOption>
+                      </MenuOptions>
+                    </Menu>
+                    </NavigationButtonView>
+                  </View>
+                  
+                    ),
+                  })}
+                />
+      <Stack.Screen name ='FreeBoardSearch' component={FreeBoardSearch} options={{ headerShown: false ,headerTitleAlign: 'center'}}/>
+      <Stack.Screen name ='MyPosts' component={MyPosts} options={{ headerShown: true ,headerTitleAlign: 'center'}}/>
+      <Stack.Screen name ='NewPost' component={NewPost} options={{ headerShown: true ,headerTitleAlign: 'center'}}/>
+
       <Stack.Screen name='MyPage' component={MyPage} options={{ headerShown: false ,headerTitleAlign: 'center'}}/>
-      
+      <Stack.Screen name='PostExample' component={PostExample} options={{ headerShown: false ,headerTitleAlign: 'center'}}/>
+
     </Stack.Navigator>
   </MenuProvider>
   );
