@@ -13,6 +13,7 @@ import TacticsSearch from '../screens/TacticsSearch';
 import NewTactic from '../screens/NewTactic';
 import MyTactics from '../screens/MyTactics';
 import TacticExample from '../screens/TacticExample';
+import EnrollBanggusukTeam from '../screens/EnrollBanggusukTeam';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 
 import styled from 'styled-components';
@@ -241,7 +242,7 @@ const StackNavigation = () => {
             headerTitleAlign: 'center',
             headerRight: () => (
               <TouchableOpacity
-                onPress={() => navigation.navigate('PlusBanggusukTeam')}
+                onPress={() => navigation.navigate('EnrollBanggusukTeam')}
               >
                 <Text style={{ fontSize: 25 }}>+</Text>
               </TouchableOpacity>
@@ -249,6 +250,14 @@ const StackNavigation = () => {
           })}
         />
         <Stack.Screen name="FreeBoard" component={FreeBoard} />
+        <Stack.Screen
+          name="EnrollBanggusukTeam"
+          component={EnrollBanggusukTeam}
+          options={() => ({
+            title: '방구석 팀 등록',
+            headerTitleAlign: 'center',
+          })}
+        />
 
         <Stack.Screen
           name="MyPage"
