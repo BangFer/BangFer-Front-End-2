@@ -4,7 +4,6 @@ import { NavigationContainer } from '@react-navigation/native-stack';
 import { FontAwesome } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
 
-
 import MainPage from '../screens/MainPage';
 import FreeBoard from '../screens/FreeBoard';
 import MyPage from '../screens/MyPage';
@@ -19,6 +18,9 @@ import FreeBoardSearch from '../screens/FreeBoardSearch';
 import MyPosts from '../screens/MyPosts';
 import NewPost from '../screens/NewPost';
 import PostExample from '../screens/PostExample';
+import Login from '../screens/Login';
+import SignUp from '../screens/SignUp';
+import FindPw from '../screens/FindPw';
 
 import styled from 'styled-components';
 import {
@@ -47,11 +49,10 @@ import {
   MenuTrigger,
 } from 'react-native-popup-menu';
 
-
 const Stack = createNativeStackNavigator();
 
 const SearchButton = styled.TouchableOpacity`
-margin-right: 10px;
+  margin-right: 10px;
 `;
 
 const OptionsButton = styled.TouchableOpacity`
@@ -65,11 +66,11 @@ const NavigationButtonView = styled.View`
 `;
 
 const navigateToNewTactic = (navigation) => {
-  navigation.navigate("NewTactic");
+  navigation.navigate('NewTactic');
 };
 
 const navigateToMyTactics = (navigation) => {
-  navigation.navigate("MyTactics");
+  navigation.navigate('MyTactics');
 };
 
 const navigateToMyPosts = (navigation) => {
@@ -82,25 +83,37 @@ const navigateToNewPost = (navigation) => {
 
 const StackNavigation = () => {
   return (
-  <MenuProvider>
-    <Stack.Navigator initialRouteName="MainPage">
-      
-      <Stack.Screen name="MainPage" component={MainPage} options={{ headerShown: false }}/>
+    <MenuProvider>
+      <Stack.Navigator
+        initialRouteName="Login"
+        screenOptions={{ headerShown: false }}
+      >
+        <Stack.Screen name="Login" component={Login} />
+        <Stack.Screen name="SignUp" component={SignUp} />
+        <Stack.Screen name="FindPw" component={FindPw} />
 
-      <Stack.Screen 
-      name='Tactics' 
-      component={Tactics} 
-      options={({ navigation }) => ({
-                headerShown: true ,
-                headerTitleAlign: 'center',
-                headerRight: () => (
-                  <View>
-                    <NavigationButtonView>
-                      <SearchButton onPress={() => navigation.navigate("TacticsSearch")}>
-                        <FontAwesome name="search" size={20} color="black" />
-                      </SearchButton>
-                      <Menu>
-                      <MenuTrigger>
+        <Stack.Screen
+          name="MainPage"
+          component={MainPage}
+          options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
+          name="Tactics"
+          component={Tactics}
+          options={({ navigation }) => ({
+            headerShown: true,
+            headerTitleAlign: 'center',
+            headerRight: () => (
+              <View>
+                <NavigationButtonView>
+                  <SearchButton
+                    onPress={() => navigation.navigate('TacticsSearch')}
+                  >
+                    <FontAwesome name="search" size={20} color="black" />
+                  </SearchButton>
+                  <Menu>
+                    <MenuTrigger>
                       <Feather name="more-vertical" size={24} color="black" />
                       </MenuTrigger>
                       <MenuOptions>
@@ -186,7 +199,7 @@ const StackNavigation = () => {
 
     </Stack.Navigator>
   </MenuProvider>
-  );
+);
 };
 
-export default StackNavigation;
+export default StackNavigation
