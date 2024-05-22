@@ -5,6 +5,8 @@ import {NavigationContainer} from '@react-navigation/native';
 import styled from "styled-components";
 import { FontAwesome6 } from '@expo/vector-icons';
 import { FlatList } from "react-native";
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+
 
 const Container = styled.View`
   flex: 1;
@@ -25,21 +27,21 @@ const SecondView = styled.View`
 const HitsRankButton = styled.TouchableOpacity`
   padding: 5px 5px;
   border-radius: 5px;
-  background-color: tomato;
+  background-color: blue;
   margin-left: 10px;
 `;
 
 const ThumbsRankButton = styled.TouchableOpacity`
   padding: 5px 5px;
   border-radius: 5px;
-  background-color: tomato;
+  background-color: blue;
   margin-left: 10px;
 `;
 
 const CommentsRankButton = styled.TouchableOpacity`
   padding: 5px 5px;
   border-radius: 5px;
-  background-color: tomato;
+  background-color: blue;
   margin-left: 10px;
 `;
 
@@ -60,7 +62,7 @@ const RankIconInFirstView = styled.View`
 const ButtonText = styled.Text`
   font-size: 16px;
   font-weight: 500;
-  color: black;
+  color: white;
 `;
 
 const Line = styled.View`
@@ -106,7 +108,7 @@ const InformationView = styled.View`
   justify-content: flex-start;
 `;
 
-const FreeBoard = ({ navigation }) => {
+const MyPosts = ({ navigation }) => {
   // 백엔드에서 받아온 데이터를 대체할 샘플 데이터
   const data = [
     { id: '1', title: 'Title 1', description: 'Description 1', number: '1', formation: '4-4-2', name: '고민영' },
@@ -142,7 +144,7 @@ const FreeBoard = ({ navigation }) => {
       <FirstView>
         <IconAndButtonsInFirstView>
           <RankIconInFirstView>
-            <FontAwesome6 name="ranking-star" size={24} color="tomato" />
+            <MaterialCommunityIcons name="order-bool-descending" size={26} color="blue" />
           </RankIconInFirstView>
           <HitsRankButton onPress={() => console.log('hitrank')}>
             <ButtonText>조회순</ButtonText>
@@ -170,7 +172,7 @@ const FreeBoard = ({ navigation }) => {
 };
 
 const ListItem = ({ title, description, number, name, navigation }) => (
-  <ItemContainer onPress={() => navigation.navigate('PostExample')}>
+  <ItemContainer onPress={() => navigation.navigate('TacticExample')}>
     <ItemContent>
       <ItemTitle>{title}</ItemTitle>
       <ItemText>{description}</ItemText>
@@ -184,4 +186,4 @@ const ListItem = ({ title, description, number, name, navigation }) => (
   </ItemContainer>
 );
 
-export default FreeBoard;
+export default MyPosts;
