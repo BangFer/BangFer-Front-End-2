@@ -19,6 +19,9 @@ import {
   Keyboard,
 } from "react-native";
 
+const TTestView = styled.View`
+  flex: 1;
+`;
 const Container = styled.View`
   flex: 1;
   flex-direction: column;
