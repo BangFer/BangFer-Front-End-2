@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { StatusBar } from "expo-status-bar";
 import styled from "styled-components";
+import TacticsBack from "../../assets/TacticsBack.png";
 import DropDownPicker from "react-native-dropdown-picker";
-import TacticsBack from "../assets/TacticsBack.png";
 import { FontAwesome5 } from "@expo/vector-icons";
 
 import {

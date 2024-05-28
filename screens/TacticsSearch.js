@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import styled from "styled-components/native";
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from "@expo/vector-icons";
 
 const Container = styled.View`
   flex: 1;
   padding: 10px;
-  background-color: #FFFFFF;
+  background-color: #ffffff;
 `;
 
 const SearchView = styled.View`
@@ -13,7 +13,7 @@ const SearchView = styled.View`
   align-items: center;
   border-radius: 10px; /* 둥근 외각선을 위한 속성 */
   border-width: 1px;
-  border-color: #CCCCCC;
+  border-color: #cccccc;
   padding: 5px 10px; /* 내부 여백 설정 */
   margin-top: 20px;
 `;
@@ -34,9 +34,7 @@ const CancelButton = styled.TouchableOpacity`
   right: 10px; /* 오른쪽 여백 설정 */
 `;
 
-const CancelButtonText = styled.Text`
-
-`;
+const CancelButtonText = styled.Text``;
 
 const CenterView = styled.View`
   align-items: center;
@@ -64,7 +62,6 @@ const TacticsSearch = ({ navigation }) => {
 
   return (
     <Container>
-
       <SearchView>
         <SearchIcon name="search" size={24} color="black" />
         <SearchInput
@@ -81,7 +78,6 @@ const TacticsSearch = ({ navigation }) => {
         <BigIcon name="search" color="black" />
         <SearchText>전술 검색하기</SearchText>
       </CenterView>
-
     </Container>
   );
 };
