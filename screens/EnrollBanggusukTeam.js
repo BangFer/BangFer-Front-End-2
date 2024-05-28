@@ -89,25 +89,31 @@ const TextInputforModalTactics = styled.TextInput`
   margin: 5px;
 `;
 const ViewForTextBar = styled.View`
-  width: 100%;
-  height: 55px;
+  flex: 11;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
 `;
 
 const ViewForTacticBoard = styled.View`
-  width: 90%;
-  height: 470px;
+  flex: 94;
   margin-left: 20px;
+  margin-right: 20px;
 `;
 
 const ViewForBoard = styled.View`
-  margin-top: 5px;
-  height: 420px;
+  flex: 42;
+`;
+
+const ViewForDropdown = styled.View`
+  flex: 5;
+  z-index: 1;
+  margin-left: 3.5px;
+  margin-right: 3.5px;
 `;
 
 const ViewForSlideTactic = styled.View`
+  flex: 29;
   width: 100%;
   height: 150px;
   align-items: center;
@@ -142,11 +148,6 @@ const ToggleButton = styled.TouchableOpacity`
   position: absolute; /* 절대 위치 설정 */
   top: 15px; /* 박스의 위쪽으로부터 10px */
   right: 15px; /* 박스의 오른쪽으로부터 10px */
-`;
-
-const ViewForDropdown = styled.View`
-  heigth: 50px;
-  z-index: 1;
 `;
 
 const TestView = styled.View`
@@ -228,7 +229,7 @@ const TaticsName = styled.TextInput`
   height: 40px;
   width: 120px;
   border-width: 4px;
-  margin-left: 20px;
+  margin-left: 24px;
   border-radius: 10px;
   padding-left: 10px;
   font-size: 17px;
@@ -239,7 +240,7 @@ const DirectorName = styled.TextInput`
   height: 40px;
   width: 120px;
   border-width: 4px;
-  margin-right: 20px;
+  margin-right: 24px;
   border-radius: 10px;
   padding-left: 10px;
   font-size: 17px;
@@ -254,8 +255,7 @@ const TacticsBackImage = styled.Image`
 `;
 
 const RegisterButtonView = styled.View`
-  width: 100%;
-  height: 40px;
+  flex: 10;
   align-items: flex-end;
   justify-content: center;
 `;
@@ -268,6 +268,7 @@ const RegisterButton = styled.TouchableOpacity`
   justify-content: center;
   align-items: center;
   margin-right: 25px;
+  margin-bottom: 7px;
 `;
 
 const RegisterText = styled.Text`
