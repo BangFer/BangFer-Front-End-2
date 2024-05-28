@@ -149,7 +149,7 @@ const ViewForListPlayers = styled.View`
 `;
 
 const ViewForListPlayersReal = styled.View`
-  width: 90%;
+  width: 88%;
   height: 370px;
   align-items: center;
   border-width: 4px;
@@ -171,6 +171,8 @@ const ViewForListPlayersTitle = styled.View`
 const ViewForDropdown = styled.View`
   heigth: 50px;
   z-index: 1;
+  margin-left: 3.5px;
+  margin-right: 3.5px;
 `;
 
 const TestView = styled.View`
@@ -365,7 +367,7 @@ const TaticsName = styled.TextInput`
   height: 40px;
   width: 120px;
   border-width: 4px;
-  margin-left: 20px;
+  margin-left: 24px;
   border-radius: 10px;
   padding-left: 10px;
   font-size: 17px;
@@ -376,7 +378,7 @@ const DirectorName = styled.TextInput`
   height: 40px;
   width: 120px;
   border-width: 4px;
-  margin-right: 20px;
+  margin-right: 24px;
   border-radius: 10px;
   padding-left: 10px;
   font-size: 17px;
