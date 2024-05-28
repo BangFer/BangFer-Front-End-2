@@ -1,14 +1,12 @@
 import React from "react";
-import { StatusBar } from "expo-status-bar";
-import {ScrollView } from "react-native";
- 
+import { StatusBar } from "expo-status-bar"; 
 import { Ionicons } from '@expo/vector-icons';
 import {NavigationContainer} from '@react-navigation/native';
 import styled from "styled-components";
 import { FontAwesome6 } from '@expo/vector-icons';
-
-// your entry point
 import { MenuProvider } from 'react-native-popup-menu';
+import { FlatList } from "react-native";
+
 
 export const App = () => (
   <MenuProvider>
@@ -40,10 +38,7 @@ const SecondView = styled.View`
   height: 1px;
   background-color: black;
   margin-vertical: 10px;
-`;
-
-const ThirdView = styled.ScrollView`
-  flex: 1;
+  margin-horizontal: 10px;
 `;
 
 const HitsRankButton = styled.TouchableOpacity`
@@ -95,7 +90,8 @@ const Line = styled.View`
   flex: 1;
   height: 1px; /* 직선의 높이를 설정합니다. */
   background-color: black; /* 검은색으로 설정합니다. */
-`;
+  margin-horizontal: 5px; /* 양 끝에 5px의 여백을 추가합니다. */
+  `;
 const LineForList = styled.View`
   flex: 1;
   height: 1px; /* 직선의 높이를 설정합니다. */
@@ -136,6 +132,34 @@ justify-content: flex-start;
 
 
 const Tactics = ({ navigation }) => {
+
+  const data = [
+    { id: '1', title: 'Title 1', description: 'Description 1', number: '1', formation: '4-4-2', name: '고민영' },
+    { id: '2', title: 'Title 2', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
+    { id: '3', title: 'Title 3', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
+    { id: '4', title: 'Title 4', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
+    { id: '5', title: 'Title 5', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
+    { id: '6', title: 'Title 6', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
+    { id: '7', title: 'Title 7', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
+    { id: '8', title: 'Title 8', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
+    { id: '9', title: 'Title 9', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
+    { id: '10', title: 'Title 10', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
+    { id: '11', title: 'Title 11', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
+    { id: '12', title: 'Title 12', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
+    { id: '13', title: 'Title 13', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
+  
+  ];
+
+  const renderItem = ({ item }) => (
+    <ListItem
+      title={item.title}
+      description={item.description}
+      number={item.number}
+      formation={item.formation}
+      name={item.name}
+      navigation={navigation}
+    />
+  );
   return (
     <Container>
       <StatusBar style="auto" />
@@ -179,29 +203,14 @@ const Tactics = ({ navigation }) => {
       </FirstView>
 
       <SecondView>
-      <Line /><Line />
+      <Line />
       </SecondView>
 
-      <ThirdView>
-        <ScrollView>
-          <ListItem title="Title 1"  description="Description 1"  number="1" formation="4-4-2" name="고민영" navigation={navigation}/>
-          <ListItem title="Title 2"  description="Description 2"  number="2" formation="4-3-3" name="고민영" navigation={navigation}/>
-          <ListItem title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영" navigation={navigation}/>
-          <ListItem title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영" navigation={navigation}/>
-          <ListItem title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영" navigation={navigation}/>
-          <ListItem title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영" navigation={navigation}/>
-          <ListItem title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영" navigation={navigation}/>
-          <ListItem title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영" navigation={navigation}/>
-          <ListItem title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영" navigation={navigation}/>
-          <ListItem title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영" navigation={navigation}/>
-          <ListItem title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영" navigation={navigation}/>
-          <ListItem title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영" navigation={navigation}/>
-          <ListItem title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영" navigation={navigation}/>
-          <ListItem title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영" navigation={navigation}/>
-          <ListItem title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영" navigation={navigation}/>
-          <ListItem title="Title Last"  description="Description 3"  number="3" formation="3-5-2" name="고민영" navigation={navigation}/>
-        </ScrollView>
-      </ThirdView>
+      <FlatList
+        data={data}
+        renderItem={renderItem}
+        keyExtractor={item => item.id}
+      />
     </Container>
   );
 };
@@ -217,8 +226,8 @@ const ListItem = ({ title, description, number, formation, name, navigation}) =>
         <ItemText>{formation}</ItemText>
         <ItemText>{name}</ItemText>
       </InformationView>
-      <LineForList />
     </ItemContent>
+    <LineForList />
   </ItemContainer>
 );
 
