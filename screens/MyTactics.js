@@ -1,15 +1,12 @@
 import React from "react";
 import { StatusBar } from "expo-status-bar";
-import {ScrollView } from "react-native";
- 
 import { Ionicons } from '@expo/vector-icons';
 import {NavigationContainer} from '@react-navigation/native';
 import styled from "styled-components";
 import { FontAwesome6 } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-
-// your entry point
 import { MenuProvider } from 'react-native-popup-menu';
+import { FlatList } from "react-native";
 
 export const App = () => (
   <MenuProvider>
@@ -41,6 +38,7 @@ const SecondView = styled.View`
   height: 1px;
   background-color: black;
   margin-vertical: 10px;
+  margin-horizontal: 10px;
 `;
 
 const ThirdView = styled.ScrollView`
@@ -124,6 +122,52 @@ justify-content: flex-start;
 
 
 const MyTactics = ({ navigation }) => {
+  
+  const data = [
+    { id: '1', type: 'Public', title: 'Title 1', description: 'Description 1', number: '1', formation: '4-4-2', name: '고민영' },
+    { id: '2', type: 'Public', title: 'Title 2', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
+    { id: '3', type: 'Private', title: 'Title 3', description: 'Description 2', formation: '4-3-3', name: '고민영' },
+    { id: '4', type: 'Public', title: 'Title 4', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
+    { id: '5', type: 'Private', title: 'Title 5', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
+    { id: '6', type: 'Private', title: 'Title 6', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
+    { id: '7', type: 'Private', title: 'Title 7', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
+    { id: '8', type: 'Private', title: 'Title 8', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
+    { id: '9', type: 'Public', title: 'Title 9', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
+    { id: '10', type: 'Public', title: 'Title 10', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
+    { id: '11', type: 'Public', title: 'Title 11', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
+    { id: '12', type: 'Private', title: 'Title 12', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
+    { id: '13', type: 'Private', title: 'Title 13', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
+  
+  ];
+
+  const renderItem = ({ item }) => {
+    switch(item.type){
+      case 'Public':
+        return(
+          <ListItemPublic
+            title={item.title}
+            description={item.description}
+            number={item.number}
+            formation={item.formation}
+            name={item.name}
+            navigation={navigation}
+          />
+        );
+      case 'Private':
+        return(
+          <ListItemPrivate
+          title={item.title}
+          description={item.description}
+          formation={item.formation}
+          name={item.name}
+          navigation={navigation}
+        />
+        )
+      default:
+        return null;
+    }
+  };
+
   return (
     <Container>
       <StatusBar style="auto" />
@@ -171,26 +215,11 @@ const MyTactics = ({ navigation }) => {
       <Line/><Line/>
       </SecondView>
 
-      <ThirdView>
-        <ScrollView>
-          <ListItemPublic title="Title 1"  description="Description 1"  number="1" formation="4-4-2" name="고민영"/>
-          <ListItemPublic title="Title 2"  description="Description 2"  number="2" formation="4-3-3" name="고민영"/>
-          <ListItemPublic title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영"/>
-          <ListItemPublic title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영"/>
-          <ListItemPrivate title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영"/>
-          <ListItemPublic title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영"/>
-          <ListItemPublic title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영"/>
-          <ListItemPrivate title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영"/>
-          <ListItemPublic title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영"/>
-          <ListItemPrivate title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영"/>
-          <ListItemPublic title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영"/>
-          <ListItemPublic title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영"/>
-          <ListItemPrivate title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영"/>
-          <ListItemPublic title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영"/>
-          <ListItemPublic title="Title 3"  description="Description 3"  number="3" formation="3-5-2" name="고민영"/>
-          <ListItemPublic title="Title Last"  description="Description 3"  number="3" formation="3-5-2" name="고민영"/>
-        </ScrollView>
-      </ThirdView>
+      <FlatList
+        data={data}
+        renderItem={renderItem}
+        keyExtractor={item => item.id}
+      />
     </Container>
   );
 };
@@ -211,14 +240,13 @@ const ListItemPublic = ({ title, description, number, formation, name}) => (
   </ItemContainer>
 );
 
-const ListItemPrivate = ({ title, description, number, formation, name}) => (
+const ListItemPrivate = ({ title, description, formation, name}) => (
   <ItemContainer onPress={() => console.log('Item pressed')}>
     <ItemContent>
       <ItemTitle>{title}</ItemTitle>
       <ItemText>{description}</ItemText>
       <InformationView>
         <ItemText>비공개</ItemText>
-        <ItemText>{number}</ItemText>
         <ItemText>{formation}</ItemText>
         <ItemText>{name}</ItemText>
       </InformationView>
