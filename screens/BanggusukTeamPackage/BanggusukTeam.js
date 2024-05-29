@@ -4,7 +4,8 @@ import styled from "styled-components";
 import { Ionicons } from "@expo/vector-icons";
 import { FontAwesome } from "@expo/vector-icons";
 import { Feather } from "@expo/vector-icons";
-import PlusBanggusukTeam from "../screens/PlusBanggusukTeam";
+import TacticsBack from "../../assets/TacticsBack.png";
+import UserPlusBanggusukTeam from "./UserPlusBanggusukTeam";
 import { MenuProvider } from "react-native-popup-menu";
 import {
   Menu,
@@ -63,7 +64,7 @@ const ViewForSeparator = styled.View`
 `;
 
 const navigateToPlusBanggusukTeam = (navigation) => {
-  navigation.navigate("PlusBanggusukTeam");
+  navigation.navigate("UserPlusBanggusukTeam");
 };
 
 const Item = ({
@@ -75,7 +76,9 @@ const Item = ({
   navigation,
 }) => {
   return (
-    <TouchForFlatList onPress={() => navigation.navigate("PlusBanggusukTeam")}>
+    <TouchForFlatList
+      onPress={() => navigation.navigate("UserPlusBanggusukTeam")}
+    >
       <ViewForFlatListTitle>
         <TextForFlatListTitle>{title}</TextForFlatListTitle>
         <Menu>

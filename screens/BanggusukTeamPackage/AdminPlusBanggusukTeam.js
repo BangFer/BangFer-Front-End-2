@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { StatusBar } from "expo-status-bar";
 import styled from "styled-components";
 import DropDownPicker from "react-native-dropdown-picker";
-import TacticsBack from "../assets/TacticsBack.png";
+import TacticsBack from "../../assets/TacticsBack.png";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import RNPickerSelect from "react-native-picker-select";
@@ -134,6 +134,22 @@ const Title = styled.Text`
   font-weight: bold;
   margin-bottom: 5px;
   color: white;
+`;
+
+const RegisterButton = styled.TouchableOpacity`
+  border-radius: 8px;
+  width: 60px;
+  height: 40px;
+  background-color: #d9d9d9;
+  justify-content: center;
+  align-items: center;
+  margin-right: 25px;
+`;
+
+const RegisterText = styled.Text`
+  font-size: 20px;
+  font-weight: bold;
+  color: black;
 `;
 
 const ToggleButton = styled.TouchableOpacity`
@@ -441,7 +457,7 @@ const DATA = [
   },
 ];
 
-const PlusBanggusukTeam = ({ navigation }) => {
+const AdminPlusBanggusukTeam = ({ navigation }) => {
   const [TacticsNameplaceholder, setTacticsNamePlaceholder] = useState("팀 명");
   const [DetailTacticsplaceholder, setDetailTacticsplaceholder] = useState("");
   const [DetailPositionplaceholder, setDetailPositionplaceholder] =
@@ -1214,10 +1230,21 @@ const PlusBanggusukTeam = ({ navigation }) => {
             </ViewForFlatList>
           </ViewForListPlayersReal>
         </ViewForListPlayers>
-        <View style={{ width: "100%", height: 30 }}></View>
+        <View
+          style={{
+            width: "100%",
+            height: 55,
+            alignItems: "flex-end",
+            justifyContent: "center",
+          }}
+        >
+          <RegisterButton>
+            <RegisterText>수정</RegisterText>
+          </RegisterButton>
+        </View>
       </ScrollView>
     </Container>
   );
 };
 
-export default PlusBanggusukTeam;
+export default AdminPlusBanggusukTeam;

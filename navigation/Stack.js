@@ -7,8 +7,8 @@ import { Feather } from '@expo/vector-icons';
 import MainPage from '../screens/MainPage';
 import FreeBoard from '../screens/FreeBoard';
 import MyPage from '../screens/MyPage';
-import BanggusukTeam from '../screens/BanggusukTeam';
-import PlusBanggusukTeam from '../screens/PlusBanggusukTeam';
+import BanggusukTeam from '../screens/BanggusukTeamPackage/BanggusukTeam';
+import UserPlusBanggusukTeam from '../screens/BanggusukTeamPackage/UserPlusBanggusukTeam';
 import Tactics from '../screens/Tactics';
 import TacticsSearch from '../screens/TacticsSearch';
 import NewTactic from '../screens/NewTactic';
@@ -21,7 +21,7 @@ import PostExample from '../screens/PostExample';
 import Login from '../screens/Login';
 import SignUp from '../screens/SignUp';
 import FindPw from '../screens/FindPw';
-import EnrollBanggusukTeam from '../screens/EnrollBanggusukTeam';
+import EnrollBanggusukTeam from '../screens/BanggusukTeamPackage/EnrollBanggusukTeam';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import AntDesign from '@expo/vector-icons/AntDesign';
 
@@ -249,8 +249,8 @@ const StackNavigation = () => {
         />
 
         <Stack.Screen
-          name="PlusBanggusukTeam"
-          component={PlusBanggusukTeam}
+          name="UserPlusBanggusukTeam"
+          component={UserPlusBanggusukTeam}
           options={({ navigation }) => ({
             title: '새 팀',
             headerTitleAlign: 'center',
