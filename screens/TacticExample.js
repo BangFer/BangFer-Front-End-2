@@ -1,18 +1,20 @@
 import React, { useState } from "react";
-import styled from 'styled-components';
-import Entypo from '@expo/vector-icons/Entypo';
-import { Feather } from '@expo/vector-icons';
-import { Ionicons } from '@expo/vector-icons';
-import ProfileImg from '../assets/profileimg.jpg'
-import { FontAwesome5 } from '@expo/vector-icons';
+import { StatusBar } from "expo-status-bar";
+import styled from "styled-components";
 import DropDownPicker from "react-native-dropdown-picker";
 import TacticsBack from "../assets/TacticsBack.png";
-import { FlatList } from "react-native";
+import { FontAwesome5 } from "@expo/vector-icons";
+import { Picker } from "@react-native-picker/picker";
+import RNPickerSelect from "react-native-picker-select";
+import { Ionicons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
+import Entypo from '@expo/vector-icons/Entypo';
+import ProfileImg from '../assets/profileimg.jpg'
+
 
 
 import {
   Text,
-  TextInput,
   View,
   StyleSheet,
   Image,
@@ -21,11 +23,9 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   Dimensions,
+  FlatList,
   Keyboard,
-  SafeAreaView,
-  Platform,
 } from "react-native";
-
 
 const Container = styled.View`
   flex: 1;
@@ -94,30 +94,100 @@ const TextInputforModalTactics = styled.TextInput`
   margin: 5px;
 `;
 const ViewForTextBar = styled.View`
-  flex: 1;
+  width: 100%;
+  height: 55px;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  margin-top : -60px;
 `;
 
 const ViewForTacticBoard = styled.View`
-  flex: 3;
+  width: 90%;
+  height: 470px;
   margin-left: 20px;
-  margin-right: 20px;
-  margin-top : -65px;
-`;
-
-const ViewForDropdown = styled.View`
-  flex: 1;
-  margin-left: 3.5px;
-  margin-right: 3.5px;
 `;
 
 const ViewForBoard = styled.View`
-  flex: 8;
-  margin-top: -20px;
-  top : -10px;
+  margin-top: 5px;
+  height: 420px;
+`;
+
+const ViewForSlideTactic = styled.View`
+  width: 100%;
+  height: 150px;
+  align-items: center;
+`;
+
+const TacticBox = styled.View`
+  border-radius: 15px;
+  background-color: ${({ isMain }) => (isMain ? "tomato" : "blue")};
+  padding: 10px;
+  height: 90%; /* 높이 조정 */
+  width: ${Dimensions.get("window").width -
+  50}px; /* 화면 너비에서 20px를 뺀 값 */
+  position: relative;
+  margin-top: 5px;
+`;
+
+const TextBox = styled.TextInput`
+  width: 100%;
+  height: 75%;
+  font-size: 16px;
+  color: white;
+`;
+
+const Title = styled.Text`
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: white;
+`;
+
+const ToggleButton = styled.TouchableOpacity`
+  position: absolute; /* 절대 위치 설정 */
+  top: 15px; /* 박스의 위쪽으로부터 10px */
+  right: 15px; /* 박스의 오른쪽으로부터 10px */
+`;
+
+const ViewForListPlayers = styled.View`
+  width: 100%;
+  height: 370px;
+  align-items: center;
+`;
+
+const ViewForListPlayersReal = styled.View`
+  width: 88%;
+  height: 370px;
+  align-items: center;
+  border-width: 4px;
+`;
+
+const ViewForFlatList = styled.View`
+  width: 100%;
+  height: 420px;
+`;
+
+const ViewForCommentData = styled.View`
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  margin-left: 35px;
+`
+
+const ViewForListPlayersTitle = styled.View`
+  width: 100%;
+  height: 60px;
+  justify-content: space-between;
+  flex-direction: row;
+  align-items: center;
+`;
+
+const ViewForDropdown = styled.View`
+  heigth: 50px;
+  z-index: 1;
+  margin-left: 3.5px;
+  margin-right: 3.5px;
 `;
 
 const TestView = styled.View`
@@ -125,37 +195,177 @@ const TestView = styled.View`
 `;
 
 const ViewForForward = styled.View`
-  flex: 3;
+  width: 100%;
+  height: 20%;
   justify-content: center;
   align-items: center;
   flex-direction: row;
 `;
 const ViewForMidfielder = styled.View`
-  flex: 3;
+  width: 100%;
+  height: 40%;
   align-items: center;
   flex-direction: row;
   justify-content: space-around;
 `;
 
 const SecondViewForMidfielder = styled.View`
-  flex: 3;
-  flex-direction: row;
+  width: 100%;
+  height: 40%;
   align-items: center;
   justify-content: space-around;
+  flex-direction: row;
 `;
 
 const ViewForDefender = styled.View`
-  flex: 3;
+  width: 100%;
+  height: 20%;
   align-items: center;
   flex-direction: row;
   justify-content: space-around;
 `;
 const ViewForGoalkeeper = styled.View`
-  flex: 1.5;
+  width: 100%;
+  height: 20%;
   align-items: center;
   flex-direction: row;
   justify-content: center;
 `;
+
+const ViewForPlayer = styled.View`
+  width: 100%;
+  height: 50px;
+  flex-direction: row;
+`;
+const ViewForSeparator = styled.View`
+  width: 100%;
+  height: 2px;
+  background-color: black;
+`;
+
+const ItemText = styled.Text`
+  font-size: 13px;
+  margin-left: 8px;
+  font-weight: bold;
+`;
+
+const ViewForPlayerLeft = styled.View`
+  width: 50%;
+  height: 100%;
+  align-items: center;
+  justify-content: flex-start;
+  flex-direction: row;
+`;
+
+const ViewForPlayerRight = styled.View`
+  width: 50%;
+  height: 100%;
+  align-items: center;
+`;
+
+const TouchForPlayerImage = styled.TouchableOpacity`
+  width: 40px;
+  height: 40px;
+  border-radius: 50px;
+  background-color: grey;
+  margin-left: 10px;
+`;
+
+const ViewForPickerContainer = styled.View`
+  width: 115px;
+  height: 100%;
+  justifycontent: center;
+  alignitems: center;
+  margin-left: 80px;
+`;
+
+const SearchView = styled.View`
+  flex-direction: row;
+  align-items: center;
+  border-radius: 10px; /* 둥근 외각선을 위한 속성 */
+  border-width: 1px;
+  border-color: #CCCCCC;
+  padding: 5px 10px; /* 내부 여백 설정 */
+  margin-right : 10px;
+  margin-left: 10px;
+  bottom: 10px;
+`;
+
+const SearchInput = styled.TextInput`
+  flex: 1;
+  height: 30px;
+  font-size: 14px;
+`;
+
+const SearchText = styled.Text`
+  font-size: 14px;
+  font-weight: bold;
+  color: gray;
+`;
+
+const SubmitButton = styled.TouchableOpacity`
+  position: absolute; /* 절대 위치 설정 */
+  top: 10px; /* 위쪽 여백 설정 */
+  right: 10px; /* 오른쪽 여백 설정 */
+`;
+
+const Item = ({ title }) => {
+  const [pickerValue, setPickerValue] = useState("12"); // 초기값 설정
+
+  return (
+    <ViewForPlayer>
+      <ViewForPlayerLeft>
+        <TouchForPlayerImage></TouchForPlayerImage>
+        <ItemText>{title}</ItemText>
+      </ViewForPlayerLeft>
+      <ViewForPlayerRight>
+        <ViewForPickerContainer>
+          <RNPickerSelect
+            placeholder={{
+              label: "후보",
+              value: "12",
+            }}
+            fixAndroidTouchableBug={true}
+            selectedValue={pickerValue}
+            onValueChange={(itemValue, itemIndex) => setPickerValue(itemValue)}
+            items={[
+              { label: "ST", value: "1" },
+              { label: "RS", value: "2" },
+              { label: "LS", value: "3" },
+              { label: "CAM", value: "4" },
+              { label: "CDM", value: "5" },
+              { label: "CM", value: "6" },
+              { label: "RCB", value: "7" },
+              { label: "LCB", value: "8" },
+              { label: "CB", value: "9" },
+              { label: "RB", value: "10" },
+              { label: "GK", value: "11" },
+            ]}
+            style={{
+              placeholder: { color: "black" },
+              inputAndroid: styles.input,
+              inputAndroidContainer: styles.inputContainer,
+              inputIOS: styles.input,
+              inputIOSContainer: styles.inputContainer,
+            }}
+          />
+        </ViewForPickerContainer>
+      </ViewForPlayerRight>
+    </ViewForPlayer>
+  );
+};
+
+const styles = StyleSheet.create({
+  input: {
+    fontSize: 17,
+    height: 30,
+    fontWeight: "bold",
+  },
+  inputContainer: {
+    width: "30%",
+    alignItems: "center",
+  },
+});
 
 const Forward = styled.TouchableOpacity`
   border-radius: 15px;
@@ -190,11 +400,19 @@ const Goalkeeper = styled.TouchableOpacity`
   margin-top: 20px;
 `;
 
+const TouchForPlusPlayer = styled.TouchableOpacity`
+  width: 20%;
+  height: 20px;
+  align-items: center;
+  margin-right: 10px;
+  flex-direction: row;
+`;
+
 const TaticsName = styled.TextInput`
   height: 40px;
-  width: 165px;
+  width: 120px;
   border-width: 4px;
-  margin-left: 25px;
+  margin-left: 24px;
   border-radius: 10px;
   padding-left: 10px;
   font-size: 17px;
@@ -205,7 +423,7 @@ const DirectorName = styled.TextInput`
   height: 40px;
   width: 120px;
   border-width: 4px;
-  margin-right: 20px;
+  margin-right: 24px;
   border-radius: 10px;
   padding-left: 10px;
   font-size: 17px;
@@ -217,106 +435,12 @@ const TacticsBackImage = styled.Image`
   height: 100%;
   ${StyleSheet.absoluteFillObject};
   z-index: -1;
-  `;
-
-const TacticContainer = styled.View`
-  flex : 1;
-  margin-bottom: 10px;
-  justifyContent: center;
-   alignItems: center;
 `;
-
-const TacticBox = styled.View`
-  border-radius: 15px;
-  background-color: ${({ isMain }) => (isMain ? 'tomato' : 'blue')};
-  padding: 10px;
-  height: 150px; /* 높이 조정 */
-  width: ${Dimensions.get('window').width - 50}px; /* 화면 너비에서 20px를 뺀 값 */
-  position: relative;
-  margin-top: -55px;
-`;
-
-const Title = styled.Text`
-  font-size: 24px;
+const TextForListPlayersTitle = styled.Text`
+  font-size: 28px;
   font-weight: bold;
-  margin-bottom: 5px;
-  color: white;
-`;
-
-const TextBox = styled.TextInput`
-  flex: 1;
-  font-size: 16px;
-  color: white;
-  placeholderTextColor: white; /* 흰색으로 placeholder 텍스트 색상 설정 */
-`;
-
-const ButtonContainer = styled.View`
-  flex: 1;
-  position: absolute;
-  top: 750px;
-  right: 25px;
-  margin-top: 12.5px;
-`;
-
-const Button = styled.TouchableOpacity`
-  background-color: black;
-  border-radius: 10px;
-  padding: 10px 20px;
-`;
-const ToggleButton = styled.TouchableOpacity`
-  position: absolute; /* 절대 위치 설정 */
-  top: 15px; /* 박스의 위쪽으로부터 10px */
-  right: 15px; /* 박스의 오른쪽으로부터 10px */
-`;
-
-
-const FirstView = styled.View`
-flex-direction: row;
-align-items: center;
-justify-content: flex-start;
-padding-left: 15px; /* 맨 좌측 요소의 좌측 여백 설정 */
-margin-vertical: 5px; /* 상하 여백 설정 */
-`;
-
-const SecondView = styled.View`
-  height: 1px;
-  background-color: black;
-  margin-vertical: 10px;
-`;
-
-const ThirdView = styled.ScrollView`
-  flex: 1;
-`;
-
-const SearchView = styled.View`
-  flex-direction: row;
-  align-items: center;
-  border-radius: 10px; /* 둥근 외각선을 위한 속성 */
-  border-width: 1px;
-  border-color: #CCCCCC;
-  padding: 5px 10px; /* 내부 여백 설정 */
-  margin-top: 20px;
-`;
-
-const SearchInput = styled.TextInput`
-  flex: 1;
-  height: 30px;
-  font-size: 14px;
-`;
-
-const CancelButton = styled.TouchableOpacity`
-  position: absolute; /* 절대 위치 설정 */
-  top: 10px; /* 위쪽 여백 설정 */
-  right: 10px; /* 오른쪽 여백 설정 */
-`;
-
-const CancelButtonText = styled.Text``;
-
-
-const SearchText = styled.Text`
-  font-size: 14px;
-  font-weight: bold;
-  color: gray;
+  text-decoration-line: underline;
+  margin-left: 10px;
 `;
 
 const Line = styled.View`
@@ -331,11 +455,19 @@ const LineForList = styled.View`
   height: 1px; /* 직선의 높이를 설정합니다. */
   background-color: black; /* 검은색으로 설정합니다. */
   margin-top: 5px;
+  margin-bottom: 5px;
+`;
+
+const ViewForLine = styled.View`
+ height: 20px;
+ margin-left: 20px;
+ margin-right: 20px;
 `;
 
 
 const ItemContainer = styled.TouchableOpacity`
-  padding-horizontal: 10px;
+  margin-left: 20px;
+  margin-right: 30px;
 `;
 
 const ItemContent = styled.View`
@@ -346,16 +478,12 @@ const ItemContent = styled.View`
 const ItemTitle = styled.Text`
   font-size: 16px;
   font-weight: bold;
+  margin-left: 5px;
   margin-right: 5px;
 `;
 
-const ItemText = styled.Text`
-  font-size: 16px;
-  margin-right: 10px;
-`;
-
 const ThumbsUpNumber = styled.Text`
-  font-size: 16px;
+  font-size: 14px;
   margin-right: 10px;
   color: tomato;
   margin-right: 5px;
@@ -371,12 +499,14 @@ const ChatBubbleIcon = styled(Ionicons)`
   margin-top: 2px;
   margin-right: 2px;
   margin-right: 5px;
+
 `;
 
 const ThumbsUpIcon = styled(Feather)`
   margin-top: 2px;
   margin-right: 2px;
   margin-right: 5px;
+
 `;
 
 
@@ -435,15 +565,27 @@ const StyledImage = styled.Image`
 
 
 
-const TacticExample = ({ navigation }) => {
-  const [searchText, setSearchText] = useState("");
+const TacticsExample = ({ navigation }) => {
 
-  const handleSearch = () => {
-    // 추후 검색 기능 구현
-    console.log("검색어:", searchText);
-  };
+  const renderItem = ({ item }) => {
+    return(
+      <CommentItem
+        username={item.username}
+        description={item.description}
+        number={item.number}
+      />
+    );
+}
 
-  const [TacticsNameplaceholder, setTacticsNamePlaceholder] = useState("전술명을 입력하세요");
+const data = [
+{ id: '1',  username: '고민영', description: '헉 ㄷㄷ', number: '3'},
+{ id: '2',  username: '김종우', description: '나 같은 경우에는', number: '3'},
+{ id: '3',  username: '오우석', description: '공감?유해진?', number: '2'},
+{ id: '4',  username: '김민우', description: '그만...', number: '1'},
+{ id: '5',  username: '김현우', description: '헉 ㄷㄷ', number: '1'},  
+];
+
+  const [TacticsNameplaceholder, setTacticsNamePlaceholder] = useState("팀 명");
   const [DetailTacticsplaceholder, setDetailTacticsplaceholder] = useState("");
   const [DetailPositionplaceholder, setDetailPositionplaceholder] =
     useState("");
@@ -451,21 +593,27 @@ const TacticExample = ({ navigation }) => {
     setTacticsNamePlaceholder("");
   };
   const handleBlur = () => {
-    setTacticsNamePlaceholder("전술명을 입력하세요");
+    setTacticsNamePlaceholder("팀 명");
   };
 
-  const [MainTacticText, setMainTacticText] = useState("");
+  const [pickerValue, setPickerValue] = useState("1");
 
-  const handleChangeMainTacticText = (inputText) => {
-    setMainTacticText(inputText);
+  const [isMainTactic, setIsMainTactic] = useState(true);
+  const [mainText, setMainText] = useState("");
+  const [subText, setSubText] = useState("");
+
+  const handleToggleTactic = () => {
+    setIsMainTactic(!isMainTactic);
+    Keyboard.dismiss();
   };
 
-  const [SubTacticText, setSubTacticText] = useState("");
-
-  const handleChangeSubTacticText = (inputText) => {
-    setSubTacticText(inputText);
+  const handleChangeMainText = (inputText) => {
+    setMainText(inputText);
   };
 
+  const handleChangeSubText = (inputText) => {
+    setSubText(inputText);
+  };
   const [DirectorNameplaceholder, setDirectorNamePlaceholder] =
     useState("감독명");
   const handleFocus2 = () => {
@@ -478,13 +626,13 @@ const TacticExample = ({ navigation }) => {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState({ label: "4-4-2", value: "1" });
   const [items, setItems] = useState([
-    { label: "4-4-2", value: "1" },
-    { label: "4-3-3", value: "2" },
-    { label: "4-3-2-1", value: "3" },
-    { label: "4-2-3-1", value: "4" },
-    { label: "3-4-3", value: "5" },
-    { label: "3-5-2", value: "6" },
-    { label: "3-2-4-1", value: "7" },
+    { label: "내 전술", value: "1" },
+    { label: "클롭", value: "2" },
+    { label: "사비", value: "3" },
+    { label: "알론소", value: "4" },
+    { label: "맨시티식", value: "5" },
+    { label: "맨유", value: "6" },
+    { label: "첼시", value: "7" },
   ]);
 
   const [isAttackerModalVisible, setIsAttackerModalVisible] = useState(false);
@@ -520,763 +668,744 @@ const TacticExample = ({ navigation }) => {
         setCurrentValue(1);
     }
   };
+
+  const CommentItem = ({ username, description, number}) => (
+    <ItemContainer>
+      <ItemContent>
+        <FirstLineView>
+        <ImageContainer> 
+            <StyledImage source={ProfileImg} />
+          </ImageContainer>
+        <OtherElements>
+        <ItemTitle>{username}</ItemTitle>
+        <ThumbsUpIcon name="thumbs-up" size={14} color="tomato" />
+        <ThumbsUpNumber>{number}</ThumbsUpNumber>
+        </OtherElements>
+        </FirstLineView>
   
-  const [isMainTactic, setIsMainTactic] = useState(true);
-  const [mainText, setMainText] = useState('');
-  const [subText, setSubText] = useState('');
+        <SecondLineView>
+          <ItemText>{description}</ItemText>
+          <ChatBubbleIcon name={"chatbubble-outline"} size={14} color="blue" />
+          <ThumbsUpIcon name="thumbs-up" size={14} color="tomato" />
+        </SecondLineView>
+        <LineForList />
+      </ItemContent>
+    </ItemContainer>
+  );
 
-  const handleToggleTactic = () => {
-    setIsMainTactic(!isMainTactic);
-    Keyboard.dismiss();
+  const [searchText, setSearchText] = useState("");
+
+  const handleSearch = () => {
+    // 추후 검색 기능 구현
+    console.log("검색어:", searchText);
   };
-
-  const handleChangeMainText = (inputText) => {
-    setMainText(inputText);
-  };
-
-  const handleChangeSubText = (inputText) => {
-    setSubText(inputText);
-  };
-
-  const renderItem = ({ item }) => {
-    switch(item.type){
-      case 'Tactic' :
-        return(
-          <TacticNameBoard/>
-        );
-      case 'Formation' :
-        return(
-          <FormationBoard/>
-        );
-      case 'CommentData' :
-        return(
-          <CommentData/>
-        );
-      case 'Comment':
-        return(
-          <CommentItem
-            username={item.username}
-            description={item.description}
-            number={item.number}
-          />
-        );
-      default:
-        return null;
-    }
-  };
-
-  const data = [
-    { id: '1', type: 'Tactic'},
-    { id: '2', type: 'Formation'},
-    { id: '3', type: 'CommentData'},
-    { id: '4', type: 'Comment', username: '고민영', description: '헉 ㄷㄷ', number: '3'},
-    { id: '5', type: 'Comment', username: '김종우', description: '나 같은 경우에는', number: '3'},
-    { id: '6', type: 'Comment', username: '오우석', description: '공감?유해진?', number: '2'},
-    { id: '7', type: 'Comment', username: '김민우', description: '그만...', number: '1'},
-    { id: '8', type: 'Comment', username: '김현우', description: '헉 ㄷㄷ', number: '1'},  
-  ];
 
   return (
     <Container>
-              <FlatList
+      <ScrollView
+        contentContainerStyle={{
+          flexGrow: 1,
+        }}
+        nestedScrollEnabled={true}
+      >
+        <ViewForTextBar>
+          <TaticsName
+            placeholder={TacticsNameplaceholder}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+          />
+          <DirectorName
+            placeholder={DirectorNameplaceholder}
+            onFocus={handleFocus2}
+            onBlur={handleBlur2}
+          ></DirectorName>
+        </ViewForTextBar>
+        <ViewForTacticBoard>
+          <ViewForDropdown>
+            <DropDownPicker
+              open={open}
+              value={value}
+              items={items}
+              placeholder="내 전술"
+              setOpen={setOpen}
+              setValue={setValue}
+              setItems={setItems}
+              onChangeValue={onChange}
+              maxHeight={400}
+              style={{
+                backgroundColor: "#000",
+              }}
+              textStyle={{
+                color: "#fff",
+                fontWeight: "bold",
+              }}
+              dropDownContainerStyle={{
+                backgroundColor: "#000",
+              }}
+              arrowIconStyle={{
+                tintColor: "white",
+                borderWidth: 13,
+              }}
+              nestedScrollEnabled={true}
+            />
+          </ViewForDropdown>
+          <ViewForBoard>
+            <TacticsBackImage source={TacticsBack} resizeMode={"stretch"} />
+            <Modal // 공격수 모달
+              animationType="slide"
+              visible={isAttackerModalVisible}
+              transparent={true}
+            >
+              <ContainerModalView
+                onPress={() => setIsAttackerModalVisible(false)}
+              >
+                <ModalView>
+                  <ViewforModalPosition>
+                    <TextForModalPosition
+                      editable
+                      numberOfLines={1}
+                      value={DetailPositionplaceholder}
+                      maxLenth={10}
+                      placeholder="포지션 입력"
+                      onChangeText={(newText) =>
+                        setDetailPositionplaceholder(newText)
+                      }
+                      placeholderTextColor="#ff6262"
+                    ></TextForModalPosition>
+                  </ViewforModalPosition>
+
+                  <ViewforModalText>
+                    <TextInputforModalTactics
+                      editable
+                      multiline
+                      numberOfLines={3}
+                      value={DetailTacticsplaceholder}
+                      maxLength={100}
+                      placeholder="세부 전술을 입력하세요."
+                      onChangeText={(newText) =>
+                        setDetailTacticsplaceholder(newText)
+                      }
+                      placeholderTextColor="#ff6262"
+                    ></TextInputforModalTactics>
+                  </ViewforModalText>
+                  <ViewforModalOutButton>
+                    <TouchForOutButton
+                      onPress={() => setIsAttackerModalVisible(false)}
+                    >
+                      <TextForOutButton>확인</TextForOutButton>
+                    </TouchForOutButton>
+                  </ViewforModalOutButton>
+                </ModalView>
+              </ContainerModalView>
+            </Modal>
+            <Modal // 미드필더 모달
+              animationType="slide"
+              visible={isMidfielderModalVisible}
+              transparent={true}
+            >
+              <ContainerModalView
+                onPress={() => setIsMidfielderModalVisible(false)}
+              >
+                <ModalView style={{ borderColor: "#5182FF" }}>
+                  <ViewforModalPosition>
+                    <TextForModalPosition
+                      editable
+                      numberOfLines={1}
+                      value={DetailPositionplaceholder}
+                      maxLenth={10}
+                      placeholder="포지션 입력"
+                      onChangeText={(newText) =>
+                        setDetailPositionplaceholder(newText)
+                      }
+                      placeholderTextColor="#5182FF"
+                      style={{ color: "#5182FF" }}
+                    ></TextForModalPosition>
+                  </ViewforModalPosition>
+
+                  <ViewforModalText>
+                    <TextInputforModalTactics
+                      editable
+                      multiline
+                      numberOfLines={3}
+                      value={DetailTacticsplaceholder}
+                      maxLength={100}
+                      placeholder="세부 전술을 입력하세요."
+                      onChangeText={(newText) =>
+                        setDetailTacticsplaceholder(newText)
+                      }
+                      placeholderTextColor="#5182FF"
+                      style={{ color: "#5182FF" }}
+                    ></TextInputforModalTactics>
+                  </ViewforModalText>
+                  <ViewforModalOutButton>
+                    <TouchForOutButton
+                      style={{ backgroundColor: "#5182FF" }}
+                      onPress={() => setIsMidfielderModalVisible(false)}
+                    >
+                      <TextForOutButton>확인</TextForOutButton>
+                    </TouchForOutButton>
+                  </ViewforModalOutButton>
+                </ModalView>
+              </ContainerModalView>
+            </Modal>
+            <Modal // 수비수 모달
+              animationType="slide"
+              visible={isDefenderModalVisible}
+              transparent={true}
+            >
+              <ContainerModalView
+                onPress={() => setIsDefenderModalVisible(false)}
+              >
+                <ModalView style={{ borderColor: "#6CD163" }}>
+                  <ViewforModalPosition>
+                    <TextForModalPosition
+                      editable
+                      numberOfLines={1}
+                      value={DetailPositionplaceholder}
+                      maxLenth={10}
+                      placeholder="포지션 입력"
+                      onChangeText={(newText) =>
+                        setDetailPositionplaceholder(newText)
+                      }
+                      placeholderTextColor="#6CD163"
+                      style={{ color: "#6CD163" }}
+                    ></TextForModalPosition>
+                  </ViewforModalPosition>
+
+                  <ViewforModalText>
+                    <TextInputforModalTactics
+                      editable
+                      multiline
+                      numberOfLines={3}
+                      value={DetailTacticsplaceholder}
+                      maxLength={100}
+                      placeholder="세부 전술을 입력하세요."
+                      onChangeText={(newText) =>
+                        setDetailTacticsplaceholder(newText)
+                      }
+                      placeholderTextColor="#6CD163"
+                      style={{ color: "#6CD163" }}
+                    ></TextInputforModalTactics>
+                  </ViewforModalText>
+                  <ViewforModalOutButton>
+                    <TouchForOutButton
+                      style={{ backgroundColor: "#6CD163" }}
+                      onPress={() => setIsDefenderModalVisible(false)}
+                    >
+                      <TextForOutButton>확인</TextForOutButton>
+                    </TouchForOutButton>
+                  </ViewforModalOutButton>
+                </ModalView>
+              </ContainerModalView>
+            </Modal>
+            <Modal // 골키퍼 모달
+              animationType="slide"
+              visible={isGKModalVisible}
+              transparent={true}
+            >
+              <ContainerModalView onPress={() => setIsGKModalVisible(false)}>
+                <ModalView style={{ borderColor: "#FFB056" }}>
+                  <ViewforModalPosition>
+                    <TextForModalPosition
+                      editable
+                      numberOfLines={1}
+                      value={DetailPositionplaceholder}
+                      maxLenth={10}
+                      placeholder="포지션 입력"
+                      onChangeText={(newText) =>
+                        setDetailPositionplaceholder(newText)
+                      }
+                      placeholderTextColor="#FFB056"
+                      style={{ color: "#FFB056" }}
+                    ></TextForModalPosition>
+                  </ViewforModalPosition>
+
+                  <ViewforModalText>
+                    <TextInputforModalTactics
+                      editable
+                      multiline
+                      numberOfLines={3}
+                      value={DetailTacticsplaceholder}
+                      maxLength={100}
+                      placeholder="세부 전술을 입력하세요."
+                      onChangeText={(newText) =>
+                        setDetailTacticsplaceholder(newText)
+                      }
+                      placeholderTextColor="#FFB056"
+                      style={{ color: "#FFB056" }}
+                    ></TextInputforModalTactics>
+                  </ViewforModalText>
+                  <ViewforModalOutButton>
+                    <TouchForOutButton
+                      style={{ backgroundColor: "#FFB056" }}
+                      onPress={() => setIsGKModalVisible(false)}
+                    >
+                      <TextForOutButton>확인</TextForOutButton>
+                    </TouchForOutButton>
+                  </ViewforModalOutButton>
+                </ModalView>
+              </ContainerModalView>
+            </Modal>
+            {currentValue === 1 && (
+              <TestView>
+                <ViewForForward>
+                  <Forward
+                    style={{ marginTop: 70 }}
+                    onPress={() => setIsAttackerModalVisible(true)}
+                  ></Forward>
+                  <Forward
+                    style={{ marginTop: 70 }}
+                    onPress={() => setIsAttackerModalVisible(true)}
+                  ></Forward>
+                </ViewForForward>
+                <ViewForMidfielder>
+                  <Midfielder
+                    onPress={() => setIsMidfielderModalVisible(true)}
+                  ></Midfielder>
+                  <Midfielder
+                    onPress={() => setIsMidfielderModalVisible(true)}
+                    style={{ marginTop: 25 }}
+                  ></Midfielder>
+                  <Midfielder
+                    onPress={() => setIsMidfielderModalVisible(true)}
+                    style={{ marginTop: 25 }}
+                  ></Midfielder>
+                  <Midfielder
+                    onPress={() => setIsMidfielderModalVisible(true)}
+                  ></Midfielder>
+                </ViewForMidfielder>
+                <ViewForDefender>
+                  <Defender
+                    onPress={() => setIsDefenderModalVisible(true)}
+                  ></Defender>
+                  <Defender
+                    onPress={() => setIsDefenderModalVisible(true)}
+                    style={{ marginTop: 25 }}
+                  ></Defender>
+                  <Defender
+                    onPress={() => setIsDefenderModalVisible(true)}
+                    style={{ marginTop: 25 }}
+                  ></Defender>
+                  <Defender
+                    onPress={() => setIsDefenderModalVisible(true)}
+                  ></Defender>
+                </ViewForDefender>
+                <ViewForGoalkeeper>
+                  <Goalkeeper
+                    onPress={() => setIsGKModalVisible(true)}
+                    style={{ marginTop: 25 }}
+                  ></Goalkeeper>
+                </ViewForGoalkeeper>
+              </TestView>
+            )}
+            {currentValue === 2 && (
+              <TestView>
+                <ViewForForward style={{ justifyContent: "space-around" }}>
+                  <Forward
+                    onPress={() => setIsAttackerModalVisible(true)}
+                    style={{ marginTop: 80 }}
+                  ></Forward>
+                  <Forward
+                    onPress={() => setIsAttackerModalVisible(true)}
+                    style={{ marginBottom: 60 }}
+                  ></Forward>
+                  <Forward
+                    onPress={() => setIsAttackerModalVisible(true)}
+                    style={{ marginTop: 80 }}
+                  ></Forward>
+                </ViewForForward>
+                <ViewForMidfielder>
+                  <Midfielder
+                    onPress={() => setIsMidfielderModalVisible(true)}
+                    style={{ marginLeft: 45 }}
+                  ></Midfielder>
+                  <Midfielder
+                    onPress={() => setIsMidfielderModalVisible(true)}
+                    style={{ marginTop: 50 }}
+                  ></Midfielder>
+                  <Midfielder
+                    onPress={() => setIsMidfielderModalVisible(true)}
+                    style={{ marginRight: 45 }}
+                  ></Midfielder>
+                </ViewForMidfielder>
+                <ViewForDefender>
+                  <Defender
+                    onPress={() => setIsDefenderModalVisible(true)}
+                    style={{ marginTop: 15 }}
+                  ></Defender>
+                  <Defender
+                    onPress={() => setIsDefenderModalVisible(true)}
+                    style={{ marginTop: 35 }}
+                  ></Defender>
+                  <Defender
+                    onPress={() => setIsDefenderModalVisible(true)}
+                    style={{ marginTop: 35 }}
+                  ></Defender>
+                  <Defender
+                    onPress={() => setIsDefenderModalVisible(true)}
+                    style={{ marginTop: 15 }}
+                  ></Defender>
+                </ViewForDefender>
+                <ViewForGoalkeeper>
+                  <Goalkeeper
+                    onPress={() => setIsGKModalVisible(true)}
+                    style={{ marginTop: 30 }}
+                  ></Goalkeeper>
+                </ViewForGoalkeeper>
+              </TestView>
+            )}
+            {currentValue === 3 && (
+              <TestView>
+                <ViewForForward>
+                  <Forward
+                    onPress={() => setIsAttackerModalVisible(true)}
+                    style={{ marginBottom: 60 }}
+                  ></Forward>
+                </ViewForForward>
+                <SecondViewForMidfielder style={{ height: "20%" }}>
+                  <Midfielder
+                    style={{ marginBottom: 20, marginLeft: 60 }}
+                    onPress={() => setIsMidfielderModalVisible(true)}
+                  ></Midfielder>
+                  <Midfielder
+                    style={{ marginBottom: 20, marginRight: 60 }}
+                    onPress={() => setIsMidfielderModalVisible(true)}
+                  ></Midfielder>
+                </SecondViewForMidfielder>
+                <ViewForMidfielder style={{ height: "20%" }}>
+                  <Midfielder
+                    onPress={() => setIsMidfielderModalVisible(true)}
+                    style={{ marginLeft: 15 }}
+                  ></Midfielder>
+                  <Midfielder
+                    onPress={() => setIsMidfielderModalVisible(true)}
+                    style={{}}
+                  ></Midfielder>
+                  <Midfielder
+                    onPress={() => setIsMidfielderModalVisible(true)}
+                    style={{ marginRight: 15 }}
+                  ></Midfielder>
+                </ViewForMidfielder>
+                <ViewForDefender>
+                  <Defender
+                    onPress={() => setIsDefenderModalVisible(true)}
+                    style={{ marginTop: 30 }}
+                  ></Defender>
+                  <Defender
+                    onPress={() => setIsDefenderModalVisible(true)}
+                    style={{ marginTop: 50 }}
+                  ></Defender>
+                  <Defender
+                    onPress={() => setIsDefenderModalVisible(true)}
+                    style={{ marginTop: 50 }}
+                  ></Defender>
+                  <Defender
+                    onPress={() => setIsDefenderModalVisible(true)}
+                    style={{ marginTop: 30 }}
+                  ></Defender>
+                </ViewForDefender>
+                <ViewForGoalkeeper>
+                  <Goalkeeper
+                    onPress={() => setIsGKModalVisible(true)}
+                    style={{ marginTop: 25 }}
+                  ></Goalkeeper>
+                </ViewForGoalkeeper>
+              </TestView>
+            )}
+            {currentValue === 4 && (
+              <TestView>
+                <ViewForForward>
+                  <Forward
+                    onPress={() => setIsAttackerModalVisible(true)}
+                    style={{ marginBottom: 60 }}
+                  ></Forward>
+                </ViewForForward>
+                <SecondViewForMidfielder style={{ height: "20%" }}>
+                  <Midfielder
+                    onPress={() => setIsMidfielderModalVisible(true)}
+                    style={{ marginBottom: 10, marginLeft: 5 }}
+                  ></Midfielder>
+                  <Midfielder
+                    onPress={() => setIsMidfielderModalVisible(true)}
+                    style={{ marginBottom: 10 }}
+                  ></Midfielder>
+                  <Midfielder
+                    onPress={() => setIsMidfielderModalVisible(true)}
+                    style={{ marginBottom: 10, marginRight: 5 }}
+                  ></Midfielder>
+                </SecondViewForMidfielder>
+                <ViewForMidfielder style={{ height: "20%" }}>
+                  <Midfielder
+                    onPress={() => setIsMidfielderModalVisible(true)}
+                    style={{ marginLeft: 55 }}
+                  ></Midfielder>
+                  <Midfielder
+                    onPress={() => setIsMidfielderModalVisible(true)}
+                    style={{ marginRight: 55 }}
+                  ></Midfielder>
+                </ViewForMidfielder>
+                <ViewForDefender>
+                  <Defender
+                    onPress={() => setIsDefenderModalVisible(true)}
+                    style={{ marginTop: 15 }}
+                  ></Defender>
+                  <Defender
+                    onPress={() => setIsDefenderModalVisible(true)}
+                    style={{ marginTop: 35 }}
+                  ></Defender>
+                  <Defender
+                    onPress={() => setIsDefenderModalVisible(true)}
+                    style={{ marginTop: 35 }}
+                  ></Defender>
+                  <Defender
+                    onPress={() => setIsDefenderModalVisible(true)}
+                    style={{ marginTop: 15 }}
+                  ></Defender>
+                </ViewForDefender>
+                <ViewForGoalkeeper>
+                  <Goalkeeper
+                    onPress={() => setIsGKModalVisible(true)}
+                    style={{ marginTop: 25 }}
+                  ></Goalkeeper>
+                </ViewForGoalkeeper>
+              </TestView>
+            )}
+            {currentValue === 5 && (
+              <TestView>
+                <ViewForForward style={{ justifyContent: "space-around" }}>
+                  <Forward
+                    style={{ marginTop: 80 }}
+                    onPress={() => setIsAttackerModalVisible(true)}
+                  ></Forward>
+                  <Forward
+                    onPress={() => setIsAttackerModalVisible(true)}
+                    style={{ marginTop: 20 }}
+                  ></Forward>
+                  <Forward
+                    style={{ marginTop: 80 }}
+                    onPress={() => setIsAttackerModalVisible(true)}
+                  ></Forward>
+                </ViewForForward>
+                <ViewForMidfielder>
+                  <Midfielder
+                    style={{ marginTop: 25 }}
+                    onPress={() => setIsMidfielderModalVisible(true)}
+                  ></Midfielder>
+                  <Midfielder
+                    onPress={() => setIsMidfielderModalVisible(true)}
+                    style={{ marginTop: 45 }}
+                  ></Midfielder>
+                  <Midfielder
+                    onPress={() => setIsMidfielderModalVisible(true)}
+                    style={{ marginTop: 45 }}
+                  ></Midfielder>
+                  <Midfielder
+                    style={{ marginTop: 25 }}
+                    onPress={() => setIsMidfielderModalVisible(true)}
+                  ></Midfielder>
+                </ViewForMidfielder>
+                <ViewForDefender>
+                  <Defender
+                    onPress={() => setIsDefenderModalVisible(true)}
+                    style={{ marginLeft: 25, marginBottom: 15 }}
+                  ></Defender>
+                  <Defender
+                    onPress={() => setIsDefenderModalVisible(true)}
+                    style={{}}
+                  ></Defender>
+                  <Defender
+                    onPress={() => setIsDefenderModalVisible(true)}
+                    style={{ marginRight: 25, marginBottom: 15 }}
+                  ></Defender>
+                </ViewForDefender>
+                <ViewForGoalkeeper>
+                  <Goalkeeper
+                    onPress={() => setIsGKModalVisible(true)}
+                    style={{ marginTop: 25 }}
+                  ></Goalkeeper>
+                </ViewForGoalkeeper>
+              </TestView>
+            )}
+            {currentValue === 6 && (
+              <TestView>
+                <ViewForForward>
+                  <Forward
+                    onPress={() => setIsAttackerModalVisible(true)}
+                  ></Forward>
+                  <Forward
+                    onPress={() => setIsAttackerModalVisible(true)}
+                  ></Forward>
+                </ViewForForward>
+                <SecondViewForMidfielder
+                  style={{ justifyContent: "space-between", height: "20%" }}
+                >
+                  <Midfielder
+                    onPress={() => setIsMidfielderModalVisible(true)}
+                    style={{ marginLeft: 20, marginTop: 70 }}
+                  ></Midfielder>
+                  <Midfielder
+                    onPress={() => setIsMidfielderModalVisible(true)}
+                    style={{ marginTop: 10 }}
+                  ></Midfielder>
+                  <Midfielder
+                    onPress={() => setIsMidfielderModalVisible(true)}
+                    style={{ marginRight: 20, marginTop: 70 }}
+                  ></Midfielder>
+                </SecondViewForMidfielder>
+                <ViewForMidfielder style={{ height: "20%" }}>
+                  <Midfielder
+                    onPress={() => setIsMidfielderModalVisible(true)}
+                    style={{ marginLeft: 60 }}
+                  ></Midfielder>
+                  <Midfielder
+                    onPress={() => setIsMidfielderModalVisible(true)}
+                    style={{ marginRight: 60 }}
+                  ></Midfielder>
+                </ViewForMidfielder>
+                <ViewForDefender>
+                  <Defender
+                    onPress={() => setIsDefenderModalVisible(true)}
+                    style={{ marginLeft: 25, marginBottom: 15 }}
+                  ></Defender>
+                  <Defender
+                    onPress={() => setIsDefenderModalVisible(true)}
+                    style={{}}
+                  ></Defender>
+                  <Defender
+                    onPress={() => setIsDefenderModalVisible(true)}
+                    style={{ marginRight: 25, marginBottom: 15 }}
+                  ></Defender>
+                </ViewForDefender>
+                <ViewForGoalkeeper>
+                  <Goalkeeper
+                    onPress={() => setIsGKModalVisible(true)}
+                    style={{ marginTop: 25 }}
+                  ></Goalkeeper>
+                </ViewForGoalkeeper>
+              </TestView>
+            )}
+            {currentValue === 7 && (
+              <TestView>
+                <ViewForForward>
+                  <Forward
+                    onPress={() => setIsAttackerModalVisible(true)}
+                    style={{ marginBottom: 60 }}
+                  ></Forward>
+                </ViewForForward>
+                <SecondViewForMidfielder style={{ height: "20%" }}>
+                  <Midfielder
+                    onPress={() => setIsMidfielderModalVisible(true)}
+                    style={{ marginBottom: 15 }}
+                  ></Midfielder>
+                  <Midfielder
+                    onPress={() => setIsMidfielderModalVisible(true)}
+                    style={{ marginBottom: 15 }}
+                  ></Midfielder>
+                  <Midfielder
+                    onPress={() => setIsMidfielderModalVisible(true)}
+                    style={{ marginBottom: 15 }}
+                  ></Midfielder>
+                  <Midfielder
+                    onPress={() => setIsMidfielderModalVisible(true)}
+                    style={{ marginBottom: 15 }}
+                  ></Midfielder>
+                </SecondViewForMidfielder>
+                <ViewForMidfielder style={{ height: "20%" }}>
+                  <Midfielder
+                    onPress={() => setIsMidfielderModalVisible(true)}
+                    style={{ marginLeft: 75 }}
+                  ></Midfielder>
+                  <Midfielder
+                    onPress={() => setIsMidfielderModalVisible(true)}
+                    style={{ marginRight: 75 }}
+                  ></Midfielder>
+                </ViewForMidfielder>
+                <ViewForDefender>
+                  <Defender
+                    onPress={() => setIsDefenderModalVisible(true)}
+                    style={{ marginLeft: 25, marginBottom: 15 }}
+                  ></Defender>
+                  <Defender
+                    onPress={() => setIsDefenderModalVisible(true)}
+                    style={{ marginTop: 15 }}
+                  ></Defender>
+                  <Defender
+                    onPress={() => setIsDefenderModalVisible(true)}
+                    style={{ marginRight: 25, marginBottom: 15 }}
+                  ></Defender>
+                </ViewForDefender>
+                <ViewForGoalkeeper>
+                  <Goalkeeper
+                    onPress={() => setIsGKModalVisible(true)}
+                    style={{ marginTop: 25 }}
+                  ></Goalkeeper>
+                </ViewForGoalkeeper>
+              </TestView>
+            )}
+          </ViewForBoard>
+        </ViewForTacticBoard>
+        <ViewForSlideTactic>
+          <TacticBox isMain={isMainTactic}>
+            <Title>{isMainTactic ? "메인전술" : "세부전술"}</Title>
+            <TextBox
+              multiline={true}
+              onChangeText={
+                isMainTactic ? handleChangeMainText : handleChangeSubText
+              }
+              value={isMainTactic ? mainText : subText}
+              placeholder="내용을 입력하세요..."
+              textAlignVertical="top"
+              style={{ paddingTop: 10 }}
+              placeholderTextColor="white"
+              autoFocus={false}
+            />
+            <ToggleButton onPress={handleToggleTactic}>
+              <FontAwesome5 name="exchange-alt" size={20} color="white" />
+            </ToggleButton>
+          </TacticBox>
+        </ViewForSlideTactic>
+
+        <ViewForCommentData>
+          <ThumbsUpIcon name="thumbs-up" size={16} color="tomato" />
+          <ThumbsUpNumber>6</ThumbsUpNumber>
+          <ChatBubbleIcon name={"chatbubble-outline"} size={16} color="blue" />
+          <ChatBubbleNumber>6</ChatBubbleNumber>
+          <ThumbsUpButton onPress={() => console.log('thumbsup')}>
+              <ButtonText>좋아요</ButtonText>
+            </ThumbsUpButton>
+            
+            <TakeTacticButton onPress={() => console.log('taketactic')}>
+              <ButtonText>가져가기</ButtonText>
+            </TakeTacticButton>
+        </ViewForCommentData>
+
+        <ViewForLine>
+          <Line></Line>
+        </ViewForLine>
+
+        <ViewForFlatList>      
+          <FlatList
         data={data}
         renderItem={renderItem}
         keyExtractor={item => item.id}
-      />
+          />
+        </ViewForFlatList>
+
+      </ScrollView>
+
+      <SearchView>
+        <SearchInput
+          placeholder="댓글을 입력하세요"
+          value={searchText}
+          onChangeText={setSearchText}
+        />
+        <SubmitButton onPress={() => navigation.goBack()}>
+        <Entypo name="triangle-right" size={24} color="tomato" />
+        </SubmitButton>
+      </SearchView>
+
     </Container>
-  )
+  );
 };
 
-const TacticNameBoard = ({}) => (
-  <ViewForTextBar>
-        <TacticName
-          placeholder={TacticsNameplaceholder}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-        />
-  </ViewForTextBar>
-);
-
-const FormationBoard = ({}) => (
-  <ViewForTacticBoard>
-        <ViewForDropdown>
-          <DropDownPicker
-            open={open}
-            value={value}
-            items={items}
-            placeholder="포메이션(Default)"
-            setOpen={setOpen}
-            setValue={setValue}
-            setItems={setItems}
-            onChangeValue={onChange}
-            maxHeight={400}
-            style={{
-              backgroundColor: "#000",
-            }}
-            textStyle={{
-              color: "#fff",
-              fontWeight: "bold",
-            }}
-            dropDownContainerStyle={{
-              backgroundColor: "#000",
-            }}
-            arrowIconStyle={{
-              tintColor: "white",
-              borderWidth: 13,
-            }}
-            pressableProps={{
-              android_ripple: { color: "transparent" }, // Android ripple effect 제거
-              style: { backgroundColor: "#000" }, // 기본 배경색 유지
-            }}
-          />
-        </ViewForDropdown>
-        <ViewForBoard>
-          
-          <TacticsBackImage source={TacticsBack} resizeMode={"stretch"} />
-          <Modal // 공격수 모달
-            animationType="slide"
-            visible={isAttackerModalVisible}
-            transparent={true}
-          >
-            <ContainerModalView
-              onPress={() => setIsAttackerModalVisible(false)}
-            >
-              <ModalView>
-                <ViewforModalPosition>
-                  <TextForModalPosition
-                    editable
-                    numberOfLines={1}
-                    value={DetailPositionplaceholder}
-                    maxLenth={10}
-                    placeholder="포지션 입력"
-                    onChangeText={(newText) =>
-                      setDetailPositionplaceholder(newText)
-                    }
-                    placeholderTextColor="#ff6262"
-                  ></TextForModalPosition>
-                </ViewforModalPosition>
-
-                <ViewforModalText>
-                  <TextInputforModalTactics
-                    editable
-                    multiline
-                    numberOfLines={3}
-                    value={DetailTacticsplaceholder}
-                    maxLength={100}
-                    placeholder="세부 전술을 입력하세요."
-                    onChangeText={(newText) =>
-                      setDetailTacticsplaceholder(newText)
-                    }
-                    placeholderTextColor="#ff6262"
-                  ></TextInputforModalTactics>
-                </ViewforModalText>
-                <ViewforModalOutButton>
-                  <TouchForOutButton
-                    onPress={() => setIsAttackerModalVisible(false)}
-                  >
-                    <TextForOutButton>확인</TextForOutButton>
-                  </TouchForOutButton>
-                </ViewforModalOutButton>
-              </ModalView>
-            </ContainerModalView>
-          </Modal>
-          <Modal // 미드필더 모달
-            animationType="slide"
-            visible={isMidfielderModalVisible}
-            transparent={true}
-          >
-            <ContainerModalView
-              onPress={() => setIsMidfielderModalVisible(false)}
-            >
-              <ModalView style={{ borderColor: "#5182FF" }}>
-                <ViewforModalPosition>
-                  <TextForModalPosition
-                    editable
-                    numberOfLines={1}
-                    value={DetailPositionplaceholder}
-                    maxLenth={10}
-                    placeholder="포지션 입력"
-                    onChangeText={(newText) =>
-                      setDetailPositionplaceholder(newText)
-                    }
-                    placeholderTextColor="#5182FF"
-                    style={{ color: "#5182FF" }}
-                  ></TextForModalPosition>
-                </ViewforModalPosition>
-
-                <ViewforModalText>
-                  <TextInputforModalTactics
-                    editable
-                    multiline
-                    numberOfLines={3}
-                    value={DetailTacticsplaceholder}
-                    maxLength={100}
-                    placeholder="세부 전술을 입력하세요."
-                    onChangeText={(newText) =>
-                      setDetailTacticsplaceholder(newText)
-                    }
-                    placeholderTextColor="#5182FF"
-                    style={{ color: "#5182FF" }}
-                  ></TextInputforModalTactics>
-                </ViewforModalText>
-                <ViewforModalOutButton>
-                  <TouchForOutButton
-                    style={{ backgroundColor: "#5182FF" }}
-                    onPress={() => setIsMidfielderModalVisible(false)}
-                  >
-                    <TextForOutButton>확인</TextForOutButton>
-                  </TouchForOutButton>
-                </ViewforModalOutButton>
-              </ModalView>
-            </ContainerModalView>
-          </Modal>
-          <Modal // 수비수 모달
-            animationType="slide"
-            visible={isDefenderModalVisible}
-            transparent={true}
-          >
-            <ContainerModalView
-              onPress={() => setIsDefenderModalVisible(false)}
-            >
-              <ModalView style={{ borderColor: "#6CD163" }}>
-                <ViewforModalPosition>
-                  <TextForModalPosition
-                    editable
-                    numberOfLines={1}
-                    value={DetailPositionplaceholder}
-                    maxLenth={10}
-                    placeholder="포지션 입력"
-                    onChangeText={(newText) =>
-                      setDetailPositionplaceholder(newText)
-                    }
-                    placeholderTextColor="#6CD163"
-                    style={{ color: "#6CD163" }}
-                  ></TextForModalPosition>
-                </ViewforModalPosition>
-
-                <ViewforModalText>
-                  <TextInputforModalTactics
-                    editable
-                    multiline
-                    numberOfLines={3}
-                    value={DetailTacticsplaceholder}
-                    maxLength={100}
-                    placeholder="세부 전술을 입력하세요."
-                    onChangeText={(newText) =>
-                      setDetailTacticsplaceholder(newText)
-                    }
-                    placeholderTextColor="#6CD163"
-                    style={{ color: "#6CD163" }}
-                  ></TextInputforModalTactics>
-                </ViewforModalText>
-                <ViewforModalOutButton>
-                  <TouchForOutButton
-                    style={{ backgroundColor: "#6CD163" }}
-                    onPress={() => setIsDefenderModalVisible(false)}
-                  >
-                    <TextForOutButton>확인</TextForOutButton>
-                  </TouchForOutButton>
-                </ViewforModalOutButton>
-              </ModalView>
-            </ContainerModalView>
-          </Modal>
-          <Modal // 골키퍼 모달
-            animationType="slide"
-            visible={isGKModalVisible}
-            transparent={true}
-          >
-            <ContainerModalView onPress={() => setIsGKModalVisible(false)}>
-              <ModalView style={{ borderColor: "#FFB056" }}>
-                <ViewforModalPosition>
-                  <TextForModalPosition
-                    editable
-                    numberOfLines={1}
-                    value={DetailPositionplaceholder}
-                    maxLenth={10}
-                    placeholder="포지션 입력"
-                    onChangeText={(newText) =>
-                      setDetailPositionplaceholder(newText)
-                    }
-                    placeholderTextColor="#FFB056"
-                    style={{ color: "#FFB056" }}
-                  ></TextForModalPosition>
-                </ViewforModalPosition>
-
-                <ViewforModalText>
-                  <TextInputforModalTactics
-                    editable
-                    multiline
-                    numberOfLines={3}
-                    value={DetailTacticsplaceholder}
-                    maxLength={100}
-                    placeholder="세부 전술을 입력하세요."
-                    onChangeText={(newText) =>
-                      setDetailTacticsplaceholder(newText)
-                    }
-                    placeholderTextColor="#FFB056"
-                    style={{ color: "#FFB056" }}
-                  ></TextInputforModalTactics>
-                </ViewforModalText>
-                <ViewforModalOutButton>
-                  <TouchForOutButton
-                    style={{ backgroundColor: "#FFB056" }}
-                    onPress={() => setIsGKModalVisible(false)}
-                  >
-                    <TextForOutButton>확인</TextForOutButton>
-                  </TouchForOutButton>
-                </ViewforModalOutButton>
-              </ModalView>
-            </ContainerModalView>
-          </Modal>
-          {currentValue === 1 && (
-            <TestView>
-              <ViewForForward>
-                <Forward
-                  onPress={() => setIsAttackerModalVisible(true)}
-                ></Forward>
-                <Forward
-                  onPress={() => setIsAttackerModalVisible(true)}
-                ></Forward>
-              </ViewForForward>
-              <ViewForMidfielder>
-                <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
-                ></Midfielder>
-                <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
-                  style={{ marginTop: 25 }}
-                ></Midfielder>
-                <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
-                  style={{ marginTop: 25 }}
-                ></Midfielder>
-                <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
-                ></Midfielder>
-              </ViewForMidfielder>
-              <ViewForDefender>
-                <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
-                ></Defender>
-                <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
-                  style={{ marginTop: 25 }}
-                ></Defender>
-                <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
-                  style={{ marginTop: 25 }}
-                ></Defender>
-                <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
-                ></Defender>
-              </ViewForDefender>
-              <ViewForGoalkeeper>
-                <Goalkeeper
-                  onPress={() => setIsGKModalVisible(true)}
-                  style={{ marginBottom: 15 }}
-                ></Goalkeeper>
-              </ViewForGoalkeeper>
-            </TestView>
-          )}
-          {currentValue === 2 && (
-            <TestView>
-              <ViewForForward style={{ justifyContent: "space-around" }}>
-                <Forward
-                  onPress={() => setIsAttackerModalVisible(true)}
-                ></Forward>
-                <Forward
-                  onPress={() => setIsAttackerModalVisible(true)}
-                  style={{ marginBottom: 100 }}
-                ></Forward>
-                <Forward
-                  onPress={() => setIsAttackerModalVisible(true)}
-                ></Forward>
-              </ViewForForward>
-              <ViewForMidfielder>
-                <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
-                  style={{ marginLeft: 45 }}
-                ></Midfielder>
-                <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
-                  style={{ marginTop: 50 }}
-                ></Midfielder>
-                <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
-                  style={{ marginRight: 45 }}
-                ></Midfielder>
-              </ViewForMidfielder>
-              <ViewForDefender>
-                <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
-                ></Defender>
-                <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
-                  style={{ marginTop: 25 }}
-                ></Defender>
-                <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
-                  style={{ marginTop: 25 }}
-                ></Defender>
-                <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
-                ></Defender>
-              </ViewForDefender>
-              <ViewForGoalkeeper>
-                <Goalkeeper
-                  onPress={() => setIsGKModalVisible(true)}
-                  style={{ marginBottom: 15 }}
-                ></Goalkeeper>
-              </ViewForGoalkeeper>
-            </TestView>
-          )}
-          {currentValue === 3 && (
-            <TestView>
-              <ViewForForward>
-                <Forward
-                  onPress={() => setIsAttackerModalVisible(true)}
-                  style={{ marginBottom: 70 }}
-                ></Forward>
-              </ViewForForward>
-              <SecondViewForMidfielder>
-                <Midfielder
-                  style={{ marginBottom: 60, marginLeft: 50 }}
-                  onPress={() => setIsMidfielderModalVisible(true)}
-                ></Midfielder>
-                <Midfielder
-                  style={{ marginBottom: 60, marginRight: 50 }}
-                  onPress={() => setIsMidfielderModalVisible(true)}
-                ></Midfielder>
-              </SecondViewForMidfielder>
-              <ViewForMidfielder>
-                <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
-                  style={{ marginLeft: 15, marginBottom: 50 }}
-                ></Midfielder>
-                <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
-                  style={{ marginBottom: 50 }}
-                ></Midfielder>
-                <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
-                  style={{ marginRight: 15, marginBottom: 50 }}
-                ></Midfielder>
-              </ViewForMidfielder>
-              <ViewForDefender>
-                <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
-                  style={{ marginBottom: 50 }}
-                ></Defender>
-                <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
-                  style={{ marginBottom: 30 }}
-                ></Defender>
-                <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
-                  style={{ marginBottom: 30 }}
-                ></Defender>
-                <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
-                  style={{ marginBottom: 50 }}
-                ></Defender>
-              </ViewForDefender>
-              <ViewForGoalkeeper>
-                <Goalkeeper
-                  onPress={() => setIsGKModalVisible(true)}
-                  style={{ marginBottom: 30 }}
-                ></Goalkeeper>
-              </ViewForGoalkeeper>
-            </TestView>
-          )}
-          {currentValue === 4 && (
-            <TestView>
-              <ViewForForward>
-                <Forward
-                  onPress={() => setIsAttackerModalVisible(true)}
-                  style={{ marginBottom: 70 }}
-                ></Forward>
-              </ViewForForward>
-              <SecondViewForMidfielder>
-                <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
-                  style={{ marginBottom: 50, marginLeft: 5 }}
-                ></Midfielder>
-                <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
-                  style={{ marginBottom: 50 }}
-                ></Midfielder>
-                <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
-                  style={{ marginBottom: 50, marginRight: 5 }}
-                ></Midfielder>
-              </SecondViewForMidfielder>
-              <ViewForMidfielder>
-                <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
-                  style={{ marginBottom: 40, marginLeft: 35 }}
-                ></Midfielder>
-                <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
-                  style={{ marginBottom: 40, marginRight: 35 }}
-                ></Midfielder>
-              </ViewForMidfielder>
-              <ViewForDefender>
-                <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
-                  style={{ marginBottom: 50 }}
-                ></Defender>
-                <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
-                  style={{ marginBottom: 30 }}
-                ></Defender>
-                <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
-                  style={{ marginBottom: 30 }}
-                ></Defender>
-                <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
-                  style={{ marginBottom: 50 }}
-                ></Defender>
-              </ViewForDefender>
-              <ViewForGoalkeeper>
-                <Goalkeeper
-                  onPress={() => setIsGKModalVisible(true)}
-                  style={{ marginBottom: 30 }}
-                ></Goalkeeper>
-              </ViewForGoalkeeper>
-            </TestView>
-          )}
-          {currentValue === 5 && (
-            <TestView>
-              <ViewForForward style={{ justifyContent: "space-around" }}>
-                <Forward
-                  onPress={() => setIsAttackerModalVisible(true)}
-                ></Forward>
-                <Forward
-                  onPress={() => setIsAttackerModalVisible(true)}
-                  style={{ marginBottom: 100 }}
-                ></Forward>
-                <Forward
-                  onPress={() => setIsAttackerModalVisible(true)}
-                ></Forward>
-              </ViewForForward>
-              <ViewForMidfielder>
-                <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
-                ></Midfielder>
-                <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
-                  style={{ marginTop: 30 }}
-                ></Midfielder>
-                <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
-                  style={{ marginTop: 30 }}
-                ></Midfielder>
-                <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
-                ></Midfielder>
-              </ViewForMidfielder>
-              <ViewForDefender>
-                <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
-                  style={{ marginLeft: 25, marginBottom: 25 }}
-                ></Defender>
-                <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
-                  style={{ marginBottom: 15 }}
-                ></Defender>
-                <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
-                  style={{ marginRight: 25, marginBottom: 25 }}
-                ></Defender>
-              </ViewForDefender>
-              <ViewForGoalkeeper>
-                <Goalkeeper
-                  onPress={() => setIsGKModalVisible(true)}
-                  style={{ marginBottom: 15 }}
-                ></Goalkeeper>
-              </ViewForGoalkeeper>
-            </TestView>
-          )}
-          {currentValue === 6 && (
-            <TestView>
-              <ViewForForward>
-                <Forward
-                  onPress={() => setIsAttackerModalVisible(true)}
-                ></Forward>
-                <Forward
-                  onPress={() => setIsAttackerModalVisible(true)}
-                ></Forward>
-              </ViewForForward>
-              <SecondViewForMidfielder
-                style={{ justifyContent: "space-between" }}
-              >
-                <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
-                  style={{ marginLeft: 20, marginTop: 70 }}
-                ></Midfielder>
-                <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
-                  style={{ marginTop: 10 }}
-                ></Midfielder>
-                <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
-                  style={{ marginRight: 20, marginTop: 70 }}
-                ></Midfielder>
-              </SecondViewForMidfielder>
-              <ViewForMidfielder>
-                <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
-                  style={{ marginBottom: 40, marginLeft: 50 }}
-                ></Midfielder>
-                <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
-                  style={{ marginBottom: 40, marginRight: 50 }}
-                ></Midfielder>
-              </ViewForMidfielder>
-              <ViewForDefender>
-                <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
-                  style={{ marginBottom: 70, marginLeft: 25 }}
-                ></Defender>
-                <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
-                  style={{ marginBottom: 60 }}
-                ></Defender>
-                <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
-                  style={{ marginBottom: 70, marginRight: 25 }}
-                ></Defender>
-              </ViewForDefender>
-              <ViewForGoalkeeper>
-                <Goalkeeper
-                  onPress={() => setIsGKModalVisible(true)}
-                  style={{ marginBottom: 30 }}
-                ></Goalkeeper>
-              </ViewForGoalkeeper>
-            </TestView>
-          )}
-          {currentValue === 7 && (
-            <TestView>
-              <ViewForForward>
-                <Forward
-                  onPress={() => setIsAttackerModalVisible(true)}
-                  style={{ marginBottom: 70 }}
-                ></Forward>
-              </ViewForForward>
-              <SecondViewForMidfielder>
-                <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
-                  style={{ marginBottom: 50 }}
-                ></Midfielder>
-                <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
-                  style={{ marginBottom: 50 }}
-                ></Midfielder>
-                <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
-                  style={{ marginBottom: 50 }}
-                ></Midfielder>
-                <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
-                  style={{ marginBottom: 50 }}
-                ></Midfielder>
-              </SecondViewForMidfielder>
-              <ViewForMidfielder>
-                <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
-                  style={{ marginLeft: 75, marginBottom: 60 }}
-                ></Midfielder>
-                <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
-                  style={{ marginRight: 75, marginBottom: 60 }}
-                ></Midfielder>
-              </ViewForMidfielder>
-              <ViewForDefender>
-                <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
-                  style={{ marginBottom: 80, marginLeft: 25 }}
-                ></Defender>
-                <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
-                  style={{ marginBottom: 70 }}
-                ></Defender>
-                <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
-                  style={{ marginBottom: 80, marginRight: 25 }}
-                ></Defender>
-              </ViewForDefender>
-              <ViewForGoalkeeper>
-                <Goalkeeper
-                  onPress={() => setIsGKModalVisible(true)}
-                  style={{ marginBottom: 30 }}
-                ></Goalkeeper>
-              </ViewForGoalkeeper>
-            </TestView>
-          )}
-        </ViewForBoard>
-      </ViewForTacticBoard>
-);
-
-const TacticBoxes = ({}) => (
-<TacticContainer>
-        <TacticBox isMain={isMainTactic}>
-          <Title>{isMainTactic ? '메인전술' : '세부전술'}</Title>
-          <TextBox
-            multiline={true}
-            onChangeText={isMainTactic ? handleChangeMainText : handleChangeSubText}
-            value={isMainTactic ? mainText : subText}
-            placeholder="내용을 입력하세요..."
-            textAlignVertical="top"
-            style={{ paddingTop: 10 }}
-            placeholderTextColor="white"
-            autoFocus={false}
-          />
-          <ToggleButton onPress={handleToggleTactic}>
-          <FontAwesome5 name="exchange-alt" size={20} color="white" />
-          </ToggleButton>
-        </TacticBox>
-      </TacticContainer>
-);
-
-const CommentData = ({}) => (
-  <FirstView>
-  <ThumbsUpIcon name="thumbs-up" size={16} color="tomato" />
-  <ThumbsUpNumber>6</ThumbsUpNumber>
-  <ChatBubbleIcon name={"chatbubble-outline"} size={14} color="blue" />
-  <ChatBubbleNumber>6</ChatBubbleNumber>
-  <ThumbsUpButton onPress={() => console.log('thumbsup')}>
-      <ButtonText>좋아요</ButtonText>
-    </ThumbsUpButton>
-    
-    <TakeTacticButton onPress={() => console.log('taketactic')}>
-      <ButtonText>가져가기</ButtonText>
-    </TakeTacticButton>
-  </FirstView>
-);
-
-const CommentItem = ({ username, description, number}) => (
-  <ItemContainer>
-    <ItemContent>
-      <FirstLineView>
-      <ImageContainer> 
-          <StyledImage source={ProfileImg} />
-        </ImageContainer>
-      <OtherElements>
-      <ItemTitle>{username}</ItemTitle>
-      <ThumbsUpIcon name="thumbs-up" size={16} color="tomato" />
-      <ThumbsUpNumber>{number}</ThumbsUpNumber>
-      </OtherElements>
-      </FirstLineView>
-
-      <SecondLineView>
-        <ItemText>{description}</ItemText>
-        <ChatBubbleIcon name={"chatbubble-outline"} size={14} color="blue" />
-        <ThumbsUpIcon name="thumbs-up" size={16} color="tomato" />
-      </SecondLineView>
-      <LineForList />
-    </ItemContent>
-  </ItemContainer>
-);
-
-export default TacticExample;
+export default TacticsExample;
