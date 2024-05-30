@@ -2,14 +2,14 @@ import React, { useState } from "react";
 import { StatusBar } from "expo-status-bar";
 import styled from "styled-components";
 import DropDownPicker from "react-native-dropdown-picker";
-import TacticsBack from "../assets/TacticsBack.png";
+import TacticsBack from "../../assets/TacticsBack.png";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import RNPickerSelect from "react-native-picker-select";
 import { Ionicons } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
 import Entypo from '@expo/vector-icons/Entypo';
-import ProfileImg from '../assets/profileimg.jpg'
+import ProfileImg from '../../assets/profileimg.jpg'
 
 
 

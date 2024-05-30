@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import BackGround from '../assets/Back2.png';
+import BackGround from '../assets/Back2.png'
 import TatcticsButtonImage from '../assets/Button1.png';
 import BangusukTeamButtonImage from '../assets/Button2.png';
 import FreeBoardButtonImage from '../assets/Button3.png';
@@ -115,7 +115,7 @@ const MainPage = ({ navigation }) => {
     <Container>
       <StatusBar style="auto" />
       <BackGroundView>
-        <BackGroundImage source={BackGround} resizeMode={'stretch'} />
+        <BackGroundImage source={BackGround} resizeMode={'cover'} />
       </BackGroundView>
       <FirstView></FirstView>
       <SecondView>
