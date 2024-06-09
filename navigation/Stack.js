@@ -6,6 +6,9 @@ import { Feather } from '@expo/vector-icons';
 
 import MainPage from '../screens/MainPage';
 import FreeBoard from '../screens/FreeBoard';
+import FreeBoardDetail from '../screens/FreeBoardDetail';
+import FreeBoardWrite from '../screens/FreeBoardWrite';
+import FreeBoardUpdate from '../screens/FreeBoardUpdate';
 import MyPage from '../screens/MyPagePackage/MyPage';
 import BanggusukTeam from '../screens/BanggusukTeamPackage/BanggusukTeam';
 import UserPlusBanggusukTeam from '../screens/BanggusukTeamPackage/UserPlusBanggusukTeam';
@@ -295,41 +298,45 @@ const StackNavigation = () => {
           component={FreeBoard}
           options={({ navigation }) => ({
             headerShown: true,
+            title: '자유 게시판',
             headerTitleAlign: 'center',
             headerRight: () => (
-              <View>
-                <NavigationButtonView>
-                  <SearchButton
-                    onPress={() => navigation.navigate('FreeBoardSearch')}
-                  >
-                    <FontAwesome name="search" size={20} color="black" />
-                  </SearchButton>
-                  <Menu>
-                    <MenuTrigger>
-                      <Feather name="more-vertical" size={24} color="black" />
-                    </MenuTrigger>
-                    <MenuOptions>
-                      <MenuOption
-                        onSelect={() => navigateToNewPost(navigation)}
-                        text="글 쓰기"
-                      />
-                      <MenuOption
-                        onSelect={() => navigateToMyPosts(navigation)}
-                      >
-                        <Text style={{ color: 'red' }}>내가 쓴 글</Text>
-                      </MenuOption>
-                    </MenuOptions>
-                  </Menu>
-                </NavigationButtonView>
-              </View>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('FreeBoardWrite')}
+              >
+                <Text style={{ fontSize: 14 }}>글쓰기</Text>
+              </TouchableOpacity>
             ),
           })}
         />
+
         <Stack.Screen
-          name="FreeBoardSearch"
-          component={FreeBoardSearch}
-          options={{ headerShown: false, headerTitleAlign: 'center' }}
+          name="FreeBoardDetail"
+          component={FreeBoardDetail}
+          options={({ navigation }) => ({
+            headerShown: true,
+            title: '자유 게시판',
+          })}
         />
+
+        <Stack.Screen
+          name="FreeBoardUpdate"
+          component={FreeBoardUpdate}
+          options={({ navigation }) => ({
+            headerShown: true,
+            title: '글 수정',
+          })}
+        />
+
+        <Stack.Screen
+          name="FreeBoardWrite"
+          component={FreeBoardWrite}
+          options={({ navigation }) => ({
+            headerShown: true,
+            title: '글쓰기',
+          })}
+        />
+
         <Stack.Screen
           name="MyPosts"
           component={MyPosts}
