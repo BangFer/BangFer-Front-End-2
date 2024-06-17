@@ -1,187 +1,140 @@
-import React from 'react';
-import { StatusBar } from "expo-status-bar";
-import { Ionicons } from '@expo/vector-icons';
-import {NavigationContainer} from '@react-navigation/native';
-import styled from "styled-components";
-import { FontAwesome6 } from '@expo/vector-icons';
-import { FlatList } from "react-native";
+import React from "react";
+import {
+  View,
+  Text,
+  Pressable,
+  FlatList,
+  StyleSheet,
+  Image,
+} from "react-native";
+import { useBoardStore } from "../store/board";
+import { EvilIcons } from "@expo/vector-icons";
 
-const Container = styled.View`
-  flex: 1;
-  flex-direction: column;
-  background-color: #F5F5F5;
-`;
-
-const FirstView = styled.View`
-  padding: 1px;
-`;
-
-const SecondView = styled.View`
-  height: 1px;
-  background-color: black;
-  margin-vertical: 10px;
-`;
-
-const HitsRankButton = styled.TouchableOpacity`
-  padding: 5px 5px;
-  border-radius: 5px;
-  background-color: tomato;
-  margin-left: 10px;
-`;
-
-const ThumbsRankButton = styled.TouchableOpacity`
-  padding: 5px 5px;
-  border-radius: 5px;
-  background-color: tomato;
-  margin-left: 10px;
-`;
-
-const CommentsRankButton = styled.TouchableOpacity`
-  padding: 5px 5px;
-  border-radius: 5px;
-  background-color: tomato;
-  margin-left: 10px;
-`;
-
-const IconAndButtonsInFirstView = styled.View`
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-end;
-  margin-top: 10px;
-  margin-right: 10px;
-`;
-
-const RankIconInFirstView = styled.View`
-  flex-direction: row;
-  margin-top: 5px;
-  margin-right: 160px;
-`;
-
-const ButtonText = styled.Text`
-  font-size: 16px;
-  font-weight: 500;
-  color: black;
-`;
-
-const Line = styled.View`
-  flex: 1;
-  height: 1px;
-  background-color: black;
-`;
-
-const LineForList = styled.View`
-  flex: 1;
-  height: 1px;
-  background-color: black;
-  margin-top: 5px;
-`;
-
-const ItemContainer = styled.TouchableOpacity`
-  padding-horizontal: 10px;
-`;
-
-const ItemContent = styled.View`
-  flex-direction: column;
-  margin-left: 5px;
-`;
-
-const ItemTitle = styled.Text`
-  font-size: 18px;
-  font-weight: bold;
-`;
-
-const ItemText = styled.Text`
-  font-size: 16px;
-  margin-right: 10px;
-`;
-
-const ItemIcon = styled(Ionicons)`
-  margin-top: 2px;
-  margin-right: 2px;
-`;
-
-const InformationView = styled.View`
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-start;
-`;
-
-const FreeBoard = ({ navigation }) => {
-  // 백엔드에서 받아온 데이터를 대체할 샘플 데이터
-  const data = [
-    { id: '1', title: 'Title 1', description: 'Description 1', number: '1', formation: '4-4-2', name: '고민영' },
-    { id: '2', title: 'Title 2', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '3', title: 'Title 3', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '4', title: 'Title 4', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '5', title: 'Title 5', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '6', title: 'Title 6', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '7', title: 'Title 7', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '8', title: 'Title 8', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '9', title: 'Title 9', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '10', title: 'Title 10', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '11', title: 'Title 11', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '12', title: 'Title 12', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '13', title: 'Title 13', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-  
-  ];
-
-  const renderItem = ({ item }) => (
-    <ListItem
-      title={item.title}
-      description={item.description}
-      number={item.number}
-      name={item.name}
-      navigation={navigation}
-    />
-  );
-
+const BoardItem = ({ data, handlePress }) => {
   return (
-    <Container>
-      <StatusBar style="auto" />
+    <Pressable
+      style={styles.itemContainer}
+      onPress={() => handlePress(data._id)}
+    >
+      <View>
+        <Text style={styles.title}>{data.title}</Text>
+        <Text numberOfLines={2} style={styles.contents}>
+          {data.contents}
+        </Text>
 
-      <FirstView>
-        <IconAndButtonsInFirstView>
-          <RankIconInFirstView>
-            <FontAwesome6 name="ranking-star" size={24} color="tomato" />
-          </RankIconInFirstView>
-          <HitsRankButton onPress={() => console.log('hitrank')}>
-            <ButtonText>조회순</ButtonText>
-          </HitsRankButton>
-          <ThumbsRankButton onPress={() => console.log('thumbrank')}>
-            <ButtonText>따봉순</ButtonText>
-          </ThumbsRankButton>
-          <CommentsRankButton onPress={() => console.log('commentsrank')}>
-            <ButtonText>댓글순</ButtonText>
-          </CommentsRankButton>
-        </IconAndButtonsInFirstView>
-      </FirstView>
+        {data.files?.length > 0 && (
+          <View style={styles.imageBox}>
+            {data.files.length > 0 &&
+              data.files.map((file, index) => (
+                <View key={index}>
+                  <Image style={styles.image} source={{ uri: file }} />
+                </View>
+              ))}
+          </View>
+        )}
 
-      <SecondView>
-        <Line /><Line />
-      </SecondView>
+        {data.categories.length > 0 && (
+          <View style={styles.categoryBox}>
+            {data.categories.map((category, index) => (
+              <View style={styles.categoryItem} key={category}>
+                <Text style={styles.categoryText}>{category}</Text>
+              </View>
+            ))}
+          </View>
+        )}
 
-      <FlatList
-        data={data}
-        renderItem={renderItem}
-        keyExtractor={item => item.id}
-      />
-    </Container>
+        <View style={styles.buttonBox}>
+          <Pressable style={styles.button}>
+            <EvilIcons name="comment" size={16} color="#fe6263" />
+            <Text style={{ color: "#666", fontSize: 12 }}>
+              {data.comments?.length}
+            </Text>
+          </Pressable>
+        </View>
+      </View>
+    </Pressable>
   );
 };
 
-const ListItem = ({ title, description, number, name, navigation }) => (
-  <ItemContainer onPress={() => navigation.navigate('PostExample')}>
-    <ItemContent>
-      <ItemTitle>{title}</ItemTitle>
-      <ItemText>{description}</ItemText>
-      <InformationView>
-        <ItemIcon name={"chatbubble-outline"} size={14} color="blue" />
-        <ItemText>{number}</ItemText>
-        <ItemText>{name}</ItemText>
-      </InformationView>
-    </ItemContent>
-    <LineForList />
-  </ItemContainer>
-);
+const FreeBoard = ({ navigation }) => {
+  const boards = useBoardStore((state) => state.boards);
+
+  console.log(boards);
+
+  const handlePressGoDetail = (_id) => {
+    navigation.navigate("FreeBoardDetail", { _id });
+  };
+
+  return (
+    <FlatList
+      style={styles.container}
+      data={boards}
+      renderItem={({ item }) => (
+        <BoardItem data={item} handlePress={handlePressGoDetail} />
+      )}
+    />
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  itemContainer: {
+    backgroundColor: "#fff",
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
+    flexDirection: "column",
+    gap: 8,
+  },
+  categoryBox: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 4,
+    marginTop: 8,
+  },
+  categoryText: {
+    fontSize: 12,
+  },
+  categoryItem: {
+    padding: 4,
+    backgroundColor: "#f1f1f1",
+    borderRadius: 4,
+  },
+  title: {
+    fontSize: 14,
+  },
+  contents: {
+    fontSize: 14,
+    lineHeight: 18,
+    color: "#666",
+    marginTop: 8,
+  },
+  buttonBox: {
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    marginTop: 12,
+  },
+  button: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 2,
+  },
+
+  imageBox: {
+    flexDirection: "row",
+    gap: 4,
+    marginTop: 12,
+  },
+  image: {
+    borderRadius: 12,
+    overflow: "hidden",
+    width: 80,
+    height: 80,
+  },
+});
 
 export default FreeBoard;
