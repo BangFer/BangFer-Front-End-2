@@ -62,7 +62,7 @@ const FindPw = ({ navigation }) => {
 
   return (
     <ImageBackground
-      source={require("../assets/Back2.png")}
+      source={require("../../assets/Back2.png")}
       style={{
         position: "absolute",
         width: Dimensions.get("window").width,
