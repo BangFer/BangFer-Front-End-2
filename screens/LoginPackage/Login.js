@@ -93,7 +93,7 @@ const Login = ({ navigation }) => {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.SignUpButton}
-                onPress={() => navigation.navigate("SignUp")}
+                onPress={() => navigation.navigate("MiddleSignUp")}
               >
                 <Text style={styles.SignUpButtonText}>회원가입</Text>
               </TouchableOpacity>

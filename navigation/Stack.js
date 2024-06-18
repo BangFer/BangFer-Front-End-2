@@ -27,7 +27,7 @@ import FindPw from '../screens/LoginPackage/FindPw';
 import EnrollBanggusukTeam from '../screens/BanggusukTeamPackage/EnrollBanggusukTeam';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import AntDesign from '@expo/vector-icons/AntDesign';
-
+import MiddleSignUp from '../screens/LoginPackage/MiddleSignUp';
 import styled from 'styled-components';
 import {
   Text,
@@ -356,6 +356,11 @@ const StackNavigation = () => {
         <Stack.Screen
           name="PostExample"
           component={PostExample}
+          options={{ headerShown: false, headerTitleAlign: 'center' }}
+        />
+        <Stack.Screen
+          name="MiddleSignUp"
+          component={MiddleSignUp}
           options={{ headerShown: false, headerTitleAlign: 'center' }}
         />
       </Stack.Navigator>
