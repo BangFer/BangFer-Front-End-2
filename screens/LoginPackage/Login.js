@@ -210,5 +210,6 @@ const styles = StyleSheet.create({
   KaKaoImage: {
     width: "100%",
     height: "100%",
+    borderRadius: 10,
   },
 });

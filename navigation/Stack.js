@@ -351,7 +351,11 @@ const StackNavigation = () => {
         <Stack.Screen
           name="MyPage"
           component={MyPage}
-          options={{ headerShown: false, headerTitleAlign: 'center' }}
+          options={{
+            headerShown: true,
+            title: '마이 페이지',
+            headerTitleAlign: 'center',
+          }}
         />
         <Stack.Screen
           name="PostExample"

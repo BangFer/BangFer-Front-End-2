@@ -28,7 +28,6 @@ const KaKaoSignUpButton = styled.TouchableOpacity`
   width: 240px;
   height: 50px;
   border-radius: 10px;
-  background-color: white;
   margin-bottom: 260px;
 `;
 
@@ -36,8 +35,7 @@ const GeneralSignUpButton = styled.TouchableOpacity`
   width: 240px;
   height: 50px;
   border-radius: 10px;
-  background-color: white;
-  border-width: 1px;
+  background-color: #fe6263;
   align-items: center;
   justify-content: center;
   margin-top: 30px;
@@ -46,11 +44,13 @@ const GeneralSignUpButton = styled.TouchableOpacity`
 const GeneralSignUpText = styled.Text`
   font-size: 20px;
   font-weight: bold;
+  color: #fff;
 `;
 
 const KaKaoSignUpImage = styled.Image`
   width: 100%;
   height: 100%;
+  border-radius: 10px;
 `;
 
 const MiddleSignUp = ({ navigation }) => {
