@@ -10,7 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
 import Entypo from '@expo/vector-icons/Entypo';
 import ProfileImg from '../../assets/profileimg.jpg'
-
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 
 import {
@@ -164,7 +164,7 @@ const ViewForListPlayersReal = styled.View`
 
 const ViewForFlatList = styled.View`
   width: 100%;
-  height: 420px;
+  height: 680px;
 `;
 
 const ViewForCommentData = styled.View`
@@ -355,6 +355,11 @@ const Item = ({ title }) => {
   );
 };
 
+const StyledScrollView = styled.ScrollView`
+  flex: 1;
+  margin-bottom: 10px;  /* 입력창 높이와 동일하게 설정 */
+`;
+
 const styles = StyleSheet.create({
   input: {
     fontSize: 17,
@@ -465,9 +470,35 @@ const ViewForLine = styled.View`
 `;
 
 
-const ItemContainer = styled.TouchableOpacity`
+const ItemContainer = styled.View`
   margin-left: 20px;
   margin-right: 30px;
+`;
+const ReCommentContainer = styled.View`
+  margin-left: 20px;
+  margin-right: 30px;
+`;
+
+const ReCommentContent = styled.View`
+  flex-direction: column;
+  margin-left: 40px;
+`;
+
+const ReCommentFirstLineView = styled.View`
+flex-direction: row;
+align-items: center;
+justify-content: flex-start;
+margin-left : -25px;
+`
+
+const ReCommentButtonContainer = styled.View`
+flex-direction: row;
+align-items: center;
+padding: 7px;
+border-radius: 5px;
+background-color: lightgray;
+margin-left: 188px;
+top: -12px;
 `;
 
 const ItemContent = styled.View`
@@ -478,8 +509,9 @@ const ItemContent = styled.View`
 const ItemTitle = styled.Text`
   font-size: 16px;
   font-weight: bold;
-  margin-left: 5px;
+  margin-left: 10px;
   margin-right: 5px;
+  margin-top: -15px;
 `;
 
 const ThumbsUpNumber = styled.Text`
@@ -487,10 +519,12 @@ const ThumbsUpNumber = styled.Text`
   margin-right: 10px;
   color: tomato;
   margin-right: 5px;
+  margin-left: 5px;
 `;
 
 const ChatBubbleNumber = styled.Text`
   font-size: 16px;
+  margin-left: 5px;
   margin-right: 10px;
   color: blue;
 `;
@@ -528,13 +562,22 @@ const SecondLineView = styled.View`
 flex-direction: row;
 align-items: center;
 justify-content: flex-start;
-margin-right: 10px;
+margin-left: -2px;
 `
+const ThirdLineView = styled.View`
+flex-direction: row;
+align-items: center;
+justify-content: flex-start;
+margin-left: 8px;
+`
+
 const ThumbsUpButton = styled.TouchableOpacity`
 padding: 4px 4px; /* 버튼 내부 패딩 설정 */
 border-radius: 5px; /* 둥근 사각형 테두리 반지름 설정 */
 background-color: gray; /* 배경색 설정 */
 margin-left: 10px; /* 각 버튼 사이의 간격을 설정합니다. */
+flex-direction: row; /* 아이콘과 텍스트를 한 줄에 배치 */
+align-items: center; /* 아이콘과 텍스트를 수직으로 중앙 정렬 */
 `;
 
 const TakeTacticButton = styled.TouchableOpacity`
@@ -551,10 +594,11 @@ const ButtonText = styled.Text`
 `;
 
 const ImageContainer = styled.View`
-  width: 50px; /* 이미지 컨테이너의 너비 */
-  height: 50px; /* 이미지 컨테이너의 높이 */
+  width: 45px; /* 이미지 컨테이너의 너비 */
+  height: 45px; /* 이미지 컨테이너의 높이 */
   border-radius: 25px; /* 반지름을 너비 또는 높이의 절반으로 설정하여 원 모양으로 만듭니다. */
   overflow: hidden; /* 컨테이너 내부에서 벗어나는 이미지를 숨깁니다. */
+  margin-left: 2px;
 `;
 
 const StyledImage = styled.Image`
@@ -563,26 +607,66 @@ const StyledImage = styled.Image`
   resize-mode: cover; /* 이미지를 늘리거나 축소하여 이미지 컨테이너에 꽉 차도록 설정합니다. */
 `;
 
+const ButtonContainer = styled.View`
+  flex-direction: row;
+  align-items: center;
+  padding: 7px;
+  border-radius: 5px;
+  background-color: lightgray;
+  margin-left: 180px;
+  top: -12px;
+`;
+
+const Divider = styled.View`
+  width: 1px;
+  height: 20px;
+  background-color: gray;
+  margin: 0 10px;
+`;
+
+const IconButton = styled.TouchableOpacity`
+  padding: 2px;
+  border-radius: 5px;
+  background-color: light-gray;
+  align-items: center;
+  justify-content: center;
+`;
+
 
 
 const TacticsExample = ({ navigation }) => {
 
   const renderItem = ({ item }) => {
-    return(
-      <CommentItem
-        username={item.username}
-        description={item.description}
-        number={item.number}
-      />
-    );
-}
+    switch (item.type) {
+      case 'comment':
+        return (
+          <CommentItem
+            username={item.username}
+            description={item.description}
+            number={item.number}
+          />
+        );
+      case 'recomment':
+        return (
+          <ReCommentItem
+            username={item.username}
+            description={item.description}
+            number={item.number}
+          />
+        );
+      default:
+        return null; // 타입이 맞지 않을 경우 null 반환
+    }
+  };
 
 const data = [
-{ id: '1',  username: '고민영', description: '헉 ㄷㄷ', number: '3'},
-{ id: '2',  username: '김종우', description: '나 같은 경우에는', number: '3'},
-{ id: '3',  username: '오우석', description: '공감?유해진?', number: '2'},
-{ id: '4',  username: '김민우', description: '그만...', number: '1'},
-{ id: '5',  username: '김현우', description: '헉 ㄷㄷ', number: '1'},  
+{ type: 'comment',  username: '고민영', description: '헉 ㄷㄷ', number: '3'},
+{ type: 'comment',  username: '김종우', description: '나 같은 경우에는', number: '3'},
+{ type: 'recomment',  username: '오우석', description: '공감?유해진?', number: '2'},
+{ type: 'comment',  username: '김민우', description: '그만...', number: '1'},
+{ type: 'comment',  username: '김현우', description: '헉 ㄷㄷ', number: '1'},
+{ type: 'recomment',  username: '김근식', description: '헉 ㄷㄷ', number: '1'},
+{ type: 'recomment',  username: '고민영', description: '헉 ㄷㄷ', number: '1'},  
 ];
 
   const [TacticsNameplaceholder, setTacticsNamePlaceholder] = useState("팀 명");
@@ -673,24 +757,70 @@ const data = [
     <ItemContainer>
       <ItemContent>
         <FirstLineView>
-        <ImageContainer> 
-            <StyledImage source={ProfileImg} />
+        
+          <ImageContainer> 
+              <StyledImage source={ProfileImg} />
           </ImageContainer>
-        <OtherElements>
-        <ItemTitle>{username}</ItemTitle>
-        <ThumbsUpIcon name="thumbs-up" size={14} color="tomato" />
-        <ThumbsUpNumber>{number}</ThumbsUpNumber>
-        </OtherElements>
+            
+            <OtherElements>
+              <ItemTitle>{username}</ItemTitle>
+              <ButtonContainer>
+                <IconButton onPress={() => console.log('Chatbubble pressed')}>
+                  <FontAwesome5 name="comment-dots" size={14} color="blue" />
+                </IconButton>
+                  <Divider />
+                <IconButton onPress={() => console.log('Thumbs-up pressed')}>
+                  <FontAwesome5 name="thumbs-up" size={14} color="tomato" />
+                </IconButton>
+              </ButtonContainer>
+            </OtherElements>
+
         </FirstLineView>
   
         <SecondLineView>
           <ItemText>{description}</ItemText>
-          <ChatBubbleIcon name={"chatbubble-outline"} size={14} color="blue" />
-          <ThumbsUpIcon name="thumbs-up" size={14} color="tomato" />
         </SecondLineView>
+        <ThirdLineView>
+        <FontAwesome5 name="thumbs-up" size={14} color="tomato" />
+        <ThumbsUpNumber>{number}</ThumbsUpNumber>
+        </ThirdLineView>
         <LineForList />
       </ItemContent>
     </ItemContainer>
+  );
+
+  const ReCommentItem = ({ username, description, number}) => (
+    <ReCommentContainer>
+      
+      <ReCommentContent>
+        <ReCommentFirstLineView>
+        <MaterialCommunityIcons name="arrow-right-bottom" size={20} color="black" />
+          <ImageContainer> 
+              <StyledImage source={ProfileImg} />
+          </ImageContainer>
+            
+            <OtherElements>
+              <ItemTitle>{username}</ItemTitle>
+              <ReCommentButtonContainer>
+                <IconButton onPress={() => console.log('Thumbs-up pressed')}>
+                  <FontAwesome5 name="thumbs-up" size={14} color="tomato" />
+                </IconButton>
+              </ReCommentButtonContainer>
+            </OtherElements>
+
+        </ReCommentFirstLineView>
+  
+        <SecondLineView>
+          <ItemText>{description}</ItemText>
+        </SecondLineView>
+        <ThirdLineView>
+        <FontAwesome5 name="thumbs-up" size={14} color="tomato" />
+        <ThumbsUpNumber>{number}</ThumbsUpNumber>
+        </ThirdLineView>
+
+      </ReCommentContent>
+      <LineForList />
+    </ReCommentContainer>
   );
 
   const [searchText, setSearchText] = useState("");
@@ -702,7 +832,7 @@ const data = [
 
   return (
     <Container>
-      <ScrollView
+      <StyledScrollView
         contentContainerStyle={{
           flexGrow: 1,
         }}
@@ -1366,12 +1496,13 @@ const data = [
         </ViewForSlideTactic>
 
         <ViewForCommentData>
-          <ThumbsUpIcon name="thumbs-up" size={16} color="tomato" />
+        <FontAwesome5 name="thumbs-up" size={16} color="tomato" />
           <ThumbsUpNumber>6</ThumbsUpNumber>
-          <ChatBubbleIcon name={"chatbubble-outline"} size={16} color="blue" />
+          <FontAwesome5 name="comment-dots" size={16} color="blue" />
           <ChatBubbleNumber>6</ChatBubbleNumber>
           <ThumbsUpButton onPress={() => console.log('thumbsup')}>
-              <ButtonText>좋아요</ButtonText>
+              <ThumbsUpIcon name="thumbs-up" size={16} color="white" />
+              <ButtonText>따봉</ButtonText>
             </ThumbsUpButton>
             
             <TakeTacticButton onPress={() => console.log('taketactic')}>
@@ -1391,7 +1522,7 @@ const data = [
           />
         </ViewForFlatList>
 
-      </ScrollView>
+      </StyledScrollView>
 
       <SearchView>
         <SearchInput
