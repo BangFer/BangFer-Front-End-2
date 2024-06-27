@@ -3,16 +3,23 @@ import { NavigationContainer } from '@react-navigation/native';
 import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 import StackNavigation from './navigation/Stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { QueryClient, QueryClientProvider } from 'react-query';
+import { RecoilRoot } from 'recoil';
+const queryClient = new QueryClient();
 
 const App = () => {
   return (
-    <NavigationContainer>
-      <SafeAreaProvider>
-        <ActionSheetProvider>
-          <StackNavigation />
-        </ActionSheetProvider>
-      </SafeAreaProvider>
-    </NavigationContainer>
+    <RecoilRoot>
+      <QueryClientProvider client={queryClient}>
+        <NavigationContainer>
+          <SafeAreaProvider>
+            <ActionSheetProvider>
+              <StackNavigation />
+            </ActionSheetProvider>
+          </SafeAreaProvider>
+        </NavigationContainer>
+      </QueryClientProvider>
+    </RecoilRoot>
   );
 };
 

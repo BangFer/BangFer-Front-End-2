@@ -71,7 +71,7 @@ const MiddleSignUp = ({ navigation }) => {
           <GeneralSignUpButton onPress={() => navigation.navigate("SignUp")}>
             <GeneralSignUpText>일반 회원가입</GeneralSignUpText>
           </GeneralSignUpButton>
-          <KaKaoSignUpButton>
+          <KaKaoSignUpButton onPress={() => navigation.navigate("Web")}>
             <KaKaoSignUpImage
               source={require("../../assets/kakaosignup.png")}
             ></KaKaoSignUpImage>

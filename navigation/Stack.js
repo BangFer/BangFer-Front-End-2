@@ -28,6 +28,8 @@ import EnrollBanggusukTeam from '../screens/BanggusukTeamPackage/EnrollBanggusuk
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import MiddleSignUp from '../screens/LoginPackage/MiddleSignUp';
+import Web from '../screens/LoginPackage/Web';
+import KaKaoLoginRedirect from '../screens/LoginPackage/KaKaoLoginRedirect';
 import styled from 'styled-components';
 import {
   Text,
@@ -366,6 +368,16 @@ const StackNavigation = () => {
           name="MiddleSignUp"
           component={MiddleSignUp}
           options={{ headerShown: false, headerTitleAlign: 'center' }}
+        />
+        <Stack.Screen
+          name="Web"
+          component={Web}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="KaKaoLoginRedirect"
+          component={KaKaoLoginRedirect}
+          options={{ headerShown: false }}
         />
       </Stack.Navigator>
       {isCallendarVisible && ( // isCallendarVisible 상태가 true일 때 모달이 보이도록 설정합니다.
