@@ -68,7 +68,9 @@ const MiddleSignUp = ({ navigation }) => {
           <TitleText>회원가입</TitleText>
         </FirstView>
         <SecondView>
-          <GeneralSignUpButton onPress={() => navigation.navigate("SignUp")}>
+          <GeneralSignUpButton
+            onPress={() => navigation.navigate("EmailVerify")}
+          >
             <GeneralSignUpText>일반 회원가입</GeneralSignUpText>
           </GeneralSignUpButton>
           <KaKaoSignUpButton onPress={() => navigation.navigate("Web")}>

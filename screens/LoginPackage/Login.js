@@ -1,6 +1,7 @@
 import React from "react";
 import { useState } from "react";
-
+import { useMutation } from "react-query";
+import axios from "axios";
 import {
   Alert,
   Keyboard,
@@ -14,21 +15,85 @@ import {
   ImageBackground,
   TouchableOpacity,
   Image,
+  ToastAndroid,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const showFailLogin = () => {
+  ToastAndroid.show(
+    "❌ 등록되지 않은 이메일이거나 비밀번호가 일치하지 않습니다.",
+    ToastAndroid.LONG
+  );
+};
+const LoginRequest = async ({ email, password }) => {
+  const token = "string";
+  try {
+    const headers = {
+      "Content-type": "application/json; charset=UTF-8",
+    };
+
+    const data = {
+      email: email,
+      password: password,
+      fcmToken: token,
+    };
+
+    console.log(email);
+    console.log(password);
+
+    console.log(data);
+
+    const response = await axios.post(
+      "http://13.125.14.94:8080/accounts/login",
+      data,
+      {
+        headers: headers,
+      }
+    );
+    console.log(response.data);
+    return response.data; // 반환할 데이터 형식에 맞게 수정
+  } catch (error) {
+    showFailLogin();
+    console.error(error.response);
+    throw new Error("Failed to Login");
+  }
+};
+
+const showToken = async () => {
+  try {
+    const value = await AsyncStorage.getItem("Tokens");
+    console.log(value);
+  } catch (e) {
+    console.log("에러");
+  }
+};
 
 const Login = ({ navigation }) => {
+  const { mutate: Loginmutate } = useMutation(LoginRequest, {
+    onSuccess: (data) => {
+      console.log("성공", data);
+      AsyncStorage.setItem(
+        "Tokens",
+        JSON.stringify({
+          accessToken: data.result.accessToken,
+          refreshToken: data.result.refreshToken,
+          userId: data.result.userId,
+        })
+      );
+      navigation.navigate("MainPage");
+    },
+    onError: (error) => {
+      console.error("에러", error);
+      // 에러 시 필요한 처리 추가
+    },
+  });
+
   const [idValue, setId] = useState("");
   const [pwValue, setPw] = useState("");
   const [toDos, setToDos] = useState({});
-  const saveUserId = (event) => {
-    setId(event.target.value);
-  };
-  const saveUserPw = (event) => {
-    setPw(event.target.value);
-    // console.log(event.target.value);
-  };
-  const onChangeText = (payload) => setId(payload);
 
+  const onChangeText = (payload) => setId(payload);
+  const onChangePw = (payload) => setPw(payload);
   const onLoginPress = () => {
     setId("");
     setPw("");
@@ -37,8 +102,8 @@ const Login = ({ navigation }) => {
     alert(idValue);
   };
 
-  const onFbLoginPress = async () => {
-    Alert.alert("아직 개발중입니다.");
+  const handleLogin = () => {
+    Loginmutate({ email: idValue, password: pwValue });
   };
 
   return (
@@ -68,12 +133,15 @@ const Login = ({ navigation }) => {
 
               <TextInput
                 placeholder="Password"
+                type="text"
+                value={pwValue}
+                onChangeText={onChangePw}
                 style={styles.loginPWTextInput}
                 secureTextEntry={true}
               />
               <TouchableOpacity
                 style={styles.loginButton}
-                onPress={() => navigation.navigate("MainPage")}
+                onPress={handleLogin}
               >
                 <Text style={styles.loginButtonText}>Login</Text>
               </TouchableOpacity>
@@ -87,7 +155,7 @@ const Login = ({ navigation }) => {
             <View style={styles.loginThirdView}>
               <TouchableOpacity
                 style={styles.FindPWButton}
-                onPress={() => navigation.navigate("FindPw")}
+                onPress={() => navigation.navigate("FindPwEmail")}
               >
                 <Text style={styles.FindPwButtonText}>비밀번호 찾기</Text>
               </TouchableOpacity>
