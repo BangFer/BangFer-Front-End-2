@@ -23,7 +23,7 @@ import NewPost from '../screens/NewPost';
 import PostExample from '../screens/PostExample';
 import Login from '../screens/LoginPackage/Login';
 import SignUp from '../screens/LoginPackage/SignUp';
-import FindPw from '../screens/LoginPackage/FindPw';
+import FindPwEmail from '../screens/LoginPackage/FindPwEmail';
 import EnrollBanggusukTeam from '../screens/BanggusukTeamPackage/EnrollBanggusukTeam';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import AntDesign from '@expo/vector-icons/AntDesign';
@@ -31,6 +31,10 @@ import MiddleSignUp from '../screens/LoginPackage/MiddleSignUp';
 import Web from '../screens/LoginPackage/Web';
 import KaKaoLoginRedirect from '../screens/LoginPackage/KaKaoLoginRedirect';
 import styled from 'styled-components';
+import EmailVerify from '../screens/LoginPackage/EmailVerify';
+import Loading from '../screens/LoginPackage/Loading';
+import Toast from 'react-native-toast-message';
+import FindPw from '../screens/LoginPackage/FindPw';
 import {
   Text,
   View,
@@ -183,12 +187,17 @@ const StackNavigation = () => {
   return (
     <MenuProvider>
       <Stack.Navigator
-        initialRouteName="Login"
+        initialRouteName="Loading"
         screenOptions={{ headerShown: false }}
       >
+        <Stack.Screen
+          name="Loading"
+          component={Loading}
+          options={{ headerShown: false }}
+        />
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="SignUp" component={SignUp} />
-        <Stack.Screen name="FindPw" component={FindPw} />
+        <Stack.Screen name="FindPwEmail" component={FindPwEmail} />
 
         <Stack.Screen
           name="MainPage"
@@ -377,6 +386,16 @@ const StackNavigation = () => {
         <Stack.Screen
           name="KaKaoLoginRedirect"
           component={KaKaoLoginRedirect}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="EmailVerify"
+          component={EmailVerify}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="FindPw"
+          component={FindPw}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>
