@@ -171,7 +171,7 @@ const EmailVerify = ({ navigation }) => {
       console.log("성공", data);
       // 성공 시 필요한 처리 추가
       showSuccessVerify();
-      navigation.navigate("SignUp");
+      navigation.navigate("SignUp", { idValue });
     },
     onError: (error) => {
       console.error("에러", error);

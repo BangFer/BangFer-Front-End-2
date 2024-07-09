@@ -2,6 +2,7 @@ import React from "react";
 import { useState } from "react";
 import { useQuery, useMutation } from "react-query";
 import axios from "axios";
+import { useRoute } from "@react-navigation/native";
 
 import {
   Alert,
@@ -73,11 +74,13 @@ const showErrorPassword = () => {
 };
 
 const SignUp = ({ navigation }) => {
-  const [idValue, setId] = useState("");
+  const route = useRoute();
+  const { idValue } = route.params;
+  console.log(idValue);
+
   const [pwValue, setPw] = useState("");
   const [nameValue, setName] = useState("");
   const [repwValue, setrePw] = useState("");
-  const onChangeID = (payload) => setId(payload);
   const onChangeName = (payload) => setName(payload);
   const onChangePw = (payload) => setPw(payload);
   const onChangerePw = (payload) => setrePw(payload);
@@ -114,7 +117,7 @@ const SignUp = ({ navigation }) => {
   });
 
   const handlerequestSignup = () => {
-    if (!idValue || !pwValue || !nameValue || !repwValue) {
+    if (!pwValue || !nameValue || !repwValue) {
       showEmptySignUp();
       return;
     }
@@ -129,14 +132,6 @@ const SignUp = ({ navigation }) => {
       password: pwValue,
       passwordCheck: repwValue,
     });
-  };
-
-  const onLoginPress = () => {
-    setId("");
-    setPw("");
-    console.log(idValue);
-    console.log(pwValue);
-    alert(idValue);
   };
 
   return (
@@ -162,15 +157,7 @@ const SignUp = ({ navigation }) => {
             onChangeText={onChangeName}
             style={styles.SignUpTextInput}
           />
-          <Text>이메일</Text>
-          <TextInput
-            className="setId"
-            type="text"
-            placeholder="email"
-            value={idValue}
-            onChangeText={onChangeID}
-            style={styles.SignUpTextInput}
-          />
+
           <Text>비밀번호</Text>
           <TextInput
             onFocus={showPassword}
@@ -192,7 +179,7 @@ const SignUp = ({ navigation }) => {
             style={styles.SignUpButton}
             onPress={handlerequestSignup}
           >
-            <Text style={styles.SignUpButtonText}>SignUp</Text>
+            <Text style={styles.SignUpButtonText}>회원가입</Text>
           </TouchableOpacity>
         </View>
       </View>
