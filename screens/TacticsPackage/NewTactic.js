@@ -4,6 +4,9 @@ import styled from "styled-components";
 import DropDownPicker from "react-native-dropdown-picker";
 import TacticsBack from "../../assets/TacticsBack.png";
 import { FontAwesome5 } from "@expo/vector-icons";
+import { useMutation } from "react-query";
+import axios from "axios";
+import { useNavigation } from "@react-navigation/native";
 
 import {
   Text,
@@ -17,6 +20,7 @@ import {
   Dimensions,
   FlatList,
   Keyboard,
+  Alert,
 } from "react-native";
 
 const TTestView = styled.View`
@@ -277,6 +281,87 @@ const RegisterText = styled.Text`
   color: black;
 `;
 
+const positionDetails = [
+  {
+    position: "Position1",
+    positionDescription: "Description1"
+  },  {
+    position: "Position2",
+    positionDescription: "Description2"
+  },
+  {
+    position: "Position3",
+    positionDescription: "Description3"
+  },
+  {
+    position: "Position4",
+    positionDescription: "Description4"
+  },
+  {
+    position: "Position5",
+    positionDescription: "Description5"
+  },
+  {
+    position: "Position6",
+    positionDescription: "Description6"
+  },
+  {
+    position: "Position7",
+    positionDescription: "Description7"
+  },
+  {
+    position: "Position8",
+    positionDescription: "Description8"
+  },
+  {
+    position: "Position9",
+    positionDescription: "Description9"
+  },
+  {
+    position: "Position10",
+    positionDescription: "Description10"
+  },
+  {
+    position: "Position11",
+    positionDescription: "Description11"
+  }
+];
+
+const RegisterTactic = async ({ tacticName, famousCoachName, mainFormation, tacticDetails, attackDetails, defenseDetails, positionDetails}) => {
+  try {
+    const headers = {
+      "Content-type": "application/json; charset=UTF-8",
+    };
+
+    const data = {
+      tacticName: tacticName,
+      anonymous: true,
+      famousCoachName: famousCoachName,
+      mainFormation: mainFormation,
+      tacticDetails: tacticDetails,
+      attackDetails: attackDetails,
+      defenseDetails: defenseDetails,
+      positionDetails: positionDetails,
+    };
+
+    console.log(data);
+
+    const response = await axios.post(
+      "http://13.125.14.94:8080/api/v1/tactics",
+      data,
+      {
+        headers: headers,
+      }
+    );
+
+    return response.data; // 반환할 데이터 형식에 맞게 수정
+  } catch (error) {
+    console.error(error.response);
+    throw new Error("Failed to register Tactic");
+  }
+}; 
+
+
 const NewTactic = ({ navigation }) => {
   const [TacticsNameplaceholder, setTacticsNamePlaceholder] = useState("전술명");
   const [DetailTacticsplaceholder, setDetailTacticsplaceholder] = useState("");
@@ -300,10 +385,16 @@ const NewTactic = ({ navigation }) => {
 
   const handleChangeMainText = (inputText) => {
     setMainText(inputText);
+    setTacticDetailsValue(inputText);
   };
 
   const handleChangeSubText = (inputText) => {
     setSubText(inputText);
+    if (isMainTactic) {
+      setAttackDetailsValue(inputText);
+    } else {
+      setDefenseDetailsValue(inputText);
+    }
   };
   const [DirectorNameplaceholder, setDirectorNamePlaceholder] =
     useState("감독명");
@@ -333,6 +424,7 @@ const NewTactic = ({ navigation }) => {
   const [isGKModalVisible, setIsGKModalVisible] = useState(false);
   const [currentValue, setCurrentValue] = useState(1);
   const onChange = (value, index) => {
+    setMainFormationValue(value);
     switch (value) {
       case "1":
         setCurrentValue(1);
@@ -360,6 +452,43 @@ const NewTactic = ({ navigation }) => {
     }
   };
 
+
+
+  const { mutate: RegisterTacticMutate } = useMutation(RegisterTactic, {
+    onSuccess: (data) => {
+      console.log("성공", data);
+      // 성공 시 필요한 처리 추가
+      Alert.alert("전술이 등록되었습니다");
+      
+    },
+    onError: (error) => {
+      console.error("에러", error);
+      // 에러 시 필요한 처리 추가
+      Alert.alert("등록 실패");
+    },
+  });
+
+
+
+  const handleTacticRegister = () => {
+      RegisterTacticMutate({
+        tacticName : TacticNameValue, 
+        mainFormation : MainFormationValue, 
+        tacticDetails : TacticDetailsValue,
+        attackDetails : AttackDetailsValue, 
+        defenseDetails : DefenseDetailsValue, 
+        positionDetails : PositionDetailsValue
+      });
+  };
+
+  const [TacticNameValue, setTacticNameValue] = useState("");
+  const [MainFormationValue, setMainFormationValue] = useState("");
+  const [TacticDetailsValue, setTacticDetailsValue] = useState("");
+  const [AttackDetailsValue, setAttackDetailsValue] = useState("");
+  const [DefenseDetailsValue, setDefenseDetailsValue] = useState("");
+  const [PositionDetailsValue, setPositionDetailsValue] = useState("");
+
+
   return (
     <Container>
       <ViewForTextBar>
@@ -367,6 +496,8 @@ const NewTactic = ({ navigation }) => {
           placeholder={TacticsNameplaceholder}
           onFocus={handleFocus}
           onBlur={handleBlur}
+          value = {TacticNameValue}
+          onChangeText = {setTacticNameValue}
         />
       </ViewForTextBar>
       <ViewForTacticBoard>
@@ -438,11 +569,19 @@ const NewTactic = ({ navigation }) => {
                   ></TextInputforModalTactics>
                 </ViewforModalText>
                 <ViewforModalOutButton>
-                  <TouchForOutButton
-                    onPress={() => setIsAttackerModalVisible(false)}
-                  >
-                    <TextForOutButton>확인</TextForOutButton>
-                  </TouchForOutButton>
+                <TouchForOutButton
+  onPress={() => {
+    setIsAttackerModalVisible(false);
+    setPositionDetailsValue([...PositionDetailsValue, {
+      position: DetailPositionplaceholder,
+      positionDescription: DetailTacticsplaceholder
+    }]);
+    setDetailPositionplaceholder("");
+    setDetailTacticsplaceholder("");
+  }}
+>
+  <TextForOutButton>확인</TextForOutButton>
+</TouchForOutButton>
                 </ViewforModalOutButton>
               </ModalView>
             </ContainerModalView>
@@ -1014,7 +1153,7 @@ const NewTactic = ({ navigation }) => {
         </TacticBox>
       </ViewForSlideTactic>
       <RegisterButtonView>
-        <RegisterButton onPress={() => navigation.navigate("Tactics")}>
+        <RegisterButton onPress={handleTacticRegister}>
           <RegisterText>등록</RegisterText>
         </RegisterButton>
       </RegisterButtonView>
