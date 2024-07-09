@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from "react";
+import React, { useCallback, useState } from "react";
 import {
   View,
   Text,
@@ -11,29 +11,14 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import * as ImageLibrary from "react-native-image-picker";
+import { launchCamera, launchImageLibrary } from "react-native-image-picker";
+
 import uuid from "react-native-uuid";
-import { useBoardStore } from "../store/board";
+import { useBoardStore } from "../../store/board";
 
-const FreeBoardUpdate = ({ navigation, route }) => {
-  const boards = useBoardStore((state) => state.boards);
-  useEffect(() => {
-    if (!route.params?._id) {
-      navigation.replace("FreeBoard");
-      return;
-    }
+// import * as ImagePicker from "expo-image-picker";
 
-    if (boards.findIndex((board) => board._id === route.params._id) < 0) {
-      navigation.replace("FreeBoard");
-      return;
-    } else {
-      const data = boards.find((board) => board._id === route.params._id);
-      setTitle(data.title);
-      setContents(data.contents);
-      setSelectCategories(data.categories);
-      setFiles(data.files);
-    }
-  }, [boards, route.params?._id]);
-
+const FreeBoardWrite = ({ navigation }) => {
   const contentInputRef = React.useRef();
 
   const [title, setTitle] = useState("");
@@ -42,11 +27,12 @@ const FreeBoardUpdate = ({ navigation, route }) => {
   const [category, setCategory] = useState("");
   const [files, setFiles] = useState([]);
 
-  const updateBoard = useBoardStore((state) => state.updateBoard);
+  const addBoard = useBoardStore((state) => state.addBoard);
 
   const handlePressSubmitForm = () => {
-    const _id = route.params._id;
+    const _id = uuid.v4();
 
+    console.log("title", title);
     if (title.trim() === "") {
       Alert.alert("제목을 입력해주세요.");
       return;
@@ -57,7 +43,7 @@ const FreeBoardUpdate = ({ navigation, route }) => {
       return;
     }
 
-    updateBoard(route.params?._id, {
+    addBoard({
       _id,
       title,
       contents,
@@ -66,7 +52,9 @@ const FreeBoardUpdate = ({ navigation, route }) => {
       comments: [],
     });
 
-    navigation.goBack();
+    navigation.replace("FreeBoardDetail", {
+      _id,
+    });
   };
 
   const handleAddSelectCategory = useCallback(
@@ -144,12 +132,12 @@ const FreeBoardUpdate = ({ navigation, route }) => {
         <View style={styles.buttonBox}>
           <Pressable
             style={styles.button}
-            onPress={() =>
+            onPress={async () => {
               ImageLibrary.launchImageLibrary({}, (res) => {
                 if (res?.didCancel) return;
                 setFiles([...files, res.assets[0].uri]);
-              })
-            }
+              });
+            }}
           >
             <AntDesign name="picture" size={24} color="#666" />
             <Text style={{ color: "#666" }}>사진</Text>
@@ -244,4 +232,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default FreeBoardUpdate;
+export default FreeBoardWrite;

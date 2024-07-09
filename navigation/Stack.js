@@ -5,10 +5,12 @@ import { FontAwesome } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
 
 import MainPage from '../screens/MainPage';
-import FreeBoard from '../screens/FreeBoard';
-import FreeBoardDetail from '../screens/FreeBoardDetail';
-import FreeBoardWrite from '../screens/FreeBoardWrite';
-import FreeBoardUpdate from '../screens/FreeBoardUpdate';
+import FreeBoard from '../screens/FreeBoardPackage/FreeBoard';
+import FreeBoardDetail from '../screens/FreeBoardPackage/FreeBoardDetail';
+import FreeBoardWrite from '../screens/FreeBoardPackage/FreeBoardWrite';
+import FreeBoardUpdate from '../screens/FreeBoardPackage/FreeBoardUpdate';
+import FreeBoardSearch from '../screens/FreeBoardPackage/FreeBoardSearch';
+import MyFreeBoard from '../screens/FreeBoardPackage/MyFreeBoard';
 import MyPage from '../screens/MyPagePackage/MyPage';
 import BanggusukTeam from '../screens/BanggusukTeamPackage/BanggusukTeam';
 import UserPlusBanggusukTeam from '../screens/BanggusukTeamPackage/UserPlusBanggusukTeam';
@@ -17,7 +19,6 @@ import TacticsSearch from '../screens/TacticsPackage/TacticsSearch';
 import NewTactic from '../screens/TacticsPackage/NewTactic';
 import MyTactics from '../screens/TacticsPackage/MyTactics';
 import TacticExample from '../screens/TacticsPackage/TacticExample';
-import FreeBoardSearch from '../screens/FreeBoardSearch';
 import MyPosts from '../screens/MyPosts';
 import NewPost from '../screens/NewPost';
 import PostExample from '../screens/PostExample';
@@ -154,6 +155,15 @@ const navigateToMyPosts = (navigation) => {
 
 const navigateToNewPost = (navigation) => {
   navigation.navigate('NewPost');
+};
+
+
+const navigateToFreeBoardWrite = (navigation) => {
+  navigation.navigate('FreeBoardWrite');
+};
+
+const navigateToMyFreeBoard = (navigation) => {
+  navigation.navigate('MyFreeBoard');
 };
 
 const StackNavigation = () => {
@@ -304,19 +314,38 @@ const StackNavigation = () => {
           })}
         />
 
-        <Stack.Screen
+<Stack.Screen
           name="FreeBoard"
           component={FreeBoard}
           options={({ navigation }) => ({
             headerShown: true,
-            title: '자유 게시판',
             headerTitleAlign: 'center',
             headerRight: () => (
-              <TouchableOpacity
-                onPress={() => navigation.navigate('FreeBoardWrite')}
-              >
-                <Text style={{ fontSize: 14 }}>글쓰기</Text>
-              </TouchableOpacity>
+              <View>
+                <NavigationButtonView>
+                  <SearchButton
+                    onPress={() => navigation.navigate('FreeBoardSearch')}
+                  >
+                    <FontAwesome name="search" size={20} color="black" />
+                  </SearchButton>
+                  <Menu>
+                    <MenuTrigger>
+                      <Feather name="more-vertical" size={24} color="black" />
+                    </MenuTrigger>
+                    <MenuOptions>
+                      <MenuOption
+                        onSelect={() => navigateToFreeBoardWrite(navigation)}
+                        text="글 쓰기"
+                      />
+                      <MenuOption
+                        onSelect={() => navigateToMyFreeBoard(navigation)}
+                      >
+                        <Text style={{ color: 'red' }}>내가 쓴 글</Text>
+                      </MenuOption>
+                    </MenuOptions>
+                  </Menu>
+                </NavigationButtonView>
+              </View>
             ),
           })}
         />
@@ -345,6 +374,24 @@ const StackNavigation = () => {
           options={({ navigation }) => ({
             headerShown: true,
             title: '글쓰기',
+          })}
+        />
+
+        <Stack.Screen
+          name="FreeBoardSearch"
+          component={FreeBoardSearch}
+          options={({ navigation }) => ({
+            headerShown: true,
+            title: '게시글 검색',
+          })}
+        />
+        
+        <Stack.Screen
+          name="MyFreeBoard"
+          component={MyFreeBoard}
+          options={({ navigation }) => ({
+            headerShown: true,
+            title: '내 글',
           })}
         />
 
