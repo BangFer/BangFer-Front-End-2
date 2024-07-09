@@ -8,7 +8,7 @@ import {
   Image,
   TextInput,
 } from "react-native";
-import { useBoardStore } from "../store/board";
+import { useBoardStore } from "../../store/board";
 import { EvilIcons } from "@expo/vector-icons";
 import { AntDesign } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -16,7 +16,7 @@ import { Feather } from "@expo/vector-icons";
 import uuid from "react-native-uuid";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import { Entypo } from "@expo/vector-icons";
-import ProfileImg from "../assets/profileimg.jpg";
+import ProfileImg from "../../assets/profileimg.jpg";
 
 const UserInfo = () => {
   return (
