@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 
 // storage에서 토큰 갖고오는 메소드
-const getTokenFromLocal = async () => {
+export const getTokenFromLocal = async () => {
   try {
     const value = await AsyncStorage.getItem("Tokens");
     if (value !== null) {
@@ -16,7 +16,7 @@ const getTokenFromLocal = async () => {
 };
 
 export const verifyTokens = async (navigation) => {
-  await AsyncStorage.clear();
+  // await AsyncStorage.clear();
   const Token = await getTokenFromLocal();
   console.log("토큰 확인 : ", Token);
   // 최초 접속
@@ -27,9 +27,7 @@ export const verifyTokens = async (navigation) => {
     const headers_config = {
       "Content-Type": "application/json; charset=UTF-8",
       "RefreshToken": Token.refreshToken,
-      "accessToken": "Bearer " + Token.accessToken,
     };
-    console.log("헤더 config 확인 : ", headers_config);
 
     try {
       const res = await axios.get("http://13.125.14.94:8080/accounts/reissue", {
@@ -44,15 +42,16 @@ export const verifyTokens = async (navigation) => {
           accessToken: res.data.result.accessToken,
         })
       );
-      console.log("accessToken이 만료되었지만 refresh 살아있음");
       navigation.navigate("MainPage");
     } catch (error) {
       // refresh가 만료됐을 경우 확인 필요
-      console.error(error);
+      console.error(error.response);
       // accessToken 만료, refreshToken 만료
       if (error.response && error.response.data.code === "SEC4011") {
         navigation.navigate("Login");
       }
+
+      navigation.navigate("Login");
     }
   }
 };

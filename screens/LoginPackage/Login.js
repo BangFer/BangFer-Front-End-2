@@ -61,7 +61,7 @@ const LoginRequest = async ({ email, password }) => {
 
 const showToken = async () => {
   try {
-    const value = await AsyncStorage.getItem("Tokens");
+    const value = await AsyncStorage.getItem("profileId");
     console.log(value);
   } catch (e) {
     console.log("에러");

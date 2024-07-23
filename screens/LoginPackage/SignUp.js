@@ -76,7 +76,6 @@ const showErrorPassword = () => {
 const SignUp = ({ navigation }) => {
   const route = useRoute();
   const { idValue } = route.params;
-  console.log(idValue);
 
   const [pwValue, setPw] = useState("");
   const [nameValue, setName] = useState("");
@@ -86,7 +85,6 @@ const SignUp = ({ navigation }) => {
   const onChangerePw = (payload) => setrePw(payload);
 
   const showPassword = () => {
-    console.log("Password field focused");
     ToastAndroid.show(
       "비밀번호는 8자 이상, 특수문자 한 개 이상 포함해야 합니다.",
       ToastAndroid.SHORT,
