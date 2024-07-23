@@ -36,6 +36,7 @@ import EmailVerify from '../screens/LoginPackage/EmailVerify';
 import Loading from '../screens/LoginPackage/Loading';
 import Toast from 'react-native-toast-message';
 import FindPw from '../screens/LoginPackage/FindPw';
+import CreateProfile from '../screens/MyPagePackage/CreateProfile';
 import {
   Text,
   View,
@@ -44,7 +45,11 @@ import {
   TouchableOpacity,
   Button,
   Modal,
+  ToastAndroid,
 } from 'react-native';
+import axios from 'axios';
+import { getTokenFromLocal } from '../screens/LoginPackage/TokenUtils';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // your entry point
 import { MenuProvider } from 'react-native-popup-menu';
@@ -157,7 +162,6 @@ const navigateToNewPost = (navigation) => {
   navigation.navigate('NewPost');
 };
 
-
 const navigateToFreeBoardWrite = (navigation) => {
   navigation.navigate('FreeBoardWrite');
 };
@@ -166,7 +170,43 @@ const navigateToMyFreeBoard = (navigation) => {
   navigation.navigate('MyFreeBoard');
 };
 
-const StackNavigation = () => {
+const showCreateProfile = () => {
+  ToastAndroid.show(
+    '⚠️ 팀 생성 전 프로필 생성은 필수입니다.',
+    ToastAndroid.LONG
+  );
+};
+
+const CheckProfile = async (navigation) => {
+  const TokenString = await AsyncStorage.getItem('Tokens');
+  const Token = JSON.parse(TokenString);
+
+  const headers_config = {
+    'Content-Type': 'application/json; charset=UTF-8',
+    Authorization: 'Bearer ' + Token.accessToken,
+  };
+
+  try {
+    const res = await axios.get(
+      'http://13.125.14.94:8080/accounts/profile/myProfile',
+      {
+        headers: headers_config,
+      }
+    );
+    navigation.navigate('EnrollBanggusukTeam');
+  } catch (error) {
+    console.log(error.response);
+    if (
+      error.response &&
+      error.response.data &&
+      error.response.data.code === 'PROFILE403'
+    ) {
+      showCreateProfile();
+      navigation.navigate('CreateProfile');
+    }
+  }
+};
+const StackNavigation = (navigation) => {
   const [isCallendarVisible, setIsCallendarVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [markedDates, setMarkedDates] = useState({});
@@ -212,6 +252,11 @@ const StackNavigation = () => {
         <Stack.Screen
           name="MainPage"
           component={MainPage}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="CreateProfile"
+          component={CreateProfile}
           options={{ headerShown: false }}
         />
 
@@ -302,19 +347,16 @@ const StackNavigation = () => {
           options={({ navigation }) => ({
             title: '방구석 팀',
             headerShown: true,
-
             headerTitleAlign: 'center',
             headerRight: () => (
-              <TouchableOpacity
-                onPress={() => navigation.navigate('EnrollBanggusukTeam')}
-              >
+              <TouchableOpacity onPress={() => CheckProfile(navigation)}>
                 <Text style={{ fontSize: 25 }}>+</Text>
               </TouchableOpacity>
             ),
           })}
         />
 
-<Stack.Screen
+        <Stack.Screen
           name="FreeBoard"
           component={FreeBoard}
           options={({ navigation }) => ({
@@ -385,7 +427,7 @@ const StackNavigation = () => {
             title: '게시글 검색',
           })}
         />
-        
+
         <Stack.Screen
           name="MyFreeBoard"
           component={MyFreeBoard}

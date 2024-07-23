@@ -1,13 +1,21 @@
-import { StatusBar } from 'expo-status-bar';
-import BackGround from '../assets/Back2.png'
-import TatcticsButtonImage from '../assets/Button1.png';
-import BangusukTeamButtonImage from '../assets/Button2.png';
-import FreeBoardButtonImage from '../assets/Button3.png';
-import MypageButtonImage from '../assets/Button4.png';
-import React from 'react';
-import styled from 'styled-components';
+import { StatusBar } from "expo-status-bar";
+import BackGround from "../assets/Back2.png";
+import TatcticsButtonImage from "../assets/Button1.png";
+import BangusukTeamButtonImage from "../assets/Button2.png";
+import FreeBoardButtonImage from "../assets/Button3.png";
+import MypageButtonImage from "../assets/Button4.png";
+import React from "react";
+import styled from "styled-components";
 
-import { Text, View, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import {
+  Text,
+  View,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  ImageBackground,
+  Dimensions,
+} from "react-native";
 
 const Container = styled.View`
   flex: 1;
@@ -112,48 +120,56 @@ const ButtonsImage = styled.Image`
 
 const MainPage = ({ navigation }) => {
   return (
-    <Container>
-      <StatusBar style="auto" />
-      <BackGroundView>
-        <BackGroundImage source={BackGround} resizeMode={'cover'} />
-      </BackGroundView>
-      <FirstView></FirstView>
-      <SecondView>
-        <ThirdViewForTitleText>
-          <TitleTextBANGUSUK>BANGUSUK</TitleTextBANGUSUK>
-          <TitleTextFERGUSON>FERGUSON</TitleTextFERGUSON>
-        </ThirdViewForTitleText>
-        <FourthViewForButtons>
-          <ForSortInFourthView>
-            <TacticsButton onPress={() => navigation.navigate('Tactics')}>
-              <ButtonsImage
-                source={TatcticsButtonImage}
-                resizeMode={'contain'}
-              />
-            </TacticsButton>
-            <BanggsukTeamButton
-              onPress={() => navigation.navigate('BanggusukTeam')}
-            >
-              <ButtonsImage
-                source={BangusukTeamButtonImage}
-                resizeMode={'contain'}
-              />
-            </BanggsukTeamButton>
-          </ForSortInFourthView>
-          <ForSortInFourthView1>
-            <FreeBoardButton onPress={() => navigation.navigate('FreeBoard')}>
-              <ButtonsImage
-                source={FreeBoardButtonImage}
-                resizeMode={'contain'}
-              />
-            </FreeBoardButton>
-            <MyPageButton onPress={() => navigation.navigate('MyPage')}>
-              <ButtonsImage source={MypageButtonImage} resizeMode={'contain'} />
-            </MyPageButton>
-          </ForSortInFourthView1>
-        </FourthViewForButtons>
-      </SecondView>
-    </Container>
+    <ImageBackground
+      source={require("../assets/Back2.png")}
+      style={{
+        position: "absolute",
+        width: Dimensions.get("window").width,
+        height: Dimensions.get("window").height,
+      }}
+    >
+      <Container>
+        <FirstView></FirstView>
+        <SecondView>
+          <ThirdViewForTitleText>
+            <TitleTextBANGUSUK>BANGUSUK</TitleTextBANGUSUK>
+            <TitleTextFERGUSON>FERGUSON</TitleTextFERGUSON>
+          </ThirdViewForTitleText>
+          <FourthViewForButtons>
+            <ForSortInFourthView>
+              <TacticsButton onPress={() => navigation.navigate("Tactics")}>
+                <ButtonsImage
+                  source={TatcticsButtonImage}
+                  resizeMode={"contain"}
+                />
+              </TacticsButton>
+              <BanggsukTeamButton
+                onPress={() => navigation.navigate("BanggusukTeam")}
+              >
+                <ButtonsImage
+                  source={BangusukTeamButtonImage}
+                  resizeMode={"contain"}
+                />
+              </BanggsukTeamButton>
+            </ForSortInFourthView>
+            <ForSortInFourthView1>
+              <FreeBoardButton onPress={() => navigation.navigate("FreeBoard")}>
+                <ButtonsImage
+                  source={FreeBoardButtonImage}
+                  resizeMode={"contain"}
+                />
+              </FreeBoardButton>
+              <MyPageButton onPress={() => navigation.navigate("MyPage")}>
+                <ButtonsImage
+                  source={MypageButtonImage}
+                  resizeMode={"contain"}
+                />
+              </MyPageButton>
+            </ForSortInFourthView1>
+          </FourthViewForButtons>
+        </SecondView>
+      </Container>
+    </ImageBackground>
   );
 };
 

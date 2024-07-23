@@ -1,9 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
 import styled from "styled-components";
 import TacticsBack from "../../assets/TacticsBack.png";
 import DropDownPicker from "react-native-dropdown-picker";
 import { FontAwesome5 } from "@expo/vector-icons";
+import { verifyTokens, getTokenFromLocal } from "../LoginPackage/TokenUtils";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
+import { useQuery, useMutation } from "react-query";
 
 import {
   Text,
@@ -17,6 +21,7 @@ import {
   Dimensions,
   FlatList,
   Keyboard,
+  ToastAndroid,
 } from "react-native";
 
 const TTestView = styled.View`
@@ -276,12 +281,202 @@ const RegisterText = styled.Text`
   font-weight: bold;
   color: black;
 `;
+const showNotChooseTactic = () => {
+  ToastAndroid.show("❌ 전술을 선택해주세요.", ToastAndroid.LONG);
+};
+
+const showEmptyTeamName = () => {
+  ToastAndroid.show("❌ 팀 명을 입력해주세요.", ToastAndroid.LONG);
+};
+
+const showSuccessCreateTeam = () => {
+  ToastAndroid.show("✅ 팀 생성 성공", ToastAndroid.LONG);
+};
+const CreateBanggusukTeam = async ({ teamName }) => {
+  const Token = await getTokenFromLocal();
+  try {
+    const headers = {
+      "Content-type": "application/json; charset=UTF-8",
+      "Authorization": "Bearer " + Token.accessToken,
+    };
+
+    const data = {
+      teamName: teamName,
+    };
+
+    console.log(data);
+
+    const response = await axios.post("http://13.125.14.94:8080/team", data, {
+      headers: headers,
+    });
+
+    return response.data; // 반환할 데이터 형식에 맞게 수정
+  } catch (error) {
+    console.error(error.response);
+    throw error.response;
+  }
+};
+
+const GetTatics = async (taticsId) => {
+  const Token = await getTokenFromLocal();
+
+  const headers_config = {
+    "Content-Type": "application/json; charset=UTF-8",
+    "Authorization": "Bearer " + Token.accessToken,
+  };
+  const url = "http://13.125.14.94:8080/api/v1/tactics/" + taticsId;
+  console.log("url :" + url);
+  try {
+    const res = await axios.get(url, {
+      headers: headers_config,
+    });
+    console.log("GetTactics의 response는", JSON.stringify(res.data)); // JSON.stringify로 객체를 문자열로 변환
+    return res;
+  } catch (error) {
+    console.error("Get Tactic의 error는 " + error);
+  }
+};
+
+const CheckTactics = async (navigation) => {
+  const Token = await getTokenFromLocal();
+
+  const headers_config = {
+    "Content-Type": "application/json; charset=UTF-8",
+    "Authorization": "Bearer " + Token.accessToken,
+  };
+
+  try {
+    const res = await axios.get("http://13.125.14.94:8080/team/tactic/list", {
+      headers: headers_config,
+    });
+    console.log(res.data);
+    console.log("CheckTatcis의 response는 ", JSON.stringify(res.data)); // JSON.stringify로 객체를 문자열로 변환
+    return res;
+  } catch (error) {
+    console.error("error는 " + error);
+  }
+};
 
 const EnrollBanggusukTeam = ({ navigation }) => {
-  const [TacticsNameplaceholder, setTacticsNamePlaceholder] = useState("팀 명");
-  const [DetailTacticsplaceholder, setDetailTacticsplaceholder] = useState("");
+  const [tactics, setTactics] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState(null);
+  const [items, setItems] = useState([]);
+  const [selectedFormation, setSelectedFormation] = useState("");
+  const [nameValue, setName] = useState("");
+  const [OnePositionValue, setOnePositionValue] = useState("");
+  const [TwoPositionValue, setTwoPositionValue] = useState("");
+  const [ThreePositionValue, setThreePositionValue] = useState("");
+  const [FourPositionValue, setFourPositionValue] = useState("");
+  const [FivePositionValue, setFivePositionValue] = useState("");
+  const [SixPositionValue, setSixPositionValue] = useState("");
+  const [SevenPositionValue, setSevenPositionValue] = useState("");
+  const [EightPositionValue, setEightPositionValue] = useState("");
+  const [NinePositionValue, setNinePositionValue] = useState("");
+  const [TenPositionValue, setTenPositionValue] = useState("");
+  const [ElevenPositionValue, setElevenPositionValue] = useState("");
+
+  const onChangeName = (payload) => setName(payload);
+  useEffect(() => {
+    const fetchTactics = async () => {
+      const data = await CheckTactics(navigation);
+      if (data) {
+        const transformedItems = data.data.result.map((tactic) => ({
+          label: tactic.title,
+          value: tactic.tacticId,
+          formation: tactic.formation,
+        }));
+        setItems(transformedItems); // result 속성 설정
+        console.log("Transformed items:", transformedItems); // 콘솔에 출력
+      }
+    };
+
+    fetchTactics();
+  }, [navigation]);
+
+  const handleTacticChange = async (selectedTacticId) => {
+    const data = await GetTatics(selectedTacticId);
+    handleChangeMainText(data.data.result.subTactic);
+    handleChangeSubText(data.data.result.tacticDetails);
+    const selectedTactic = items.find(
+      (item) => item.value === selectedTacticId
+    );
+    setSelectedFormation(selectedTactic.formation);
+
+    setOnePositionValue(data.data.result.positionDetail[0].positionDescription);
+    setTwoPositionValue(data.data.result.positionDetail[1].positionDescription);
+    setThreePositionValue(
+      data.data.result.positionDetail[2].positionDescription
+    );
+    setFourPositionValue(
+      data.data.result.positionDetail[3].positionDescription
+    );
+    setFivePositionValue(
+      data.data.result.positionDetail[4].positionDescription
+    );
+    setSixPositionValue(data.data.result.positionDetail[5].positionDescription);
+    setSevenPositionValue(
+      data.data.result.positionDetail[6].positionDescription
+    );
+    setEightPositionValue(
+      data.data.result.positionDetail[7].positionDescription
+    );
+    setNinePositionValue(
+      data.data.result.positionDetail[8].positionDescription
+    );
+    setTenPositionValue(data.data.result.positionDetail[9].positionDescription);
+    setElevenPositionValue(
+      data.data.result.positionDetail[10].positionDescription
+    );
+  };
+
+  const handleAttackerPositionPress = (DetailText, PositionText) => {
+    setDetailTacticsplaceholder(DetailText);
+    setDetailPositionplaceholder(PositionText);
+    setIsAttackerModalVisible(true);
+  };
+
+  const handleMidfielderPositionPress = (DetailText, PositionText) => {
+    setDetailTacticsplaceholder(DetailText);
+    setDetailPositionplaceholder(PositionText);
+
+    setIsMidfielderModalVisible(true);
+  };
+
+  const handleDefenderPositionPress = (DetailText, PositionText) => {
+    setDetailTacticsplaceholder(DetailText);
+    setDetailPositionplaceholder(PositionText);
+
+    setIsDefenderModalVisible(true);
+  };
+
+  const handleGoalkeeperPositionPress = (DetailText, PositionText) => {
+    setDetailTacticsplaceholder(DetailText);
+    setDetailPositionplaceholder(PositionText);
+
+    setIsGKModalVisible(true);
+  };
+
   const [DetailPositionplaceholder, setDetailPositionplaceholder] =
     useState("");
+  const [TacticsNameplaceholder, setTacticsNamePlaceholder] = useState("팀 명");
+  const [DetailTacticsplaceholder, setDetailTacticsplaceholder] = useState("");
+  // const [
+  //   AttackerDetailPositionplaceholder,
+  //   setAttackerDetailPositionplaceholder,
+  // ] = useState("");
+  // const [
+  //   MidfielderDetailPositionplaceholder,
+  //   setMidfielderDetailPositionplaceholder,
+  // ] = useState("");
+  // const [
+  //   DefenderDetailPositionplaceholder,
+  //   setDefenderDetailPositionplaceholder,
+  // ] = useState("");
+  // const [
+  //   GoalkeeperDetailPositionplaceholder,
+  //   setGoalkeeperDetailPositionplaceholder,
+  // ] = useState("");
   const handleFocus = () => {
     setTacticsNamePlaceholder("");
   };
@@ -314,50 +509,42 @@ const EnrollBanggusukTeam = ({ navigation }) => {
     setDirectorNamePlaceholder("감독명");
   };
 
-  const [open, setOpen] = useState(false);
-  const [value, setValue] = useState({ label: "4-4-2", value: "1" });
-  const [items, setItems] = useState([
-    { label: "내 전술", value: "1" },
-    { label: "클롭", value: "2" },
-    { label: "사비", value: "3" },
-    { label: "알론소", value: "4" },
-    { label: "맨시티식", value: "5" },
-    { label: "맨유", value: "6" },
-    { label: "첼시", value: "7" },
-  ]);
-
   const [isAttackerModalVisible, setIsAttackerModalVisible] = useState(false);
   const [isMidfielderModalVisible, setIsMidfielderModalVisible] =
     useState(false);
   const [isDefenderModalVisible, setIsDefenderModalVisible] = useState(false);
   const [isGKModalVisible, setIsGKModalVisible] = useState(false);
-  const [currentValue, setCurrentValue] = useState(1);
-  const onChange = (value, index) => {
-    switch (value) {
-      case "1":
-        setCurrentValue(1);
-        break;
-      case "2":
-        setCurrentValue(2);
-        break;
-      case "3":
-        setCurrentValue(3);
-        break;
-      case "4":
-        setCurrentValue(4);
-        break;
-      case "5":
-        setCurrentValue(5);
-        break;
-      case "6":
-        setCurrentValue(6);
-        break;
-      case "7":
-        setCurrentValue(7);
-        break;
-      default:
-        setCurrentValue(1);
+  const [currentValue, setCurrentValue] = useState();
+  const onChange = (value) => {
+    setCurrentValue(value);
+    handleTacticChange(value);
+  };
+
+  const { mutate: requestEmailMutate } = useMutation(CreateBanggusukTeam, {
+    onSuccess: (data) => {
+      console.log("성공", data);
+      // 성공 시 필요한 처리 추가
+      showSuccessCreateTeam();
+      navigation.navigate("BanggusukTeam");
+    },
+    onError: (error) => {
+      console.error("에러", error);
+      // 에러 시 필요한 처리 추가
+    },
+  });
+
+  const handleCreateTeam = () => {
+    if (!nameValue) {
+      showEmptyTeamName();
+      return;
     }
+    if (!selectedFormation) {
+      showNotChooseTactic();
+      return;
+    }
+    requestEmailMutate({
+      teamName: nameValue,
+    });
   };
 
   return (
@@ -367,12 +554,11 @@ const EnrollBanggusukTeam = ({ navigation }) => {
           placeholder={TacticsNameplaceholder}
           onFocus={handleFocus}
           onBlur={handleBlur}
+          className="setName"
+          type="text"
+          value={nameValue}
+          onChangeText={onChangeName}
         />
-        <DirectorName
-          placeholder={DirectorNameplaceholder}
-          onFocus={handleFocus2}
-          onBlur={handleBlur2}
-        ></DirectorName>
       </ViewForTextBar>
       <ViewForTacticBoard>
         <ViewForDropdown>
@@ -380,12 +566,13 @@ const EnrollBanggusukTeam = ({ navigation }) => {
             open={open}
             value={value}
             items={items}
-            placeholder="내 전술"
+            placeholder="전술 선택"
             setOpen={setOpen}
             setValue={setValue}
             setItems={setItems}
             onChangeValue={onChange}
-            maxHeight={400}
+            maxHeight={200}
+            listMode="SCROLLVIEW"
             style={{
               backgroundColor: "#000",
             }}
@@ -395,12 +582,16 @@ const EnrollBanggusukTeam = ({ navigation }) => {
             }}
             dropDownContainerStyle={{
               backgroundColor: "#000",
+              maxHeight: 200,
             }}
             arrowIconStyle={{
               tintColor: "white",
-              borderWidth: 13,
+              // borderWidth: 13,
             }}
-            nestedScrollEnabled={true}
+            scrollViewProps={{
+              nestedScrollEnabled: true,
+              scrollEnabled: true,
+            }}
           />
         </ViewForDropdown>
         <ViewForBoard>
@@ -416,30 +607,24 @@ const EnrollBanggusukTeam = ({ navigation }) => {
               <ModalView>
                 <ViewforModalPosition>
                   <TextForModalPosition
-                    editable
+                    editable={false} // TextInput을 수정 불가능하게 설정
+                    pointerEvents="none" // 모든 터치 이벤트 차단
                     numberOfLines={1}
                     value={DetailPositionplaceholder}
                     maxLenth={10}
-                    placeholder="포지션 입력"
-                    onChangeText={(newText) =>
-                      setDetailPositionplaceholder(newText)
-                    }
                     placeholderTextColor="#ff6262"
                   ></TextForModalPosition>
                 </ViewforModalPosition>
 
                 <ViewforModalText>
                   <TextInputforModalTactics
-                    editable
                     multiline
                     numberOfLines={3}
                     value={DetailTacticsplaceholder}
                     maxLength={100}
-                    placeholder="세부 전술을 입력하세요."
-                    onChangeText={(newText) =>
-                      setDetailTacticsplaceholder(newText)
-                    }
                     placeholderTextColor="#ff6262"
+                    editable={false} // TextInput을 수정 불가능하게 설정
+                    pointerEvents="none" // 모든 터치 이벤트 차단
                   ></TextInputforModalTactics>
                 </ViewforModalText>
                 <ViewforModalOutButton>
@@ -463,14 +648,11 @@ const EnrollBanggusukTeam = ({ navigation }) => {
               <ModalView style={{ borderColor: "#5182FF" }}>
                 <ViewforModalPosition>
                   <TextForModalPosition
-                    editable
+                    editable={false} // TextInput을 수정 불가능하게 설정
+                    pointerEvents="none" // 모든 터치 이벤트 차단
                     numberOfLines={1}
                     value={DetailPositionplaceholder}
                     maxLenth={10}
-                    placeholder="포지션 입력"
-                    onChangeText={(newText) =>
-                      setDetailPositionplaceholder(newText)
-                    }
                     placeholderTextColor="#5182FF"
                     style={{ color: "#5182FF" }}
                   ></TextForModalPosition>
@@ -478,15 +660,12 @@ const EnrollBanggusukTeam = ({ navigation }) => {
 
                 <ViewforModalText>
                   <TextInputforModalTactics
-                    editable
+                    editable={false} // TextInput을 수정 불가능하게 설정
+                    pointerEvents="none" // 모든 터치 이벤트 차단
                     multiline
                     numberOfLines={3}
                     value={DetailTacticsplaceholder}
                     maxLength={100}
-                    placeholder="세부 전술을 입력하세요."
-                    onChangeText={(newText) =>
-                      setDetailTacticsplaceholder(newText)
-                    }
                     placeholderTextColor="#5182FF"
                     style={{ color: "#5182FF" }}
                   ></TextInputforModalTactics>
@@ -513,14 +692,11 @@ const EnrollBanggusukTeam = ({ navigation }) => {
               <ModalView style={{ borderColor: "#6CD163" }}>
                 <ViewforModalPosition>
                   <TextForModalPosition
-                    editable
+                    editable={false} // TextInput을 수정 불가능하게 설정
+                    pointerEvents="none" // 모든 터치 이벤트 차단
                     numberOfLines={1}
                     value={DetailPositionplaceholder}
                     maxLenth={10}
-                    placeholder="포지션 입력"
-                    onChangeText={(newText) =>
-                      setDetailPositionplaceholder(newText)
-                    }
                     placeholderTextColor="#6CD163"
                     style={{ color: "#6CD163" }}
                   ></TextForModalPosition>
@@ -528,15 +704,11 @@ const EnrollBanggusukTeam = ({ navigation }) => {
 
                 <ViewforModalText>
                   <TextInputforModalTactics
-                    editable
-                    multiline
+                    editable={false} // TextInput을 수정 불가능하게 설정
+                    pointerEvents="none" // 모든 터치 이벤트 차단
                     numberOfLines={3}
                     value={DetailTacticsplaceholder}
                     maxLength={100}
-                    placeholder="세부 전술을 입력하세요."
-                    onChangeText={(newText) =>
-                      setDetailTacticsplaceholder(newText)
-                    }
                     placeholderTextColor="#6CD163"
                     style={{ color: "#6CD163" }}
                   ></TextInputforModalTactics>
@@ -561,14 +733,11 @@ const EnrollBanggusukTeam = ({ navigation }) => {
               <ModalView style={{ borderColor: "#FFB056" }}>
                 <ViewforModalPosition>
                   <TextForModalPosition
-                    editable
+                    editable={false} // TextInput을 수정 불가능하게 설정
+                    pointerEvents="none" // 모든 터치 이벤트 차단
                     numberOfLines={1}
                     value={DetailPositionplaceholder}
                     maxLenth={10}
-                    placeholder="포지션 입력"
-                    onChangeText={(newText) =>
-                      setDetailPositionplaceholder(newText)
-                    }
                     placeholderTextColor="#FFB056"
                     style={{ color: "#FFB056" }}
                   ></TextForModalPosition>
@@ -576,15 +745,11 @@ const EnrollBanggusukTeam = ({ navigation }) => {
 
                 <ViewforModalText>
                   <TextInputforModalTactics
-                    editable
-                    multiline
+                    editable={false} // TextInput을 수정 불가능하게 설정
+                    pointerEvents="none" // 모든 터치 이벤트 차단
                     numberOfLines={3}
                     value={DetailTacticsplaceholder}
                     maxLength={100}
-                    placeholder="세부 전술을 입력하세요."
-                    onChangeText={(newText) =>
-                      setDetailTacticsplaceholder(newText)
-                    }
                     placeholderTextColor="#FFB056"
                     style={{ color: "#FFB056" }}
                   ></TextInputforModalTactics>
@@ -600,397 +765,551 @@ const EnrollBanggusukTeam = ({ navigation }) => {
               </ModalView>
             </ContainerModalView>
           </Modal>
-          {currentValue === 1 && (
+          {selectedFormation === "4-4-2" && (
             <TestView>
               <ViewForForward>
                 <Forward
                   style={{ marginTop: 70 }}
-                  onPress={() => setIsAttackerModalVisible(true)}
+                  onPress={() =>
+                    handleAttackerPositionPress(OnePositionValue, "LS")
+                  }
                 ></Forward>
                 <Forward
                   style={{ marginTop: 70 }}
-                  onPress={() => setIsAttackerModalVisible(true)}
+                  onPress={() =>
+                    handleAttackerPositionPress(TwoPositionValue, "RS")
+                  }
                 ></Forward>
               </ViewForForward>
               <ViewForMidfielder>
                 <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
+                  onPress={() =>
+                    handleMidfielderPositionPress(ThreePositionValue, "LM")
+                  }
                 ></Midfielder>
                 <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
+                  onPress={() =>
+                    handleMidfielderPositionPress(FourPositionValue, "LCM")
+                  }
                   style={{ marginTop: 25 }}
                 ></Midfielder>
                 <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
+                  onPress={() =>
+                    handleMidfielderPositionPress(FivePositionValue, "RCM")
+                  }
                   style={{ marginTop: 25 }}
                 ></Midfielder>
                 <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
+                  onPress={() =>
+                    handleMidfielderPositionPress(SixPositionValue, "RM")
+                  }
                 ></Midfielder>
               </ViewForMidfielder>
               <ViewForDefender>
                 <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
+                  onPress={() =>
+                    handleDefenderPositionPress(SevenPositionValue, "LB")
+                  }
                 ></Defender>
                 <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
+                  onPress={() =>
+                    handleDefenderPositionPress(EightPositionValue, "LCB")
+                  }
                   style={{ marginTop: 25 }}
                 ></Defender>
                 <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
+                  onPress={() =>
+                    handleDefenderPositionPress(NinePositionValue, "RCB")
+                  }
                   style={{ marginTop: 25 }}
                 ></Defender>
                 <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
+                  onPress={() =>
+                    handleDefenderPositionPress(TenPositionValue, "RB")
+                  }
                 ></Defender>
               </ViewForDefender>
               <ViewForGoalkeeper>
                 <Goalkeeper
-                  onPress={() => setIsGKModalVisible(true)}
+                  onPress={() =>
+                    handleGoalkeeperPositionPress(ElevenPositionValue, "GK")
+                  }
                   style={{ marginTop: 25 }}
                 ></Goalkeeper>
               </ViewForGoalkeeper>
             </TestView>
           )}
-          {currentValue === 2 && (
+          {selectedFormation === "4-3-3" && (
             <TestView>
               <ViewForForward style={{ justifyContent: "space-around" }}>
                 <Forward
-                  onPress={() => setIsAttackerModalVisible(true)}
+                  onPress={() =>
+                    handleAttackerPositionPress(OnePositionValue, "LW")
+                  }
                   style={{ marginTop: 80 }}
                 ></Forward>
                 <Forward
-                  onPress={() => setIsAttackerModalVisible(true)}
+                  onPress={() =>
+                    handleAttackerPositionPress(TwoPositionValue, "ST")
+                  }
                   style={{ marginBottom: 60 }}
                 ></Forward>
                 <Forward
-                  onPress={() => setIsAttackerModalVisible(true)}
+                  onPress={() =>
+                    handleAttackerPositionPress(ThreePositionValue, "RW")
+                  }
                   style={{ marginTop: 80 }}
                 ></Forward>
               </ViewForForward>
               <ViewForMidfielder>
                 <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
+                  onPress={() =>
+                    handleMidfielderPositionPress(FourPositionValue, "LCM")
+                  }
                   style={{ marginLeft: 45 }}
                 ></Midfielder>
                 <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
+                  onPress={() =>
+                    handleMidfielderPositionPress(FivePositionValue, "CM")
+                  }
                   style={{ marginTop: 50 }}
                 ></Midfielder>
                 <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
+                  onPress={() =>
+                    handleMidfielderPositionPress(SixPositionValue, "RCM")
+                  }
                   style={{ marginRight: 45 }}
                 ></Midfielder>
               </ViewForMidfielder>
               <ViewForDefender>
                 <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
+                  onPress={() =>
+                    handleDefenderPositionPress(SevenPositionValue, "LB")
+                  }
                   style={{ marginTop: 15 }}
                 ></Defender>
                 <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
+                  onPress={() =>
+                    handleDefenderPositionPress(EightPositionValue, "LCB")
+                  }
                   style={{ marginTop: 35 }}
                 ></Defender>
                 <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
+                  onPress={() =>
+                    handleDefenderPositionPress(NinePositionValue, "RCB")
+                  }
                   style={{ marginTop: 35 }}
                 ></Defender>
                 <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
+                  onPress={() =>
+                    handleDefenderPositionPress(TenPositionValue, "RB")
+                  }
                   style={{ marginTop: 15 }}
                 ></Defender>
               </ViewForDefender>
               <ViewForGoalkeeper>
                 <Goalkeeper
-                  onPress={() => setIsGKModalVisible(true)}
+                  onPress={() =>
+                    handleGoalkeeperPositionPress(ElevenPositionValue, "GK")
+                  }
                   style={{ marginTop: 30 }}
                 ></Goalkeeper>
               </ViewForGoalkeeper>
             </TestView>
           )}
-          {currentValue === 3 && (
+          {selectedFormation === "4-3-2-1" && (
             <TestView>
               <ViewForForward>
                 <Forward
-                  onPress={() => setIsAttackerModalVisible(true)}
+                  onPress={() =>
+                    handleAttackerPositionPress(OnePositionValue, "ST")
+                  }
                   style={{ marginBottom: 60 }}
                 ></Forward>
               </ViewForForward>
               <SecondViewForMidfielder style={{ height: "20%" }}>
                 <Midfielder
                   style={{ marginBottom: 20, marginLeft: 60 }}
-                  onPress={() => setIsMidfielderModalVisible(true)}
+                  onPress={() =>
+                    handleMidfielderPositionPress(TwoPositionValue, "LAM")
+                  }
                 ></Midfielder>
                 <Midfielder
                   style={{ marginBottom: 20, marginRight: 60 }}
-                  onPress={() => setIsMidfielderModalVisible(true)}
+                  onPress={() =>
+                    handleMidfielderPositionPress(ThreePositionValue, "RAM")
+                  }
                 ></Midfielder>
               </SecondViewForMidfielder>
               <ViewForMidfielder style={{ height: "20%" }}>
                 <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
+                  onPress={() =>
+                    handleMidfielderPositionPress(FourPositionValue, "LCM")
+                  }
                   style={{ marginLeft: 15 }}
                 ></Midfielder>
                 <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
+                  onPress={() =>
+                    handleMidfielderPositionPress(FivePositionValue, "CM")
+                  }
                   style={{}}
                 ></Midfielder>
                 <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
+                  onPress={() =>
+                    handleMidfielderPositionPress(SixPositionValue, "RCM")
+                  }
                   style={{ marginRight: 15 }}
                 ></Midfielder>
               </ViewForMidfielder>
               <ViewForDefender>
                 <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
+                  onPress={() =>
+                    handleDefenderPositionPress(SevenPositionValue, "LB")
+                  }
                   style={{ marginTop: 30 }}
                 ></Defender>
                 <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
+                  onPress={() =>
+                    handleDefenderPositionPress(EightPositionValue, "LCB")
+                  }
                   style={{ marginTop: 50 }}
                 ></Defender>
                 <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
+                  onPress={() =>
+                    handleDefenderPositionPress(NinePositionValue, "RCB")
+                  }
                   style={{ marginTop: 50 }}
                 ></Defender>
                 <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
+                  onPress={() =>
+                    handleDefenderPositionPress(TenPositionValue, "RB")
+                  }
                   style={{ marginTop: 30 }}
                 ></Defender>
               </ViewForDefender>
               <ViewForGoalkeeper>
                 <Goalkeeper
-                  onPress={() => setIsGKModalVisible(true)}
+                  onPress={() =>
+                    handleGoalkeeperPositionPress(ElevenPositionValue, "GK")
+                  }
                   style={{ marginTop: 25 }}
                 ></Goalkeeper>
               </ViewForGoalkeeper>
             </TestView>
           )}
-          {currentValue === 4 && (
+          {selectedFormation === "4-2-3-1" && (
             <TestView>
               <ViewForForward>
                 <Forward
-                  onPress={() => setIsAttackerModalVisible(true)}
+                  onPress={() =>
+                    handleAttackerPositionPress(OnePositionValue, "ST")
+                  }
                   style={{ marginBottom: 60 }}
                 ></Forward>
               </ViewForForward>
               <SecondViewForMidfielder style={{ height: "20%" }}>
                 <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
+                  onPress={() =>
+                    handleMidfielderPositionPress(TwoPositionValue, "LAM")
+                  }
                   style={{ marginBottom: 10, marginLeft: 5 }}
                 ></Midfielder>
                 <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
+                  onPress={() =>
+                    handleMidfielderPositionPress(ThreePositionValue, "CAM")
+                  }
                   style={{ marginBottom: 10 }}
                 ></Midfielder>
                 <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
+                  onPress={() =>
+                    handleMidfielderPositionPress(FourPositionValue, "RAM")
+                  }
                   style={{ marginBottom: 10, marginRight: 5 }}
                 ></Midfielder>
               </SecondViewForMidfielder>
               <ViewForMidfielder style={{ height: "20%" }}>
                 <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
+                  onPress={() =>
+                    handleMidfielderPositionPress(FivePositionValue, "LDM")
+                  }
                   style={{ marginLeft: 55 }}
                 ></Midfielder>
                 <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
+                  onPress={() =>
+                    handleMidfielderPositionPress(SixPositionValue, "RDM")
+                  }
                   style={{ marginRight: 55 }}
                 ></Midfielder>
               </ViewForMidfielder>
               <ViewForDefender>
                 <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
+                  onPress={() =>
+                    handleDefenderPositionPress(SevenPositionValue, "LB")
+                  }
                   style={{ marginTop: 15 }}
                 ></Defender>
                 <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
+                  onPress={() =>
+                    handleDefenderPositionPress(EightPositionValue, "LCB")
+                  }
                   style={{ marginTop: 35 }}
                 ></Defender>
                 <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
+                  onPress={() =>
+                    handleDefenderPositionPress(NinePositionValue, "RCB")
+                  }
                   style={{ marginTop: 35 }}
                 ></Defender>
                 <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
+                  onPress={() =>
+                    handleDefenderPositionPress(TenPositionValue, "RB")
+                  }
                   style={{ marginTop: 15 }}
                 ></Defender>
               </ViewForDefender>
               <ViewForGoalkeeper>
                 <Goalkeeper
-                  onPress={() => setIsGKModalVisible(true)}
+                  onPress={() =>
+                    handleGoalkeeperPositionPress(ElevenPositionValue, "GK")
+                  }
                   style={{ marginTop: 25 }}
                 ></Goalkeeper>
               </ViewForGoalkeeper>
             </TestView>
           )}
-          {currentValue === 5 && (
+          {selectedFormation === "3-4-3" && (
             <TestView>
               <ViewForForward style={{ justifyContent: "space-around" }}>
                 <Forward
                   style={{ marginTop: 80 }}
-                  onPress={() => setIsAttackerModalVisible(true)}
+                  onPress={() =>
+                    handleAttackerPositionPress(OnePositionValue, "LW")
+                  }
                 ></Forward>
                 <Forward
-                  onPress={() => setIsAttackerModalVisible(true)}
+                  onPress={() =>
+                    handleAttackerPositionPress(TwoPositionValue, "ST")
+                  }
                   style={{ marginTop: 20 }}
                 ></Forward>
                 <Forward
                   style={{ marginTop: 80 }}
-                  onPress={() => setIsAttackerModalVisible(true)}
+                  onPress={() =>
+                    handleAttackerPositionPress(ThreePositionValue, "RW")
+                  }
                 ></Forward>
               </ViewForForward>
               <ViewForMidfielder>
                 <Midfielder
                   style={{ marginTop: 25 }}
-                  onPress={() => setIsMidfielderModalVisible(true)}
+                  onPress={() =>
+                    handleMidfielderPositionPress(FourPositionValue, "LM")
+                  }
                 ></Midfielder>
                 <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
+                  onPress={() =>
+                    handleMidfielderPositionPress(FivePositionValue, "LCM")
+                  }
                   style={{ marginTop: 45 }}
                 ></Midfielder>
                 <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
+                  onPress={() =>
+                    handleMidfielderPositionPress(SixPositionValue, "RCM")
+                  }
                   style={{ marginTop: 45 }}
                 ></Midfielder>
                 <Midfielder
                   style={{ marginTop: 25 }}
-                  onPress={() => setIsMidfielderModalVisible(true)}
+                  onPress={() =>
+                    handleMidfielderPositionPress(SevenPositionValue, "RM")
+                  }
                 ></Midfielder>
               </ViewForMidfielder>
               <ViewForDefender>
                 <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
+                  onPress={() =>
+                    handleDefenderPositionPress(EightPositionValue, "LCB")
+                  }
                   style={{ marginLeft: 25, marginBottom: 15 }}
                 ></Defender>
                 <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
+                  onPress={() =>
+                    handleDefenderPositionPress(NinePositionValue, "CB")
+                  }
                   style={{}}
                 ></Defender>
                 <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
+                  onPress={() =>
+                    handleDefenderPositionPress(TenPositionValue, "RCB")
+                  }
                   style={{ marginRight: 25, marginBottom: 15 }}
                 ></Defender>
               </ViewForDefender>
               <ViewForGoalkeeper>
                 <Goalkeeper
-                  onPress={() => setIsGKModalVisible(true)}
+                  onPress={() =>
+                    handleGoalkeeperPositionPress(ElevenPositionValue, "GK")
+                  }
                   style={{ marginTop: 25 }}
                 ></Goalkeeper>
               </ViewForGoalkeeper>
             </TestView>
           )}
-          {currentValue === 6 && (
+          {selectedFormation === "3-5-2" && (
             <TestView>
               <ViewForForward>
                 <Forward
-                  onPress={() => setIsAttackerModalVisible(true)}
+                  onPress={() =>
+                    handleAttackerPositionPress(OnePositionValue, "LS")
+                  }
                 ></Forward>
                 <Forward
-                  onPress={() => setIsAttackerModalVisible(true)}
+                  onPress={() =>
+                    handleAttackerPositionPress(TwoPositionValue, "RS")
+                  }
                 ></Forward>
               </ViewForForward>
               <SecondViewForMidfielder
                 style={{ justifyContent: "space-between", height: "20%" }}
               >
                 <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
+                  onPress={() =>
+                    handleMidfielderPositionPress(ThreePositionValue, "CAM")
+                  }
                   style={{ marginLeft: 20, marginTop: 70 }}
                 ></Midfielder>
                 <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
+                  onPress={() =>
+                    handleMidfielderPositionPress(FourPositionValue, "LM")
+                  }
                   style={{ marginTop: 10 }}
                 ></Midfielder>
                 <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
+                  onPress={() =>
+                    handleMidfielderPositionPress(FivePositionValue, "RM")
+                  }
                   style={{ marginRight: 20, marginTop: 70 }}
                 ></Midfielder>
               </SecondViewForMidfielder>
               <ViewForMidfielder style={{ height: "20%" }}>
                 <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
+                  onPress={() =>
+                    handleMidfielderPositionPress(SixPositionValue, "RCM")
+                  }
                   style={{ marginLeft: 60 }}
                 ></Midfielder>
                 <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
+                  onPress={() =>
+                    handleMidfielderPositionPress(SevenPositionValue, "LCM")
+                  }
                   style={{ marginRight: 60 }}
                 ></Midfielder>
               </ViewForMidfielder>
               <ViewForDefender>
                 <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
+                  onPress={() =>
+                    handleDefenderPositionPress(EightPositionValue, "LCB")
+                  }
                   style={{ marginLeft: 25, marginBottom: 15 }}
                 ></Defender>
                 <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
+                  onPress={() =>
+                    handleDefenderPositionPress(NinePositionValue, "CB")
+                  }
                   style={{}}
                 ></Defender>
                 <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
+                  onPress={() =>
+                    handleDefenderPositionPress(TenPositionValue, "RCB")
+                  }
                   style={{ marginRight: 25, marginBottom: 15 }}
                 ></Defender>
               </ViewForDefender>
               <ViewForGoalkeeper>
                 <Goalkeeper
-                  onPress={() => setIsGKModalVisible(true)}
+                  onPress={() =>
+                    handleGoalkeeperPositionPress(ElevenPositionValue, "GK")
+                  }
                   style={{ marginTop: 25 }}
                 ></Goalkeeper>
               </ViewForGoalkeeper>
             </TestView>
           )}
-          {currentValue === 7 && (
+          {selectedFormation === "3-2-4-1" && (
             <TestView>
               <ViewForForward>
                 <Forward
-                  onPress={() => setIsAttackerModalVisible(true)}
+                  onPress={() =>
+                    handleAttackerPositionPress(OnePositionValue, "ST")
+                  }
                   style={{ marginBottom: 60 }}
                 ></Forward>
               </ViewForForward>
               <SecondViewForMidfielder style={{ height: "20%" }}>
                 <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
+                  onPress={() =>
+                    handleMidfielderPositionPress(TwoPositionValue, "LM")
+                  }
                   style={{ marginBottom: 15 }}
                 ></Midfielder>
                 <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
+                  onPress={() =>
+                    handleMidfielderPositionPress(ThreePositionValue, "LAM")
+                  }
                   style={{ marginBottom: 15 }}
                 ></Midfielder>
                 <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
+                  onPress={() =>
+                    handleMidfielderPositionPress(FourPositionValue, "RAM")
+                  }
                   style={{ marginBottom: 15 }}
                 ></Midfielder>
                 <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
+                  onPress={() =>
+                    handleMidfielderPositionPress(FivePositionValue, "RM")
+                  }
                   style={{ marginBottom: 15 }}
                 ></Midfielder>
               </SecondViewForMidfielder>
               <ViewForMidfielder style={{ height: "20%" }}>
                 <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
+                  onPress={() =>
+                    handleMidfielderPositionPress(SixPositionValue, "RDM")
+                  }
                   style={{ marginLeft: 75 }}
                 ></Midfielder>
                 <Midfielder
-                  onPress={() => setIsMidfielderModalVisible(true)}
+                  onPress={() =>
+                    handleMidfielderPositionPress(SevenPositionValue, "LDM")
+                  }
                   style={{ marginRight: 75 }}
                 ></Midfielder>
               </ViewForMidfielder>
               <ViewForDefender>
                 <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
+                  onPress={() =>
+                    handleDefenderPositionPress(EightPositionValue, "LCB")
+                  }
                   style={{ marginLeft: 25, marginBottom: 15 }}
                 ></Defender>
                 <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
+                  onPress={() =>
+                    handleDefenderPositionPress(NinePositionValue, "CB")
+                  }
                   style={{ marginTop: 15 }}
                 ></Defender>
                 <Defender
-                  onPress={() => setIsDefenderModalVisible(true)}
+                  onPress={() =>
+                    handleDefenderPositionPress(TenPositionValue, "RCB")
+                  }
                   style={{ marginRight: 25, marginBottom: 15 }}
                 ></Defender>
               </ViewForDefender>
               <ViewForGoalkeeper>
                 <Goalkeeper
-                  onPress={() => setIsGKModalVisible(true)}
+                  onPress={() =>
+                    handleGoalkeeperPositionPress(ElevenPositionValue, "GK")
+                  }
                   style={{ marginTop: 25 }}
                 ></Goalkeeper>
               </ViewForGoalkeeper>
@@ -1007,11 +1326,12 @@ const EnrollBanggusukTeam = ({ navigation }) => {
               isMainTactic ? handleChangeMainText : handleChangeSubText
             }
             value={isMainTactic ? mainText : subText}
-            placeholder="내용을 입력하세요..."
             textAlignVertical="top"
             style={{ paddingTop: 10 }}
             placeholderTextColor="white"
             autoFocus={false}
+            editable={false} // TextInput을 수정 불가능하게 설정
+            pointerEvents="none" // 모든 터치 이벤트 차단
           />
           <ToggleButton onPress={handleToggleTactic}>
             <FontAwesome5 name="exchange-alt" size={20} color="white" />
@@ -1019,7 +1339,7 @@ const EnrollBanggusukTeam = ({ navigation }) => {
         </TacticBox>
       </ViewForSlideTactic>
       <RegisterButtonView>
-        <RegisterButton onPress={() => navigation.navigate("BanggusukTeam")}>
+        <RegisterButton onPress={handleCreateTeam}>
           <RegisterText>등록</RegisterText>
         </RegisterButton>
       </RegisterButtonView>
