@@ -8,6 +8,7 @@ import { verifyTokens, getTokenFromLocal } from "../LoginPackage/TokenUtils";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { useQuery, useMutation } from "react-query";
+import { Dropdown } from "react-native-element-dropdown";
 
 import {
   Text,
@@ -292,7 +293,7 @@ const showEmptyTeamName = () => {
 const showSuccessCreateTeam = () => {
   ToastAndroid.show("✅ 팀 생성 성공", ToastAndroid.LONG);
 };
-const CreateBanggusukTeam = async ({ teamName }) => {
+const CreateBanggusukTeam = async ({ teamName, tacticId }) => {
   const Token = await getTokenFromLocal();
   try {
     const headers = {
@@ -302,6 +303,7 @@ const CreateBanggusukTeam = async ({ teamName }) => {
 
     const data = {
       teamName: teamName,
+      tacticId: tacticId,
     };
 
     console.log(data);
@@ -461,22 +463,7 @@ const EnrollBanggusukTeam = ({ navigation }) => {
     useState("");
   const [TacticsNameplaceholder, setTacticsNamePlaceholder] = useState("팀 명");
   const [DetailTacticsplaceholder, setDetailTacticsplaceholder] = useState("");
-  // const [
-  //   AttackerDetailPositionplaceholder,
-  //   setAttackerDetailPositionplaceholder,
-  // ] = useState("");
-  // const [
-  //   MidfielderDetailPositionplaceholder,
-  //   setMidfielderDetailPositionplaceholder,
-  // ] = useState("");
-  // const [
-  //   DefenderDetailPositionplaceholder,
-  //   setDefenderDetailPositionplaceholder,
-  // ] = useState("");
-  // const [
-  //   GoalkeeperDetailPositionplaceholder,
-  //   setGoalkeeperDetailPositionplaceholder,
-  // ] = useState("");
+
   const handleFocus = () => {
     setTacticsNamePlaceholder("");
   };
@@ -544,6 +531,7 @@ const EnrollBanggusukTeam = ({ navigation }) => {
     }
     requestEmailMutate({
       teamName: nameValue,
+      tacticId: value,
     });
   };
 
@@ -562,36 +550,48 @@ const EnrollBanggusukTeam = ({ navigation }) => {
       </ViewForTextBar>
       <ViewForTacticBoard>
         <ViewForDropdown>
-          <DropDownPicker
-            open={open}
-            value={value}
-            items={items}
-            placeholder="전술 선택"
-            setOpen={setOpen}
-            setValue={setValue}
-            setItems={setItems}
-            onChangeValue={onChange}
-            maxHeight={200}
-            listMode="SCROLLVIEW"
+          <Dropdown
             style={{
-              backgroundColor: "#000",
+              backgroundColor: "#000", // 드롭다운 버튼 배경색
+              borderRadius: 5,
+              borderColor: "#fff",
+              borderWidth: 1,
+              marginBottom: 10,
+              height: 50,
+              width: "100%",
             }}
-            textStyle={{
+            placeholderStyle={{
+              color: "#fff", // 플레이스홀더 텍스트 색상
+              fontWeight: "bold",
+              paddingLeft: 15,
+            }}
+            selectedTextStyle={{
               color: "#fff",
               fontWeight: "bold",
+              paddingLeft: 15,
             }}
-            dropDownContainerStyle={{
-              backgroundColor: "#000",
-              maxHeight: 200,
+            itemContainerStyle={{
+              backgroundColor: "#000", // 목록 항목의 배경색을 검은색으로 변경
+              borderBottomWidth: 2, // 구분선 두께
+              borderBottomColor: "#fff", // 구분선 색상
+              fontWeight: "bold",
             }}
-            arrowIconStyle={{
-              tintColor: "white",
-              // borderWidth: 13,
+            itemTextStyle={{
+              color: "#fff",
+              // 목록 항목의 텍스트 색상
+              fontWeight: "bold",
             }}
-            scrollViewProps={{
-              nestedScrollEnabled: true,
-              scrollEnabled: true,
+            data={items}
+            labelField="label"
+            valueField="value"
+            placeholder="전술 선택"
+            value={value}
+            onChange={(item) => {
+              onChange(item.value);
+              // 선택된 항목에 따라 동작
             }}
+            onFocus={() => setOpen(true)}
+            onBlur={() => setOpen(false)}
           />
         </ViewForDropdown>
         <ViewForBoard>

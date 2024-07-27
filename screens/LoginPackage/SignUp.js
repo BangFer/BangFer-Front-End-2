@@ -153,6 +153,7 @@ const SignUp = ({ navigation }) => {
             placeholder="name"
             value={nameValue}
             onChangeText={onChangeName}
+            maxLength={10}
             style={styles.SignUpTextInput}
           />
 
