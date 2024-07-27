@@ -56,6 +56,11 @@ const ProfileImage = styled.Image`
   height: 110px;
   border-radius: 55px;
   border-width: 2px;
+  ${({ uri }) =>
+    !uri &&
+    `
+    background-color: #ccc;
+  `}
 `;
 
 const UploadImgButton = styled.TouchableOpacity`
@@ -297,7 +302,10 @@ const CreateProfile = ({ navigation }) => {
           <TitleText>프로필 생성</TitleText>
         </ViewForTitle>
         <ViewForProfileImg>
-          <ProfileImage source={{ uri: imageUri }}></ProfileImage>
+          <ProfileImage
+            uri={imageUri}
+            source={imageUri ? { uri: imageUri } : null}
+          ></ProfileImage>
         </ViewForProfileImg>
         <ViewForUploadImg>
           <UploadImgButton onPress={onSelectImage}>
