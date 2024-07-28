@@ -1,34 +1,21 @@
-import React from "react";
-import { StatusBar } from "expo-status-bar"; 
+import React, { useEffect } from "react";
+import { StatusBar } from "expo-status-bar";
 import { Ionicons } from '@expo/vector-icons';
-import {NavigationContainer} from '@react-navigation/native';
-import styled from "styled-components";
 import { FontAwesome6 } from '@expo/vector-icons';
-import { MenuProvider } from 'react-native-popup-menu';
-import { FlatList } from "react-native";
-
-
-export const App = () => (
-  <MenuProvider>
-    <YourApp />
-  </MenuProvider>
-);
-
-// somewhere in your app
-import {
-  Menu,
-  MenuOptions,
-  MenuOption,
-  MenuTrigger,
-} from 'react-native-popup-menu';
-
+import { Menu, MenuOptions, MenuOption, MenuTrigger } from 'react-native-popup-menu';
+import { FlatList, ActivityIndicator } from "react-native";
+import styled from "styled-components/native";
+import { useInfiniteQuery } from 'react-query';
+import { useRecoilState } from 'recoil';
+import { tacticsFilterState } from './atom'
+import { fetchTactics } from './api';
+import { saveFilter, loadFilter } from './storage';
 
 const Container = styled.View`
   flex: 1;
   flex-direction: column;
-  background-color: #F5F5F5
+  background-color: #F5F5F5;
 `;
-
 
 const FirstView = styled.View`
   padding: 1px;
@@ -42,44 +29,47 @@ const SecondView = styled.View`
 `;
 
 const HitsRankButton = styled.TouchableOpacity`
-padding: 5px 5px; /* 버튼 내부 패딩 설정 */
-border-radius: 5px; /* 둥근 사각형 테두리 반지름 설정 */
-background-color: tomato; /* 배경색 설정 */
-margin-left: 10px; /* 각 버튼 사이의 간격을 설정합니다. */
+  padding: 5px 5px;
+  border-radius: 5px;
+  background-color: tomato;
+  margin-left: 10px;
 `;
 
 const ThumbsRankButton = styled.TouchableOpacity`
-padding: 5px 5px; /* 버튼 내부 패딩 설정 */
-border-radius: 5px; /* 둥근 사각형 테두리 반지름 설정 */
-background-color: tomato; /* 배경색 설정 */ 
-margin-left: 10px; /* 각 버튼 사이의 간격을 설정합니다. */
+  padding: 5px 5px;
+  border-radius: 5px;
+  background-color: tomato;
+  margin-left: 10px;
 `;
 
 const CommentsRankButton = styled.TouchableOpacity`
-padding: 5px 5px; /* 버튼 내부 패딩 설정 */
-border-radius: 5px; /* 둥근 사각형 테두리 반지름 설정 */
-background-color: tomato; /* 배경색 설정 */
-margin-left: 10px; /* 각 버튼 사이의 간격을 설정합니다. */
+  padding: 5px 5px;
+  border-radius: 5px;
+  background-color: tomato;
+  margin-left: 10px;
 `;
+
 const FormationButton = styled.View`
-padding: 5px 5px; /* 버튼 내부 패딩 설정 */
-border-radius: 5px; /* 둥근 사각형 테두리 반지름 설정 */
-background-color: tomato; /* 배경색 설정 */
-margin-left: 10px; /* 각 버튼 사이의 간격을 설정합니다. */
+  padding: 5px 5px;
+  border-radius: 5px;
+  background-color: tomato;
+  margin-left: 10px;
 `;
 
 const IconAndButtonsInFirstView = styled.View`
-flex-direction: row;
-align-items: center;
-justify-content: flex-end;
-margin-top: 10px;
-margin-right: 10px;
-`
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 10px;
+  margin-right: 10px;
+`;
+
 const RankIconInFirstView = styled.View`
-flex-direction: row;
-margin-top: 5px;
-margin-right: 85px;
-`
+  flex-direction: row;
+  margin-top: 5px;
+  margin-right: 85px;
+`;
+
 const ButtonText = styled.Text`
   font-size: 16px;
   font-weight: 500;
@@ -88,17 +78,17 @@ const ButtonText = styled.Text`
 
 const Line = styled.View`
   flex: 1;
-  height: 1px; /* 직선의 높이를 설정합니다. */
-  background-color: black; /* 검은색으로 설정합니다. */
-  margin-horizontal: 5px; /* 양 끝에 5px의 여백을 추가합니다. */
-  `;
-const LineForList = styled.View`
-  flex: 1;
-  height: 1px; /* 직선의 높이를 설정합니다. */
-  background-color: black; /* 검은색으로 설정합니다. */
-  margin-top: 5px;
+  height: 1px;
+  background-color: black;
+  margin-horizontal: 5px;
 `;
 
+const LineForList = styled.View`
+  flex: 1;
+  height: 1px;
+  background-color: black;
+  margin-top: 5px;
+`;
 
 const ItemContainer = styled.TouchableOpacity`
   padding-horizontal: 10px;
@@ -125,98 +115,138 @@ const ItemIcon = styled(Ionicons)`
 `;
 
 const InformationView = styled.View`
-flex-direction: row;
-align-items: center;
-justify-content: flex-start;
-`
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+`;
 
+const LoadingIndicator = styled(ActivityIndicator)`
+  margin-vertical: 20px;
+`;
 
 const Tactics = ({ navigation }) => {
+  const [filter, setFilter] = useRecoilState(tacticsFilterState);
 
-  const data = [
-    { id: '1', title: 'Title 1', description: 'Description 1', number: '1', formation: '4-4-2', name: '고민영' },
-    { id: '2', title: 'Title 2', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '3', title: 'Title 3', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '4', title: 'Title 4', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '5', title: 'Title 5', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '6', title: 'Title 6', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '7', title: 'Title 7', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '8', title: 'Title 8', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '9', title: 'Title 9', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '10', title: 'Title 10', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '11', title: 'Title 11', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '12', title: 'Title 12', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '13', title: 'Title 13', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-  
-  ];
+  useEffect(() => {
+    loadFilter().then(savedFilter => {
+      if (savedFilter) setFilter(savedFilter);
+    });
+  }, []);
+
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isLoading,
+    isFetching,
+    refetch,
+    isError
+  } = useInfiniteQuery({
+    queryKey: ['tactics', filter],
+    queryFn: ({ pageParam = 0 }) => fetchTactics({ ...filter, page: pageParam }),
+    getNextPageParam: (lastPage) => {
+      if (lastPage.number < lastPage.totalPages - 1) return lastPage.number + 1;
+      return undefined;
+    },
+  });
+
+  const loadMore = () => {
+    if (hasNextPage) fetchNextPage();
+  };
+
+  const tactics = data ? data.pages.flatMap(page => page.content) : [];
+
+  if (isLoading) {
+    return <LoadingIndicator />;
+  }
+
+  if (isError) {
+    return <ErrorMessage message="데이터를 불러오는 데 실패했습니다." />;
+  }
+
+  if (tactics.length === 0) {
+    return <EmptyState message="아직 게시된 전술이 없습니다." />;
+  }
+
+  const updateFilter = (newFilter) => {
+    setFilter(newFilter);
+    saveFilter(newFilter);
+    refetch();
+  };
+
+  const sortByHits = () => updateFilter({ ...filter, sort: 'hits,desc' });
+  const sortByLikes = () => updateFilter({ ...filter, sort: 'likes,desc' });
+  const sortByComments = () => updateFilter({ ...filter, sort: 'comments,desc' });
+  const filterByFormation = (formation) => updateFilter({ ...filter, formation });
 
   const renderItem = ({ item }) => (
     <ListItem
-      title={item.title}
-      description={item.description}
-      number={item.number}
-      formation={item.formation}
-      name={item.name}
-      navigation={navigation}
+      title={item.tacticName}
+      description={item.famousCoachName}
+      number={item.tacticId}
+      formation={item.mainFormation}
+      name={item.nickname}
+      onPress={() => navigation.navigate('TacticDetail', { tacticId: item.tacticId })}
     />
   );
+
   return (
     <Container>
       <StatusBar style="auto" />
       
       <FirstView>
-
         <IconAndButtonsInFirstView>
-        <RankIconInFirstView>
-          <FontAwesome6 name="ranking-star" size={24} color="tomato" />
-        
-        </RankIconInFirstView>
-          <HitsRankButton onPress={() => console.log('hitrank')}>
+          <RankIconInFirstView>
+            <FontAwesome6 name="ranking-star" size={24} color="tomato" />
+          </RankIconInFirstView>
+          <HitsRankButton onPress={sortByHits}>
             <ButtonText>조회순</ButtonText>
           </HitsRankButton>
-          
-          <ThumbsRankButton onPress={() => console.log('thumbrank')}>
-            <ButtonText>따봉순</ButtonText>
+          <ThumbsRankButton onPress={sortByLikes}>
+            <ButtonText>좋아요순</ButtonText>
           </ThumbsRankButton>
-          
-          <CommentsRankButton onPress={() => console.log('commentsrank')}>
+          <CommentsRankButton onPress={sortByComments}>
             <ButtonText>댓글순</ButtonText>
           </CommentsRankButton>
-
-        <Menu>
-          <MenuTrigger>
-            <FormationButton>
-              <ButtonText>포메이션</ButtonText>
-            </FormationButton>
-          </MenuTrigger>
+          <Menu>
+            <MenuTrigger>
+              <FormationButton>
+                <ButtonText>포메이션</ButtonText>
+              </FormationButton>
+            </MenuTrigger>
             <MenuOptions>
-            <MenuOption onPress={() => console.log('4-4-2')} text='4-4-2' />
-            <MenuOption onPress={() => console.log('4-3-3')} text='4-3-3' />
-            <MenuOption onPress={() => console.log('4-3-2-1')} text='4-3-2-1' />
-            <MenuOption onPress={() => console.log('4-2-3-1')} text='4-2-3-1' />
-            <MenuOption onPress={() => console.log('3-4-3')} text='3-4-3' />
-            <MenuOption onPress={() => console.log('3-5-2')} text='3-5-2' />
-            <MenuOption onPress={() => console.log('3-2-4-1')} text='3-2-4-1' />
+              <MenuOption onPress={() => filterByFormation('4-4-2')} text='4-4-2' />
+              <MenuOption onPress={() => filterByFormation('4-3-3')} text='4-3-3' />
+              <MenuOption onPress={() => filterByFormation('4-3-2-1')} text='4-3-2-1' />
+              <MenuOption onPress={() => filterByFormation('4-2-3-1')} text='4-2-3-1' />
+              <MenuOption onPress={() => filterByFormation('3-4-3')} text='3-4-3' />
+              <MenuOption onPress={() => filterByFormation('3-5-2')} text='3-5-2' />
+              <MenuOption onPress={() => filterByFormation('3-2-4-1')} text='3-2-4-1' />
             </MenuOptions>
           </Menu>
         </IconAndButtonsInFirstView>
       </FirstView>
 
       <SecondView>
-      <Line />
+        <Line />
       </SecondView>
 
       <FlatList
-        data={data}
+        data={tactics}
         renderItem={renderItem}
-        keyExtractor={item => item.id}
+        keyExtractor={item => item.tacticId.toString()}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.1}
+        ListFooterComponent={isFetching && <LoadingIndicator />}
+        refreshing={isLoading}
+        onRefresh={refetch}
       />
     </Container>
   );
 };
 
-const ListItem = ({ title, description, number, formation, name, navigation}) => (
-  <ItemContainer onPress={() => navigation.navigate('TacticExample')}>
+const ListItem = ({ title, description, number, formation, name, onPress }) => (
+  <ItemContainer onPress={onPress}>
     <ItemContent>
       <ItemTitle>{title}</ItemTitle>
       <ItemText>{description}</ItemText>
