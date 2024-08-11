@@ -28,6 +28,7 @@
     "react-native-dropdown-picker": "^5.4.6",
     "react-native-element-dropdown": "^2.12.1",
     "react-native-image-picker": "^7.1.2",
+    "react-native-kakao-share-link": "^1.0.10",
     "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-native-picker-select": "^9.1.3",
     "react-native-popup-menu": "^0.16.1",
