@@ -37,6 +37,7 @@ import Loading from '../screens/LoginPackage/Loading';
 import Toast from 'react-native-toast-message';
 import FindPw from '../screens/LoginPackage/FindPw';
 import CreateProfile from '../screens/MyPagePackage/CreateProfile';
+import AdminPlusBanggusukTeam from '../screens/BanggusukTeamPackage/AdminPlusBanggusukTeam';
 import {
   Text,
   View,
@@ -321,7 +322,7 @@ const StackNavigation = (navigation) => {
           name="UserPlusBanggusukTeam"
           component={UserPlusBanggusukTeam}
           options={({ navigation }) => ({
-            title: '새 팀',
+            title: '방구석 팀',
             headerTitleAlign: 'center',
             headerShown: true,
 
@@ -345,7 +346,7 @@ const StackNavigation = (navigation) => {
           name="BanggusukTeam"
           component={BanggusukTeam}
           options={({ navigation }) => ({
-            title: '방구석 팀',
+            title: '방구석 팀 목록',
             headerShown: true,
             headerTitleAlign: 'center',
             headerRight: () => (
@@ -486,6 +487,21 @@ const StackNavigation = (navigation) => {
           name="FindPw"
           component={FindPw}
           options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="AdminPlusBanggusukTeam"
+          component={AdminPlusBanggusukTeam}
+          options={({ navigation }) => ({
+            title: '방구석 팀',
+            headerTitleAlign: 'center',
+            headerShown: true,
+
+            headerRight: () => (
+              <TouchCalander onPress={() => setIsCallendarVisible(true)}>
+                <AntDesign name="calendar" size={32} color="black" />
+              </TouchCalander>
+            ),
+          })}
         />
       </Stack.Navigator>
       {isCallendarVisible && ( // isCallendarVisible 상태가 true일 때 모달이 보이도록 설정합니다.

@@ -6,6 +6,11 @@ import FriendButtonImage from "../../assets/Button7.png";
 import HelpButtonImage from "../../assets/Button8.png";
 import React, { useState } from "react";
 import styled from "styled-components";
+import Feather from "@expo/vector-icons/Feather";
+import axios from "axios";
+import { verifyTokens, getTokenFromLocal } from "../LoginPackage/TokenUtils";
+import AntDesign from "@expo/vector-icons/AntDesign";
+import { useMutation } from "react-query";
 
 import {
   Text,
@@ -14,6 +19,9 @@ import {
   Image,
   TouchableOpacity,
   Switch,
+  Modal,
+  FlatList,
+  ToastAndroid,
 } from "react-native";
 
 const Container = styled.View`
@@ -64,8 +72,21 @@ const FirstProfileView = styled.View`
 `;
 
 const SecondProfileView = styled.View`
-  flex: 5;
+  flex: 4;
   justify-content: center;
+`;
+
+const ThirdProfileView = styled.View`
+  flex: 2;
+  justify-content: center;
+  align-items: center;
+`;
+
+const InviteBox = styled.TouchableOpacity`
+  width: 29px;
+  height: 29px;
+  justify-content: center;
+  align-items: center;
 `;
 
 const ProfileImage = styled.TouchableOpacity`
@@ -107,16 +128,258 @@ const ContentText = styled.Text`
   margin-bottom: 5px;
 `;
 
+const ContainerModalView = styled.TouchableOpacity`
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+`;
+const ModalView = styled.View`
+  width: 300px;
+  height: 220px;
+  margin: 30px;
+  margin-bottom: 75px;
+  border-radius: 15px;
+  background-color: white;
+  border-width: 2px;
+  border-color: black;
+`;
+
+const FirstModalView = styled.View`
+  flex: 1.5;
+  justify-content: center;
+  align-items: center;
+`;
+
+const SecondModalView = styled.View`
+  flex: 5;
+  justify-content: center;
+  align-items: center;
+`;
+
+const TextForTitleInvite = styled.Text`
+  font-size: 25px;
+  text-decoration: underline;
+  font-weight: bold;
+`;
+
+const ModalSeparator = styled.View`
+  height: 2px;
+  width: 100%;
+  background-color: black;
+`;
+
+const ViewForFlatList = styled.View`
+  width: 100%;
+  height: 40px;
+  flex-direction: row;
+`;
+
+const FirstViewForFlatList = styled.View`
+  flex: 3;
+  justify-content: center;
+  margin-left: 10px;
+`;
+
+const SecondViewForFlatList = styled.View`
+  flex: 2;
+  align-items: center;
+  justify-content: space-around;
+  flex-direction: row;
+`;
+
+const TextForFlatList = styled.Text`
+  font-size: 15px;
+  font-weight: bold;
+`;
+
+const TouchForAcceptInvite = styled.TouchableOpacity`
+  align-items: center;
+  justify-content: center;
+  height: 20px;
+  width: 20px;
+`;
+
+const showSuccessAccept = () => {
+  ToastAndroid.show("✅ 초대 수락", ToastAndroid.LONG);
+};
+
+const showSuccessReject = () => {
+  ToastAndroid.show("❌ 초대 거절", ToastAndroid.LONG);
+};
+
+const InviteReject = async ({ inviteId }) => {
+  const Token = await getTokenFromLocal();
+  try {
+    const headers = {
+      "Content-type": "application/json; charset=UTF-8",
+      "Authorization": "Bearer " + Token.accessToken,
+    };
+
+    const url = "http://13.125.14.94:8080/" + inviteId + "/reject";
+    const response = await axios.post(
+      url,
+      {},
+      {
+        headers: headers,
+      }
+    );
+
+    return response.data; // 반환할 데이터 형식에 맞게 수정
+  } catch (error) {
+    console.error(error.response);
+    throw error.response;
+  }
+};
+
+const InviteAccept = async ({ inviteId }) => {
+  const Token = await getTokenFromLocal();
+  try {
+    const headers = {
+      "Content-type": "application/json; charset=UTF-8",
+      "Authorization": "Bearer " + Token.accessToken,
+    };
+
+    const url = "http://13.125.14.94:8080/" + inviteId + "/accept";
+    console.log("what" + url);
+    const response = await axios.post(
+      url,
+      {},
+      {
+        headers: headers,
+      }
+    );
+
+    return response.data; // 반환할 데이터 형식에 맞게 수정
+  } catch (error) {
+    console.error(error.response);
+    throw error.response;
+  }
+};
+
+const GetMyInvitation = async () => {
+  const Token = await getTokenFromLocal();
+
+  const headers_config = {
+    "Content-Type": "application/json; charset=UTF-8",
+    "Authorization": "Bearer " + Token.accessToken,
+  };
+
+  try {
+    const res = await axios.get("http://13.125.14.94:8080/myinvitation", {
+      headers: headers_config,
+    });
+    console.log("GetMyInvitation의 response는", JSON.stringify(res.data)); // JSON.stringify로 객체를 문자열로 변환
+    return res.data.result;
+  } catch (error) {
+    console.error("GetMyInvitation의 error는 " + error);
+  }
+};
+
+const Item = ({ nickName, inviteId, onAccept, onReject }) => {
+  return (
+    <ViewForFlatList>
+      <FirstViewForFlatList>
+        <TextForFlatList>{nickName}님의 초대</TextForFlatList>
+      </FirstViewForFlatList>
+      <SecondViewForFlatList>
+        <TouchForAcceptInvite onPress={() => onAccept({ inviteId })}>
+          <AntDesign name="checkcircle" size={20} color="green" />
+        </TouchForAcceptInvite>
+        <TouchForAcceptInvite onPress={() => onReject({ inviteId })}>
+          <AntDesign name="closecircle" size={20} color="red" />
+        </TouchForAcceptInvite>
+      </SecondViewForFlatList>
+    </ViewForFlatList>
+  );
+};
+
 const MyPage = ({ navigation }) => {
+  const { mutate: InviteAcceptMutate } = useMutation(InviteAccept, {
+    onSuccess: (data) => {
+      // 성공 시 필요한 처리 추가
+      showSuccessAccept();
+      setIsModalVisible(false);
+    },
+    onError: (error) => {
+      console.error("에러", error);
+      // 에러 시 필요한 처리 추가
+    },
+  });
+
+  const { mutate: InviteRejectMutate } = useMutation(InviteReject, {
+    onSuccess: (data) => {
+      // 성공 시 필요한 처리 추가
+      showSuccessReject();
+      setIsModalVisible(false);
+    },
+    onError: (error) => {
+      console.error("에러", error);
+      // 에러 시 필요한 처리 추가
+    },
+  });
+  const [inviteData, setInviteData] = useState([]);
+
+  const fetchInviteData = async () => {
+    const data = await GetMyInvitation();
+    console.log(data);
+    const transformedData = data.map((item, index) => ({
+      id: (index + 1).toString(),
+      nickName: item.nickName,
+      inviteId: item.inviteId,
+    }));
+    setInviteData(transformedData);
+  };
+
+  const ClickInviteBox = () => {
+    setIsModalVisible(true);
+    fetchInviteData();
+  };
   const [isInformEnabled, setIsInformEnabled] = useState(false);
   const InformtoggleSwitch = () =>
     setIsInformEnabled((previousState) => !previousState);
+
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   const [isDarkEnabled, setIsDarkEnabled] = useState(false);
   const DarktoggleSwitch = () =>
     setIsDarkEnabled((previousState) => !previousState);
   return (
     <Container>
+      <Modal // 친구 초대 모달
+        animationType="slide"
+        visible={isModalVisible}
+        transparent={true}
+      >
+        <ContainerModalView onPress={() => setIsModalVisible(false)}>
+          <ModalView>
+            <FirstModalView>
+              <TextForTitleInvite>초대목록</TextForTitleInvite>
+            </FirstModalView>
+            <ModalSeparator></ModalSeparator>
+            <SecondModalView>
+              <FlatList
+                data={inviteData}
+                renderItem={({ item }) => (
+                  <Item
+                    nickName={item.nickName}
+                    inviteId={item.inviteId}
+                    onAccept={InviteAcceptMutate}
+                    onReject={InviteRejectMutate}
+                  />
+                )}
+                keyExtractor={(item) => item.id}
+                ItemSeparatorComponent={ModalSeparator}
+                ListFooterComponent={ModalSeparator}
+                initialNumToRender={12}
+                nestedScrollEnabled={true}
+                maxToRenderPerBatch={10}
+                style={{ width: "100%", height: "100%" }}
+                removeClippedSubview="true"
+              />
+            </SecondModalView>
+          </ModalView>
+        </ContainerModalView>
+      </Modal>
       <FirstView>
         <FirstProfileView>
           <ProfileImage></ProfileImage>
@@ -126,6 +389,11 @@ const MyPage = ({ navigation }) => {
           <AccountText>카카오 계정</AccountText>
           <AccountText>이메일 계정</AccountText>
         </SecondProfileView>
+        <ThirdProfileView>
+          <InviteBox onPress={() => ClickInviteBox()}>
+            <Feather name="mail" size={30} color="black" />
+          </InviteBox>
+        </ThirdProfileView>
       </FirstView>
       <SecondView>
         <TitleView>

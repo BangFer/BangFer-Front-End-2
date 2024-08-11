@@ -291,7 +291,10 @@ const showEmptyTeamName = () => {
 };
 
 const showSuccessCreateTeam = () => {
-  ToastAndroid.show("✅ 팀 생성 성공", ToastAndroid.LONG);
+  ToastAndroid.show(
+    "✅ 팀 생성 성공, 팀에 멤버들을 초대하세요!",
+    ToastAndroid.LONG
+  );
 };
 const CreateBanggusukTeam = async ({ teamName, tacticId }) => {
   const Token = await getTokenFromLocal();
@@ -509,10 +512,12 @@ const EnrollBanggusukTeam = ({ navigation }) => {
 
   const { mutate: requestEmailMutate } = useMutation(CreateBanggusukTeam, {
     onSuccess: (data) => {
-      console.log("성공", data);
+      console.log("팀 생성 성공 :", data);
       // 성공 시 필요한 처리 추가
       showSuccessCreateTeam();
-      navigation.navigate("BanggusukTeam");
+      const teamId = data.result.id;
+
+      navigation.navigate("AdminPlusBanggusukTeam", { teamId });
     },
     onError: (error) => {
       console.error("에러", error);
@@ -545,6 +550,7 @@ const EnrollBanggusukTeam = ({ navigation }) => {
           className="setName"
           type="text"
           value={nameValue}
+          maxLength={10}
           onChangeText={onChangeName}
         />
       </ViewForTextBar>
@@ -589,6 +595,7 @@ const EnrollBanggusukTeam = ({ navigation }) => {
             onChange={(item) => {
               onChange(item.value);
               // 선택된 항목에 따라 동작
+              setValue(item.value);
             }}
             onFocus={() => setOpen(true)}
             onBlur={() => setOpen(false)}

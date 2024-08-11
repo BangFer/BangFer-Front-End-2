@@ -66,16 +66,6 @@ const ViewForSeparator = styled.View`
   height: 2px;
   background-color: black;
 `;
-const DATA = [
-  {
-    id: "1",
-    title: "스뮤니티",
-    TaticsName: "전술1",
-    DirecterName: "오우석",
-    Formation: "4-4-2",
-    Member: "14명",
-  },
-];
 
 const GetTeam = async () => {
   const Token = await getTokenFromLocal();
@@ -89,10 +79,33 @@ const GetTeam = async () => {
     const res = await axios.get("http://13.125.14.94:8080/team/list", {
       headers: headers_config,
     });
-    console.log("GetTeam의 response는", JSON.stringify(res.data)); // JSON.stringify로 객체를 문자열로 변환
+    console.log("GetTeam의 response는", JSON.stringify(res.data));
+    // JSON.stringify로 객체를 문자열로 변환
     return res.data.result;
   } catch (error) {
     console.error("Get Team의 error는 " + error);
+  }
+};
+
+const DeleteTeam = async ({ teamId }) => {
+  const Token = await getTokenFromLocal();
+  console.log(teamId);
+
+  const headers_config = {
+    "Content-Type": "application/json; charset=UTF-8",
+    "Authorization": "Bearer " + Token.accessToken,
+  };
+
+  const url = "http://13.125.14.94:8080/team/" + teamId;
+  try {
+    const res = await axios.delete(url, {
+      headers: headers_config,
+    });
+    console.log("DeleteTeam의 response는", JSON.stringify(res.data));
+    // JSON.stringify로 객체를 문자열로 변환
+    return res.data.result;
+  } catch (error) {
+    console.error("Delete Team의 error는 " + error);
   }
 };
 
@@ -107,32 +120,72 @@ const Item = ({
   Formation,
   Member,
   navigation,
+  leaderId,
+  teamId,
 }) => {
+  const [userId, setUserId] = useState(null);
+
+  useEffect(() => {
+    // AsyncStorage에서 userId를 읽어오는 함수
+    const fetchUserId = async () => {
+      try {
+        const Tokens = await getTokenFromLocal();
+        const storedUserId = Tokens.userId;
+        if (storedUserId) {
+          setUserId(storedUserId);
+        }
+      } catch (error) {
+        console.error("Failed to fetch userId from AsyncStorage", error);
+      }
+    };
+
+    fetchUserId();
+  }, []);
+
+  const handlePress = () => {
+    if (userId === leaderId) {
+      navigation.navigate("AdminPlusBanggusukTeam", { teamId });
+    } else {
+      navigation.navigate("UserPlusBanggusukTeam", { teamId });
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      await DeleteTeam({ teamId });
+      // 현재 페이지를 다시 네비게이션하여 데이터 새로고침
+      navigation.goBack(); // 현재 페이지를 종료
+      navigation.navigate("BanggusukTeam"); // 현재 페이지를 다시 로드
+    } catch (error) {
+      console.error("Failed to delete team", error);
+    }
+  };
+
   return (
-    <TouchForFlatList
-      onPress={() => navigation.navigate("UserPlusBanggusukTeam")}
-    >
+    <TouchForFlatList onPress={handlePress}>
       <ViewForFlatListTitle>
         <TextForFlatListTitle>{title}</TextForFlatListTitle>
-        <Menu>
-          <MenuTrigger>
-            <Feather name="more-vertical" size={20} color="black" />
-          </MenuTrigger>
-          <MenuOptions
-            customStyles={{
-              optionsContainer: { width: 40, height: 60 },
-            }}
-          >
-            <MenuOption
-              onSelect={() => navigateToPlusBanggusukTeam(navigation)}
+        {userId === leaderId && (
+          <Menu>
+            <MenuTrigger>
+              <Feather name="more-vertical" size={20} color="black" />
+            </MenuTrigger>
+            <MenuOptions
+              customStyles={{
+                optionsContainer: { width: 40, height: 60 },
+              }}
             >
-              <Text>수정</Text>
-            </MenuOption>
-            <MenuOption>
-              <Text>삭제</Text>
-            </MenuOption>
-          </MenuOptions>
-        </Menu>
+              <MenuOption
+                onSelect={() => navigateToPlusBanggusukTeam(navigation)}
+              >
+                <Text>수정</Text>
+              </MenuOption>
+              <MenuOption onSelect={() => handleDelete({ teamId })}>
+                <Text>삭제</Text>
+              </MenuOption>
+            </MenuOptions>
+          </Menu>
+        )}
       </ViewForFlatListTitle>
       <ViewForFlatListMiddle>
         <TextForFlatListTaticsName>{TaticsName}</TextForFlatListTaticsName>
@@ -142,7 +195,7 @@ const Item = ({
         <TextForFlatListBottom>|</TextForFlatListBottom>
         <TextForFlatListBottom>{Formation}</TextForFlatListBottom>
         <TextForFlatListBottom>|</TextForFlatListBottom>
-        <TextForFlatListBottom>{Member}</TextForFlatListBottom>
+        <TextForFlatListBottom>{Member}명</TextForFlatListBottom>
       </ViewForFlatListBottom>
     </TouchForFlatList>
   );
@@ -153,13 +206,16 @@ const BanggusukTeam = ({ navigation }) => {
 
   const fetchTeamData = async () => {
     const data = await GetTeam();
+
     const transformedData = data.map((item, index) => ({
       id: (index + 1).toString(),
       title: item.teamName,
       TaticsName: item.tacticName,
       DirecterName: item.leaderNickName,
       Formation: item.mainFormation,
-      Member: "14명", // 멤버 수가 명확하지 않아서 임의로 설정
+      Member: item.memberCount, // 멤버 수가 명확하지 않아서 임의로 설정
+      leaderId: item.teamMembers[0].userId,
+      teamId: item.teamId,
     }));
     setTeamData(transformedData);
   };
@@ -182,6 +238,8 @@ const BanggusukTeam = ({ navigation }) => {
               Formation={item.Formation}
               Member={item.Member}
               navigation={navigation}
+              leaderId={item.leaderId}
+              teamId={item.teamId}
             />
           )}
           keyExtractor={(item) => item.id}
