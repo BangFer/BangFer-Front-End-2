@@ -11,6 +11,7 @@ import { verifyTokens, getTokenFromLocal } from "../LoginPackage/TokenUtils";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { useFocusEffect } from "@react-navigation/native";
+import { useTeam } from "../TeamContext";
 import {
   Menu,
   MenuOptions,
@@ -105,7 +106,7 @@ const DeleteTeam = async ({ teamId }) => {
     // JSON.stringify로 객체를 문자열로 변환
     return res.data.result;
   } catch (error) {
-    console.error("Delete Team의 error는 " + error);
+    console.error(error.response);
   }
 };
 
@@ -122,9 +123,10 @@ const Item = ({
   navigation,
   leaderId,
   teamId,
+  fetchTeamData,
 }) => {
   const [userId, setUserId] = useState(null);
-
+  const { letsetTeamId } = useTeam();
   useEffect(() => {
     // AsyncStorage에서 userId를 읽어오는 함수
     const fetchUserId = async () => {
@@ -143,6 +145,7 @@ const Item = ({
   }, []);
 
   const handlePress = () => {
+    letsetTeamId(teamId);
     if (userId === leaderId) {
       navigation.navigate("AdminPlusBanggusukTeam", { teamId });
     } else {
@@ -153,9 +156,7 @@ const Item = ({
   const handleDelete = async () => {
     try {
       await DeleteTeam({ teamId });
-      // 현재 페이지를 다시 네비게이션하여 데이터 새로고침
-      navigation.goBack(); // 현재 페이지를 종료
-      navigation.navigate("BanggusukTeam"); // 현재 페이지를 다시 로드
+      fetchTeamData();
     } catch (error) {
       console.error("Failed to delete team", error);
     }
@@ -176,7 +177,9 @@ const Item = ({
               }}
             >
               <MenuOption
-                onSelect={() => navigateToPlusBanggusukTeam(navigation)}
+                onSelect={() =>
+                  navigation.navigate("ModifyBanggusukTeam", { teamId })
+                }
               >
                 <Text>수정</Text>
               </MenuOption>
@@ -220,11 +223,13 @@ const BanggusukTeam = ({ navigation }) => {
     setTeamData(transformedData);
   };
 
-  useFocusEffect(
-    React.useCallback(() => {
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("focus", () => {
       fetchTeamData();
-    }, [])
-  );
+    });
+
+    return unsubscribe;
+  }, [navigation]);
   return (
     <Container>
       <View style={{ width: "100%", height: "100%" }}>
@@ -240,6 +245,7 @@ const BanggusukTeam = ({ navigation }) => {
               navigation={navigation}
               leaderId={item.leaderId}
               teamId={item.teamId}
+              fetchTeamData={fetchTeamData}
             />
           )}
           keyExtractor={(item) => item.id}

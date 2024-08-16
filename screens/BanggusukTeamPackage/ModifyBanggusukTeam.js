@@ -480,7 +480,7 @@ const Item = ({ title, mainFormation, teamId, memberId, position }) => {
       default:
         items = [];
     }
-    // items.push({ label: "후보", value: "12" });
+    items.push({ label: "후보", value: "12" });
 
     setPickerItems(items);
   }, [mainFormation]);
@@ -552,6 +552,7 @@ const Item = ({ title, mainFormation, teamId, memberId, position }) => {
               inputIOS: styles.input,
               inputIOSContainer: styles.inputContainer,
             }}
+            disabled
           />
         </ViewForPickerContainer>
       </ViewForPlayerRight>
@@ -724,7 +725,7 @@ const GetTatics = async (taticsId) => {
     "Content-Type": "application/json; charset=UTF-8",
     "Authorization": "Bearer " + Token.accessToken,
   };
-  const url = "http://13.125.14.94:8080/team/" + taticsId;
+  const url = "http://13.125.14.94:8080/api/v1/tactics/" + taticsId;
   console.log("url :" + url);
   try {
     const res = await axios.get(url, {
@@ -733,7 +734,29 @@ const GetTatics = async (taticsId) => {
     console.log("GetTactics의 response는", JSON.stringify(res.data)); // JSON.stringify로 객체를 문자열로 변환
     return res;
   } catch (error) {
-    console.error("Get Tactic의 error는 " + error);
+    console.error("Get Tactic의 error 발생");
+
+    // Log the error message
+    if (error.message) {
+      console.error("Error message: " + error.message);
+    }
+
+    // Log the response if available
+    if (error.response) {
+      console.error("Error response status: " + error.response.status);
+      console.error(
+        "Error response headers: " + JSON.stringify(error.response.headers)
+      );
+      console.error(
+        "Error response data: " + JSON.stringify(error.response.data)
+      );
+    } else if (error.request) {
+      // Log the request if no response was received
+      console.error("Error request: " + JSON.stringify(error.request));
+    } else {
+      // Log the configuration of the request
+      console.error("Error config: " + JSON.stringify(error.config));
+    }
   }
 };
 
@@ -834,6 +857,81 @@ const AssignPosition = async ({ teamId, memberId, position }) => {
     console.error(error.response);
   }
 };
+
+const CheckTactics = async (navigation) => {
+  const Token = await getTokenFromLocal();
+
+  const headers_config = {
+    "Content-Type": "application/json; charset=UTF-8",
+    "Authorization": "Bearer " + Token.accessToken,
+  };
+
+  try {
+    const res = await axios.get("http://13.125.14.94:8080/team/tactic/list", {
+      headers: headers_config,
+    });
+    console.log(res.data);
+    console.log("CheckTatcis의 response는 ", JSON.stringify(res.data)); // JSON.stringify로 객체를 문자열로 변환
+    return res;
+  } catch (error) {
+    console.error("error는 " + error);
+  }
+};
+
+const ModifyTeamName = async ({ teamId, value, teamName }) => {
+  console.log("teamName의 teamId " + teamId);
+  console.log("teamName의 tacticId " + value);
+  console.log("teamName의 teamName " + teamName);
+
+  const Token = await getTokenFromLocal();
+  try {
+    const headers = {
+      "Content-type": "application/json; charset=UTF-8",
+      "Authorization": "Bearer " + Token.accessToken,
+    };
+
+    const url = "http://13.125.14.94:8080/team/" + teamId;
+
+    const data = {
+      teamName: teamName,
+      tacticId: value,
+    };
+
+    const response = await axios.put(url, data, {
+      headers: headers,
+    });
+
+    return response.data; // 반환할 데이터 형식에 맞게 수정
+  } catch (error) {
+    console.error(error.response);
+  }
+};
+const ModifyTacticApply = async ({ teamId, value }) => {
+  console.log("hey의 teamId " + teamId);
+  console.log("hey의 tacticId " + value);
+
+  const Token = await getTokenFromLocal();
+  try {
+    const headers = {
+      "Content-type": "application/json; charset=UTF-8",
+      "Authorization": "Bearer " + Token.accessToken,
+    };
+
+    const url = "http://13.125.14.94:8080/team/tactic/" + teamId + "/" + value;
+
+    const response = await axios.post(
+      url,
+      {},
+      {
+        headers: headers,
+      }
+    );
+
+    return response.data; // 반환할 데이터 형식에 맞게 수정
+  } catch (error) {
+    console.error(error.response);
+  }
+};
 const showSuccessInviteMember = () => {
   ToastAndroid.show("✅ 초대 성공", ToastAndroid.LONG);
 };
@@ -846,17 +944,24 @@ const showAlreadyInvite = () => {
   ToastAndroid.show("❌ 이미 초대요청이 보내진 회원입니다", ToastAndroid.LONG);
 };
 
-const AdminPlusBanggusukTeam = ({ navigation }) => {
+const showEmptyTeamName = () => {
+  ToastAndroid.show("❌ 팀 명을 입력해주세요.", ToastAndroid.LONG);
+};
+
+const ModifyBanggusukTeam = ({ navigation }) => {
   const route = useRoute();
   const { teamId } = route.params;
   const [teamData, setTeamData] = useState([]);
   const [mainformation, setmainformation] = useState("");
+  const [open, setOpen] = useState(false);
 
   const fetchTeamMemberData = async (teamId) => {
     try {
       const data = await GetTeam(teamId);
       console.log("data는" + JSON.stringify(data));
 
+      setLeaderName(data.leaderNickName);
+      setTeamName(data.teamName);
       setmainformation(data.tactic.mainFormation);
       const transformedData = data.teamMembers.map((item, index) => ({
         id: (index + 1).toString(),
@@ -917,26 +1022,39 @@ const AdminPlusBanggusukTeam = ({ navigation }) => {
 
   const handleTacticCall = async (selectedTacticId) => {
     const data = await GetTatics(selectedTacticId);
+    handleChangeMainText(data.data.result.subTactic);
+    handleChangeSubText(data.data.result.tacticDetails);
 
-    handleChangeMainText(data.data.result.tactic.subTactic);
-    handleChangeSubText(data.data.result.tactic.tacticDetails);
+    setSelectedFormation(data.data.result.mainFormation);
+    // setTeamName(data.data.result.teamName);
+    // setLeaderName(data.data.result.leaderNickName);
+    // setTacticName(data.data.result.tactic.tacticName);
 
-    setSelectedFormation(data.data.result.tactic.mainFormation);
-    setTeamName(data.data.result.teamName);
-    setLeaderName(data.data.result.leaderNickName);
-    setTacticName(data.data.result.tactic.tacticName);
-
-    setOnePositionValue(data.data.result.tacticDto[0].positionDescription);
-    setTwoPositionValue(data.data.result.tacticDto[1].positionDescription);
-    setThreePositionValue(data.data.result.tacticDto[2].positionDescription);
-    setFourPositionValue(data.data.result.tacticDto[3].positionDescription);
-    setFivePositionValue(data.data.result.tacticDto[4].positionDescription);
-    setSixPositionValue(data.data.result.tacticDto[5].positionDescription);
-    setSevenPositionValue(data.data.result.tacticDto[6].positionDescription);
-    setEightPositionValue(data.data.result.tacticDto[7].positionDescription);
-    setNinePositionValue(data.data.result.tacticDto[8].positionDescription);
-    setTenPositionValue(data.data.result.tacticDto[9].positionDescription);
-    setElevenPositionValue(data.data.result.tacticDto[10].positionDescription);
+    setOnePositionValue(data.data.result.positionDetail[0].positionDescription);
+    setTwoPositionValue(data.data.result.positionDetail[1].positionDescription);
+    setThreePositionValue(
+      data.data.result.positionDetail[2].positionDescription
+    );
+    setFourPositionValue(
+      data.data.result.positionDetail[3].positionDescription
+    );
+    setFivePositionValue(
+      data.data.result.positionDetail[4].positionDescription
+    );
+    setSixPositionValue(data.data.result.positionDetail[5].positionDescription);
+    setSevenPositionValue(
+      data.data.result.positionDetail[6].positionDescription
+    );
+    setEightPositionValue(
+      data.data.result.positionDetail[7].positionDescription
+    );
+    setNinePositionValue(
+      data.data.result.positionDetail[8].positionDescription
+    );
+    setTenPositionValue(data.data.result.positionDetail[9].positionDescription);
+    setElevenPositionValue(
+      data.data.result.positionDetail[10].positionDescription
+    );
   };
 
   const handleAttackerPositionPress = (DetailText, PositionText) => {
@@ -971,6 +1089,7 @@ const AdminPlusBanggusukTeam = ({ navigation }) => {
   const [isGKModalVisible, setIsGKModalVisible] = useState(false);
   const [inviteFriendVisible, setinviteFriendVisible] = useState(false);
   const [inviteNicknameVisible, setinviteNickNameVisible] = useState(false);
+  const [currentValue, setCurrentValue] = useState();
 
   const { mutate: requestInviteMember } = useMutation(InviteMember, {
     onSuccess: (data) => {
@@ -986,11 +1105,20 @@ const AdminPlusBanggusukTeam = ({ navigation }) => {
   });
   useEffect(() => {
     const fetchTactics = async () => {
-      handleTacticCall(teamId);
+      const data = await CheckTactics(navigation);
+      if (data) {
+        const transformedItems = data.data.result.map((tactic) => ({
+          label: tactic.title,
+          value: tactic.tacticId,
+          formation: tactic.formation,
+        }));
+        setItems(transformedItems); // result 속성 설정
+        console.log("Transformed items:", transformedItems); // 콘솔에 출력
+      }
     };
 
     fetchTactics();
-  }, []);
+  }, [navigation]);
 
   useEffect(() => {
     fetchTeamMemberData(teamId);
@@ -999,6 +1127,25 @@ const AdminPlusBanggusukTeam = ({ navigation }) => {
   const TouchNickName = () => {
     setinviteFriendVisible(false);
     setinviteNickNameVisible(true);
+  };
+
+  const onChange = (value) => {
+    setCurrentValue(value);
+    handleTacticCall(value);
+  };
+
+  const handleModify = async (teamId, value, teamName) => {
+    console.log("team Id : " + teamId);
+    console.log("tactic Id : " + value);
+    console.log("teamName : " + teamName);
+    if (!teamName) {
+      showEmptyTeamName();
+      return;
+    }
+
+    ModifyTeamName({ teamId, value, teamName });
+    ModifyTacticApply({ teamId, value });
+    navigation.navigate("BanggusukTeam");
   };
 
   return (
@@ -1021,9 +1168,12 @@ const AdminPlusBanggusukTeam = ({ navigation }) => {
         </View>
         <ViewForTextBar>
           <TaticsName
+            placeholder={TacticsNameplaceholder}
+            className="setName"
+            type="text"
             value={teamName}
-            editable={false} // TextInput을 수정 불가능하게 설정
-            pointerEvents="none" // 모든 터치 이벤트 차단
+            maxLength={10}
+            onChangeText={setTeamName}
           />
           <DirectorName
             value={leaderName}
@@ -1033,7 +1183,50 @@ const AdminPlusBanggusukTeam = ({ navigation }) => {
         </ViewForTextBar>
         <ViewForTacticBoard>
           <ViewForDropdown>
-            <TacticName value={tacticName}></TacticName>
+            <Dropdown
+              style={{
+                backgroundColor: "#000", // 드롭다운 버튼 배경색
+                borderRadius: 5,
+                borderColor: "#fff",
+                borderWidth: 1,
+                marginBottom: 10,
+                height: 50,
+                width: "100%",
+              }}
+              placeholderStyle={{
+                color: "#fff", // 플레이스홀더 텍스트 색상
+                fontWeight: "bold",
+                paddingLeft: 15,
+              }}
+              selectedTextStyle={{
+                color: "#fff",
+                fontWeight: "bold",
+                paddingLeft: 15,
+              }}
+              itemContainerStyle={{
+                backgroundColor: "#000", // 목록 항목의 배경색을 검은색으로 변경
+                borderBottomWidth: 2, // 구분선 두께
+                borderBottomColor: "#fff", // 구분선 색상
+                fontWeight: "bold",
+              }}
+              itemTextStyle={{
+                color: "#fff",
+                // 목록 항목의 텍스트 색상
+                fontWeight: "bold",
+              }}
+              data={items}
+              labelField="label"
+              valueField="value"
+              placeholder="전술 선택"
+              value={value}
+              onChange={(item) => {
+                onChange(item.value);
+                // 선택된 항목에 따라 동작
+                setValue(item.value);
+              }}
+              onFocus={() => setOpen(true)}
+              onBlur={() => setOpen(false)}
+            />
           </ViewForDropdown>
           <ViewForBoard>
             <TacticsBackImage source={TacticsBack} resizeMode={"stretch"} />
@@ -1872,11 +2065,11 @@ const AdminPlusBanggusukTeam = ({ navigation }) => {
           <ViewForListPlayersReal>
             <ViewForListPlayersTitle>
               <TextForListPlayersTitle>선수 목록</TextForListPlayersTitle>
-              <TouchForPlusPlayer onPress={() => setinviteFriendVisible(true)}>
+              {/* <TouchForPlusPlayer onPress={() => setinviteFriendVisible(true)}>
                 <Text style={{ fontSize: 15, fontWeight: "bold" }}>
                   팀원 추가+
                 </Text>
-              </TouchForPlusPlayer>
+              </TouchForPlusPlayer> */}
             </ViewForListPlayersTitle>
             <ViewForFlatList>
               <FlatList
@@ -1908,8 +2101,8 @@ const AdminPlusBanggusukTeam = ({ navigation }) => {
             justifyContent: "center",
           }}
         >
-          <RegisterButton onPress={() => navigation.navigate(BanggusukTeam)}>
-            <RegisterText>확인</RegisterText>
+          <RegisterButton onPress={() => handleModify(teamId, value, teamName)}>
+            <RegisterText>수정</RegisterText>
           </RegisterButton>
         </View>
       </ScrollView>
@@ -1917,4 +2110,4 @@ const AdminPlusBanggusukTeam = ({ navigation }) => {
   );
 };
 
-export default AdminPlusBanggusukTeam;
+export default ModifyBanggusukTeam;
