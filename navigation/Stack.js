@@ -11,6 +11,8 @@ import FreeBoardWrite from '../screens/FreeBoardPackage/FreeBoardWrite';
 import FreeBoardUpdate from '../screens/FreeBoardPackage/FreeBoardUpdate';
 import FreeBoardSearch from '../screens/FreeBoardPackage/FreeBoardSearch';
 import MyFreeBoard from '../screens/FreeBoardPackage/MyFreeBoard';
+import MyFreeBoardDetail from '../screens/FreeBoardPackage/MyFreeBoardDetail';
+import FreeBoardSearchResult from '../screens/FreeBoardPackage/FreeBoardSearchResult';
 import MyPage from '../screens/MyPagePackage/MyPage';
 import BanggusukTeam from '../screens/BanggusukTeamPackage/BanggusukTeam';
 import UserPlusBanggusukTeam from '../screens/BanggusukTeamPackage/UserPlusBanggusukTeam';
@@ -552,6 +554,7 @@ const StackNavigation = (navigation) => {
           options={({ navigation }) => ({
             headerShown: true,
             headerTitleAlign: 'center',
+            title : '자유 게시판',
             headerRight: () => (
               <View>
                 <NavigationButtonView>
@@ -588,8 +591,19 @@ const StackNavigation = (navigation) => {
           options={({ navigation }) => ({
             headerShown: true,
             title: '자유 게시판',
+            headerTitleAlign: 'center',
           })}
         />
+
+        <Stack.Screen
+          name="MyFreeBoardDetail"
+          component={MyFreeBoardDetail}
+          options={({ navigation }) => ({
+            headerShown: true,
+            title: '내가 쓴 글',
+            headerTitleAlign: 'center',
+          })}
+        />  
 
         <Stack.Screen
           name="FreeBoardUpdate"
@@ -615,6 +629,7 @@ const StackNavigation = (navigation) => {
           options={({ navigation }) => ({
             headerShown: true,
             title: '게시글 검색',
+            headerTitleAlign: 'center'
           })}
         />
 
@@ -623,7 +638,18 @@ const StackNavigation = (navigation) => {
           component={MyFreeBoard}
           options={({ navigation }) => ({
             headerShown: true,
-            title: '내 글',
+            title: '내 게시판',
+            headerTitleAlign: 'center'
+          })}
+        />
+
+        <Stack.Screen
+          name="FreeBoardSearchResult"
+          component={FreeBoardSearchResult}
+          options={({ navigation }) => ({
+            headerShown: true,
+            title: '검색 결과',
+            headerTitleAlign: 'center'
           })}
         />
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -457,7 +457,7 @@ const ReCommentItem = ({ data, onDelete, isOwnComment, showActionSheetWithOption
   );
 };
 
-const FreeBoardDetail = ({ navigation, route }) => {
+const MyFreeBoardDetail = ({ navigation, route }) => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [commentText, setCommentText] = useState("");
@@ -487,68 +487,62 @@ const FreeBoardDetail = ({ navigation, route }) => {
     }
   };
   
-  const onPress = () => {
-    const reportOptions = [
-      "욕설/비하",
-      "음란물/불건전한 만남 및 대화",
-      "정치적 발언",
-      "사칭",
-      "상업적 광고 및 판매",
-    ];
-  
-    const reportActivities = [
-      "CURSING",
-      "OBSCENE",
-      "POLITICAL",
-      "IMPOSTOR",
-      "COMMERCIAL",
-    ];
-  
-    const options = ["신고", "차단", "취소"];
+  const onPress = useCallback(() => {
+    const options = ["수정", "삭제", "취소"];
+    const destructiveButtonIndex = 1;
     const cancelButtonIndex = 2;
   
     showActionSheetWithOptions(
       {
         options,
         cancelButtonIndex,
-        destructiveButtonIndex: -1,
+        destructiveButtonIndex,
       },
       (selectedIndex) => {
         switch (selectedIndex) {
-          case 0: // 신고
-            showActionSheetWithOptions(
-              {
-                options: [...reportOptions, "취소"],
-                cancelButtonIndex: reportOptions.length,
-              },
-              async (reportIndex) => {
-                if (reportIndex !== reportOptions.length) {
-                  try {
-                    const selectedReportActivity = reportActivities[reportIndex];
-                    console.log(`Selected report option: ${reportOptions[reportIndex]}`);
-                    console.log(`Corresponding report activity: ${selectedReportActivity}`);
-                    const result = await reportUser(data.writerId, selectedReportActivity);
-                    console.log("Report result:", result);
-                    alert("신고가 접수되었습니다.");
-                  } catch (error) {
-                    console.error("Error in report process:", error);
-                    alert("신고 처리 중 오류가 발생했습니다. 다시 시도해 주세요.");
-                  }
-                }
-              }
-            );
+          case 0:
+            handleEdit(data.id);
             break;
-
-          case 1: // 차단
-            handleBlock();
+          case destructiveButtonIndex:
+            handleDelete(data.id);
             break;
           case cancelButtonIndex:
-            console.log("취소됨");
+            // Canceled
             break;
         }
       }
     );
-  };
+  }, [data, handleEdit, handleDelete, showActionSheetWithOptions]);
+
+
+  const handleEdit = useCallback((boardId) => {
+    navigation.navigate("FreeBoardUpdate", { id: boardId });
+  }, [navigation]);
+
+ const handleDelete = useCallback(async (boardId) => {
+    try {
+      const token = await getTokenFromLocal();
+      const response = await axios.delete(
+        `http://13.125.14.94:8080/board/${boardId}`,
+        {
+          headers: {
+            "Content-Type": "application/json; charset=UTF-8",
+            "Authorization": "Bearer " + token.accessToken,
+          },
+        }
+      );
+
+      if (response.data.code === 'No Content') {
+        alert("게시글이 삭제되었습니다.");
+        navigation.navigate("MyFreeBoard");
+      } else {
+        alert("게시글 삭제에 실패했습니다: " + response.data.message);
+      }
+    } catch (error) {
+      console.error("Error deleting board:", error);
+      alert("게시글 삭제 중 오류가 발생했습니다.");
+    }
+  }, [navigation]);
 
   useEffect(() => {
     navigation.setOptions({
@@ -558,7 +552,7 @@ const FreeBoardDetail = ({ navigation, route }) => {
         </Pressable>
       ),
     });
-  }, [data, onPress]);
+  }, [navigation, onPress]);
 
   useEffect(() => {
     const fetchToken = async () => {
@@ -1059,4 +1053,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default FreeBoardDetail;
+export default MyFreeBoardDetail;

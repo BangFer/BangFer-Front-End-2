@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import styled from "styled-components/native";
 import { Ionicons } from '@expo/vector-icons';
+import axios from 'axios';
+import { getTokenFromLocal } from "../LoginPackage/TokenUtils";
+import { Alert } from 'react-native';
 
 const Container = styled.View`
   flex: 1;
@@ -15,7 +18,7 @@ const SearchView = styled.View`
   border-width: 1px;
   border-color: #CCCCCC;
   padding: 5px 10px; /* 내부 여백 설정 */
-  margin-top: 30px;
+  margin-top: 5px;
 `;
 
 const SearchInput = styled.TextInput`
@@ -28,15 +31,13 @@ const SearchIcon = styled(Ionicons)`
   margin-right: 10px;
 `;
 
-const CancelButton = styled.TouchableOpacity`
+const SearchButton = styled.TouchableOpacity`
   position: absolute; /* 절대 위치 설정 */
   top: 10px; /* 위쪽 여백 설정 */
   right: 10px; /* 오른쪽 여백 설정 */
 `;
 
-const CancelButtonText = styled.Text`
-
-`;
+const SearchButtonText = styled.Text``;
 
 const CenterView = styled.View`
   align-items: center;
@@ -57,14 +58,37 @@ const SearchText = styled.Text`
 const FreeBoardSearch = ({ navigation }) => {
   const [searchText, setSearchText] = useState("");
 
-  const handleSearch = () => {
-    // 추후 검색 기능 구현
-    console.log("검색어:", searchText);
+  const handleSearch = async () => {
+    try {
+      const token = await getTokenFromLocal();
+      const response = await axios.get(`http://13.125.14.94:8080/board/search`, {
+        params: {
+          title: searchText,
+          page: 0,
+          size: 10
+        },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + token.accessToken
+        }
+      });
+
+      if (response.data.code === 'OK') {
+        navigation.navigate('FreeBoardSearchResult', { 
+          searchResults: response.data.result,
+          searchText: searchText
+        });
+      } else {
+        Alert.alert("검색에 실패했습니다: " + response.data.message);
+      }
+    } catch (error) {
+      console.error("Error searching board:", error);
+      Alert.alert("검색 중 오류가 발생했습니다.");
+    }
   };
 
   return (
     <Container>
-
       <SearchView>
         <SearchIcon name="search" size={24} color="black" />
         <SearchInput
@@ -72,16 +96,15 @@ const FreeBoardSearch = ({ navigation }) => {
           value={searchText}
           onChangeText={setSearchText}
         />
-        <CancelButton onPress={() => navigation.goBack()}>
-          <CancelButtonText>취소</CancelButtonText>
-        </CancelButton>
+        <SearchButton onPress={handleSearch}>
+          <SearchButtonText>검색</SearchButtonText>
+        </SearchButton>
       </SearchView>
 
       <CenterView>
         <BigIcon name="search" color="black" />
         <SearchText>게시글 검색하기</SearchText>
       </CenterView>
-
     </Container>
   );
 };
