@@ -1058,7 +1058,7 @@ const UserPlusBanggusukTeam = ({ navigation }) => {
               <ContainerModalView
                 onPress={() => setIsAttackerModalVisible(false)}
               >
-                <ModalView>
+                <ModalView style={{ borderColor: "#ff6262" }}>
                   <ViewforModalPosition>
                     <TextForModalPosition
                       editable={false} // TextInput을 수정 불가능하게 설정
@@ -1829,11 +1829,11 @@ const UserPlusBanggusukTeam = ({ navigation }) => {
           <ViewForListPlayersReal>
             <ViewForListPlayersTitle>
               <TextForListPlayersTitle>선수 목록</TextForListPlayersTitle>
-              <TouchForPlusPlayer onPress={() => setinviteFriendVisible(true)}>
-                {/* <Text style={{ fontSize: 15, fontWeight: "bold" }}>
+              {/* <TouchForPlusPlayer onPress={() => setinviteFriendVisible(true)}> */}
+              {/* <Text style={{ fontSize: 15, fontWeight: "bold" }}>
                   팀원 추가+
                 </Text> */}
-              </TouchForPlusPlayer>
+              {/* </TouchForPlusPlayer> */}
             </ViewForListPlayersTitle>
             <ViewForFlatList>
               <FlatList

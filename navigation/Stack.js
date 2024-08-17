@@ -38,6 +38,7 @@ import Toast from 'react-native-toast-message';
 import FindPw from '../screens/LoginPackage/FindPw';
 import CreateProfile from '../screens/MyPagePackage/CreateProfile';
 import AdminPlusBanggusukTeam from '../screens/BanggusukTeamPackage/AdminPlusBanggusukTeam';
+import ModifyBanggusukTeam from '../screens/BanggusukTeamPackage/ModifyBanggusukTeam';
 import {
   Text,
   View,
@@ -51,6 +52,7 @@ import {
 import axios from 'axios';
 import { getTokenFromLocal } from '../screens/LoginPackage/TokenUtils';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTeam } from '../screens/TeamContext';
 
 // your entry point
 import { MenuProvider } from 'react-native-popup-menu';
@@ -178,6 +180,99 @@ const showCreateProfile = () => {
   );
 };
 
+const GetTeamLeader = async ({ teamId }) => {
+  const TokenString = await AsyncStorage.getItem('Tokens');
+  const Token = JSON.parse(TokenString);
+
+  const headers_config = {
+    'Content-Type': 'application/json; charset=UTF-8',
+    Authorization: 'Bearer ' + Token.accessToken,
+  };
+
+  const url = 'http://13.125.14.94:8080/team/' + teamId;
+
+  try {
+    const res = await axios.get(url, {
+      headers: headers_config,
+    });
+
+    return res.data.result.teamMembers[0].userId;
+  } catch (error) {
+    console.log(error.response);
+  }
+};
+
+const GetCallenderEvent = async ({ teamId }) => {
+  const TokenString = await AsyncStorage.getItem('Tokens');
+  const Token = JSON.parse(TokenString);
+
+  const headers_config = {
+    'Content-Type': 'application/json; charset=UTF-8',
+    Authorization: 'Bearer ' + Token.accessToken,
+  };
+
+  const url = 'http://13.125.14.94:8080/team/calendar/' + teamId;
+
+  try {
+    const res = await axios.get(url, {
+      headers: headers_config,
+    });
+
+    console.log('시발' + res.data);
+    return res;
+  } catch (error) {
+    console.log(error.response);
+  }
+};
+
+const CreateCallenderEvent = async ({ teamId, matchDate }) => {
+  const TokenString = await AsyncStorage.getItem('Tokens');
+  const Token = JSON.parse(TokenString);
+
+  const headers_config = {
+    'Content-Type': 'application/json; charset=UTF-8',
+    Authorization: 'Bearer ' + Token.accessToken,
+  };
+
+  const url = 'http://13.125.14.94:8080/team/calendar/' + teamId;
+  const data = {
+    matchDate: matchDate,
+  };
+
+  try {
+    const res = await axios.post(url, data, {
+      headers: headers_config,
+    });
+
+    console.log(res.data);
+    return res;
+  } catch (error) {
+    console.log(error.response);
+  }
+};
+
+const DeleteCallenderEvent = async ({ calendarId }) => {
+  const TokenString = await AsyncStorage.getItem('Tokens');
+  const Token = JSON.parse(TokenString);
+
+  const headers_config = {
+    'Content-Type': 'application/json; charset=UTF-8',
+    Authorization: 'Bearer ' + Token.accessToken,
+  };
+
+  const url = 'http://13.125.14.94:8080/team/calendar/' + calendarId;
+
+  try {
+    const res = await axios.delete(url, {
+      headers: headers_config,
+    });
+
+    return res;
+  } catch (error) {
+    console.log(error.response);
+  }
+};
+
 const CheckProfile = async (navigation) => {
   const TokenString = await AsyncStorage.getItem('Tokens');
   const Token = JSON.parse(TokenString);
@@ -208,29 +303,118 @@ const CheckProfile = async (navigation) => {
   }
 };
 const StackNavigation = (navigation) => {
+  const { teamId } = useTeam();
   const [isCallendarVisible, setIsCallendarVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [markedDates, setMarkedDates] = useState({});
   const [matchRegistered, setMatchRegistered] = useState(false); // 1. 매치 등록 상태 추가
-  const markSelectedDate = () => {
-    if (selectedDate) {
-      if (markedDates[selectedDate]) {
-        // 이미 선택된 날짜를 클릭한 경우
-        setMarkedDates((prevMarkedDates) => {
-          const updatedMarkedDates = { ...prevMarkedDates };
-          delete updatedMarkedDates[selectedDate]; // 선택된 날짜의 마킹을 제거
-          return updatedMarkedDates;
-        });
-        setMatchRegistered(false); // 매치 취소 상태로 변경
+  const [calendarEvents, setCalendarEvents] = useState({});
+  const [isLeader, setIsLeader] = useState(false);
+  // const [leaderId, setleaderId] = useState("");
+
+  const setLeaderId = async () => {
+    try {
+      const response = await GetTeamLeader({ teamId });
+      console.log('leaderId 가져옴 : ' + response);
+
+      const Token = await getTokenFromLocal();
+
+      if (response === Token.userId) {
+        setIsLeader(true);
+        return true;
       } else {
-        setMarkedDates({
-          ...markedDates,
-          [selectedDate]: {
+        setIsLeader(false);
+        return false;
+      }
+    } catch (error) {
+      console.error('leaderId 비교 중 오류 발생:', error);
+    }
+
+    setIsCallendarVisible(true);
+  };
+  const getCurrentDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+  const showCallander = async () => {
+    setLeaderId();
+    try {
+      const response = await GetCallenderEvent({ teamId });
+      console.log('예' + response);
+      if (response && response.data) {
+        const newMarkedDates = {};
+        const newCalendarEvents = {};
+        response.data.result.forEach((event) => {
+          newMarkedDates[event.matchDate] = {
             selected: true,
             selectedColor: 'red',
-          },
+          };
+          newCalendarEvents[event.matchDate] = event.id; // 여기서 id는 API 응답의 실제 필드명에 맞게 조정해야 합니다
         });
-        setMatchRegistered(true);
+        setMarkedDates(newMarkedDates);
+        setCalendarEvents(newCalendarEvents);
+      }
+    } catch (error) {
+      console.error('캘린더 이벤트 로드 중 오류 발생:', error);
+    }
+
+    setIsCallendarVisible(true);
+  };
+  const markSelectedDate = async () => {
+    if (selectedDate) {
+      try {
+        if (markedDates[selectedDate]) {
+          // 이미 선택된 날짜를 클릭한 경우 (매치 취소)
+          const calendarId = calendarEvents[selectedDate];
+          if (!calendarId) {
+            console.error('Calendar ID not found for the selected date');
+            return;
+          }
+
+          const res = await DeleteCallenderEvent({ calendarId });
+
+          if (res && res.status === 200) {
+            setMarkedDates((prevMarkedDates) => {
+              const updatedMarkedDates = { ...prevMarkedDates };
+              delete updatedMarkedDates[selectedDate];
+              return updatedMarkedDates;
+            });
+            setCalendarEvents((prevEvents) => {
+              const updatedEvents = { ...prevEvents };
+              delete updatedEvents[selectedDate];
+              return updatedEvents;
+            });
+            setMatchRegistered(false);
+          }
+        } else {
+          // 새로운 날짜 선택 (매치 등록)
+          const res = await CreateCallenderEvent({
+            teamId: teamId,
+            matchDate: selectedDate,
+          });
+
+          if (res && res.status === 200) {
+            const calendarId = res.data.result.id; // 응답에서 calendarId 추출
+            setMarkedDates({
+              ...markedDates,
+              [selectedDate]: {
+                selected: true,
+                selectedColor: 'red',
+              },
+            });
+            setCalendarEvents({
+              ...calendarEvents,
+              [selectedDate]: calendarId,
+            });
+            setMatchRegistered(true);
+          }
+        }
+      } catch (error) {
+        console.error('매치 등록/취소 중 오류 발생:', error);
+        // 사용자에게 오류 메시지를 표시하는 로직을 추가할 수 있습니다.
       }
     }
   };
@@ -250,6 +434,11 @@ const StackNavigation = (navigation) => {
         <Stack.Screen name="SignUp" component={SignUp} />
         <Stack.Screen name="FindPwEmail" component={FindPwEmail} />
 
+        <Stack.Screen
+          name="ModifyBanggusukTeam"
+          component={ModifyBanggusukTeam}
+          options={{ headerShown: false }}
+        />
         <Stack.Screen
           name="MainPage"
           component={MainPage}
@@ -327,7 +516,7 @@ const StackNavigation = (navigation) => {
             headerShown: true,
 
             headerRight: () => (
-              <TouchCalander onPress={() => setIsCallendarVisible(true)}>
+              <TouchCalander onPress={() => showCallander()}>
                 <AntDesign name="calendar" size={32} color="black" />
               </TouchCalander>
             ),
@@ -497,7 +686,7 @@ const StackNavigation = (navigation) => {
             headerShown: true,
 
             headerRight: () => (
-              <TouchCalander onPress={() => setIsCallendarVisible(true)}>
+              <TouchCalander onPress={() => showCallander()}>
                 <AntDesign name="calendar" size={32} color="black" />
               </TouchCalander>
             ),
@@ -531,7 +720,7 @@ const StackNavigation = (navigation) => {
             >
               <Calendar
                 style={{ borderRadius: 8, width: 350, hight: 80 }}
-                current={'2024-05-01'}
+                current={getCurrentDate()}
                 markedDates={{
                   ...markedDates,
                   [selectedDate]: {
@@ -540,8 +729,9 @@ const StackNavigation = (navigation) => {
                   },
                 }}
                 onDayPress={(day) => {
-                  console.log('선택된 날', day);
-                  setSelectedDate(day.dateString);
+                  if (isLeader) {
+                    setSelectedDate(day.dateString);
+                  }
                 }}
                 monthFormat={'yyyy.MM'}
                 hideExtraDays={true}
@@ -564,13 +754,15 @@ const StackNavigation = (navigation) => {
                   arrowColor: '#5B5B5B',
                 }}
               ></Calendar>
-              <CalanderEnrollButton onPress={markSelectedDate}>
-                <Text
-                  style={{ color: 'white', fontSize: 14, fontWeight: 'bold' }}
-                >
-                  {markedDates[selectedDate] ? '매치 취소' : '매치 등록'}
-                </Text>
-              </CalanderEnrollButton>
+              {isLeader && (
+                <CalanderEnrollButton onPress={markSelectedDate}>
+                  <Text
+                    style={{ color: 'white', fontSize: 14, fontWeight: 'bold' }}
+                  >
+                    {markedDates[selectedDate] ? '매치 취소' : '매치 등록'}
+                  </Text>
+                </CalanderEnrollButton>
+              )}
             </View>
           </TouchableOpacity>
         </Modal>

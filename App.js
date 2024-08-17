@@ -5,21 +5,24 @@ import StackNavigation from './navigation/Stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { RecoilRoot } from 'recoil';
+import { TeamProvider } from './screens/TeamContext';
 const queryClient = new QueryClient();
 
 const App = () => {
   return (
-    <RecoilRoot>
-      <QueryClientProvider client={queryClient}>
-        <NavigationContainer>
-          <SafeAreaProvider>
-            <ActionSheetProvider>
-              <StackNavigation />
-            </ActionSheetProvider>
-          </SafeAreaProvider>
-        </NavigationContainer>
-      </QueryClientProvider>
-    </RecoilRoot>
+    <TeamProvider>
+      <RecoilRoot>
+        <QueryClientProvider client={queryClient}>
+          <NavigationContainer>
+            <SafeAreaProvider>
+              <ActionSheetProvider>
+                <StackNavigation />
+              </ActionSheetProvider>
+            </SafeAreaProvider>
+          </NavigationContainer>
+        </QueryClientProvider>
+      </RecoilRoot>
+    </TeamProvider>
   );
 };
 
