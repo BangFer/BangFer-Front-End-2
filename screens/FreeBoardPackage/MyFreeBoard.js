@@ -1,187 +1,306 @@
-import React from "react";
-import { StatusBar } from "expo-status-bar";
-import { Ionicons } from '@expo/vector-icons';
-import {NavigationContainer} from '@react-navigation/native';
+import React, { useState, useCallback, useMemo } from "react";
+import { View, Text, Pressable, FlatList, StyleSheet, Image, Alert, ActivityIndicator } from "react-native";
+import { useInfiniteQuery, useMutation } from 'react-query';
 import styled from "styled-components";
-import { FontAwesome6 } from '@expo/vector-icons';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { MenuProvider } from 'react-native-popup-menu';
-import { FlatList } from "react-native";
+import { EvilIcons, FontAwesome6 } from '@expo/vector-icons';
+import { getTokenFromLocal } from "../LoginPackage/TokenUtils";
+import axios from "axios";
+import { useFocusEffect } from "@react-navigation/native";
+import { FontAwesome5 } from "@expo/vector-icons";
+import { Feather } from '@expo/vector-icons';
 
-export const App = () => (
-  <MenuProvider>
-    <YourApp />
-  </MenuProvider>
-);
-
-// somewhere in your app
-import {
-  Menu,
-  MenuOptions,
-  MenuOption,
-  MenuTrigger,
-} from 'react-native-popup-menu';
 
 
 const Container = styled.View`
   flex: 1;
   flex-direction: column;
-  background-color: #F5F5F5
+  background-color: #F5F5F5;
 `;
-
 
 const FirstView = styled.View`
-  margin-top : 10px;
-`;
-
-const SecondView = styled.View`
-  height: 1px;
-  margin-vertical: 10px;
-  margin-horizontal: 10px;
-`;
-
-const ThirdView = styled.ScrollView`
-  flex: 1;
-`;
-
-
-const PublicPrivateButton = styled.View`
-padding: 5px 5px; /* 버튼 내부 패딩 설정 */
-border-radius: 5px; /* 둥근 사각형 테두리 반지름 설정 */
-background-color: blue; /* 배경색 설정 */
-margin-left: 10px; /* 각 버튼 사이의 간격을 설정합니다. */
-`;
-const FormationButton = styled.View`
-padding: 5px 5px; /* 버튼 내부 패딩 설정 */
-border-radius: 5px; /* 둥근 사각형 테두리 반지름 설정 */
-background-color: blue; /* 배경색 설정 */
-margin-left: 10px; /* 각 버튼 사이의 간격을 설정합니다. */
+  padding: 1px;
+  margin-bottom: 10px;
 `;
 
 const IconAndButtonsInFirstView = styled.View`
-flex-direction: row;
-align-items: center;
-justify-content: flex-end;
-margin-top: 10px;
-margin-right: 10px;
-`
-const RankIconInFirstView = styled.View`
-flex-direction: row;
-margin-top: 5px;
-margin-right: 210px;
-`
-const ButtonText = styled.Text`
-  font-size: 16px;
-  font-weight: 500;
-  color: white;
-`;
-
-const Line = styled.View`
-  flex: 1;
-  height: 1px; /* 직선의 높이를 설정합니다. */
-  background-color: black; /* 검은색으로 설정합니다. */
-`;
-const LineForList = styled.View`
-  flex: 1;
-  height: 1px; /* 직선의 높이를 설정합니다. */
-  background-color: black; /* 검은색으로 설정합니다. */
-  margin-top: 5px;
-`;
-
-
-const ItemContainer = styled.TouchableOpacity`
-  padding-horizontal: 10px;
-`;
-
-const ItemContent = styled.View`
-  flex-direction: column;
-  margin-left: 5px;
-`;
-
-const ItemTitle = styled.Text`
-  font-size: 18px;
-  font-weight: bold;
-`;
-
-const ItemText = styled.Text`
-  font-size: 16px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 10px;
   margin-right: 10px;
 `;
 
-const ItemIcon = styled(Ionicons)`
-  margin-top: 2px;
-  margin-right: 2px;
+const RankIconInFirstView = styled.View`
+  flex-direction: row;
+  margin-top: 5px;
+  margin-right: 200px;
 `;
 
-const InformationView = styled.View`
-flex-direction: row;
-align-items: center;
-justify-content: flex-start;
-`
+const ButtonText = styled.Text`
+  font-size: 16px;
+  font-weight: 500;
+  color: black;
+`;
 
+
+
+const ThumbsRankButton = styled.TouchableOpacity`
+  padding: 5px 10px;
+  border-radius: 5px;
+  background-color: tomato;
+  margin-left: 10px;
+  
+  align-items: center;
+  justify-content: center;
+`;
+
+const CommentsRankButton = styled.TouchableOpacity`
+  padding: 5px 10px;
+  border-radius: 5px;
+  background-color: tomato;
+  margin-left: 10px;
+  
+  align-items: center;
+  justify-content: center;
+`;
+
+const GetBoardData = async ({ page, size }) => {
+  const token = await getTokenFromLocal();
+
+  try {
+    const headers = {
+      "Content-type": "application/json; charset=UTF-8",
+      "Authorization": "Bearer " + token.accessToken,
+    };
+
+    const params = {
+      page: page,
+      size: size
+    };
+
+    console.log(params);
+
+    const response = await axios.get(
+      "http://13.125.14.94:8080/board/myboards",
+      {
+        headers: headers,
+        params: params
+      }
+    );
+
+    // 서버 응답 구조에 맞게 수정
+    return response.data.result;
+  } catch (error) {
+    console.error(error.response);
+    throw new Error("Failed to fetch board data");
+  }
+};
+
+const BoardItem = ({ data, handlePress }) => {
+  return (
+    <Pressable
+      style={styles.itemContainer}
+      onPress={() => handlePress(data._id)}
+    >
+      <Text style={styles.title}>{data.title}</Text>
+      <View style={styles.infoContainer}>
+        <View style={styles.iconContainer}>
+          <View style={styles.commentContainer}>
+            <FontAwesome5 name="comment-dots" size={16} color="#fe6263" />
+            <Text style={styles.infoText}>{data.comments}</Text>
+          </View>
+          <View style={styles.likeContainer}>
+            <Feather name="thumbs-up" size={16} color="#fe6263" />
+            <Text style={styles.infoText}>{data.likes}</Text>
+          </View>
+        </View>
+        {data.director && (
+          <Text style={styles.directorText}>{data.director}</Text>
+        )}
+      </View>
+    </Pressable>
+  );
+};
 
 const MyFreeBoard = ({ navigation }) => {
-  
-  const data = [
-    { id: '1', type: 'Public', title: 'Title 1', description: 'Description 1', number: '1', formation: '4-4-2', name: '고민영' },
-    { id: '2', type: 'Public', title: 'Title 2', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '3', type: 'Private', title: 'Title 3', description: 'Description 2', formation: '4-3-3', name: '고민영' },
-    { id: '4', type: 'Public', title: 'Title 4', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '5', type: 'Private', title: 'Title 5', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '6', type: 'Private', title: 'Title 6', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '7', type: 'Private', title: 'Title 7', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '8', type: 'Private', title: 'Title 8', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '9', type: 'Public', title: 'Title 9', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '10', type: 'Public', title: 'Title 10', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '11', type: 'Public', title: 'Title 11', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '12', type: 'Private', title: 'Title 12', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '13', type: 'Private', title: 'Title 13', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-  
-  ];
+  const [size, setSize] = useState(10);
+  const [sortBy, setSortBy] = useState('id');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const renderItem = ({ item }) => {
-        return(
-          <ListItem
-            title={item.title}
-            description={item.description}
-            number={item.number}
-            name={item.name}
-            navigation={navigation}
-          />
-        );
+  // 여기에 useInfiniteQuery 훅을 사용합니다
+
+  const handleSort = useCallback(async (type) => {
+    setIsLoading(true);
+    setSortBy(type);
+    await refetch();
+    setIsLoading(false);
+  }, [refetch]);
+
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isLoading: queryLoading,
+    isError,
+    error,
+    refetch
+  } = useInfiniteQuery(
+    ['boards', sortBy],
+    ({ pageParam = 0 }) => GetBoardData({ page: pageParam, size, sortBy }),
+    {
+      getNextPageParam: (lastPage, pages) => {
+        if (!lastPage || typeof lastPage.last !== 'boolean' || typeof lastPage.number !== 'number') {
+          return undefined;
+        }
+        if (lastPage.last) return undefined;
+        return lastPage.number + 1;
+      },
     }
-  
+  );
+
+  const sortData = useCallback((data, sortBy) => {
+    if (!data) return [];
+    const sortedData = [...data];
+    switch (sortBy) {
+      case 'id':
+        sortedData.sort((a, b) => a.id - b.id);
+        break;
+      case 'comments':
+        sortedData.sort((a, b) => b.commentCount - a.commentCount);
+        break;
+      case 'likes':
+        sortedData.sort((a, b) => b.likeCount - a.likeCount);
+        break;
+      default:
+        break;
+    }
+    return sortedData;
+  }, []);
+
+  const sortedData = useMemo(() => {
+    if (!data || !data.pages) return [];
+    const allData = data.pages.flatMap(page => page.content || []);
+    return sortData(allData, sortBy);
+  }, [data, sortBy, sortData]);
+
+
+  const handlePressGoDetail = useCallback((id) => {
+    navigation.navigate("MyFreeBoardDetail", { id });
+  }, [navigation]);
+
+  const renderBoardItem = useCallback(({ item }) => (
+    <BoardItem
+      data={{
+        _id: item.id,
+        title: item.boardTitle,
+        comments: item.commentCount,
+        director: item.writerNickName,
+        likes: item.likeCount,
+      }}
+      handlePress={handlePressGoDetail}
+    />
+  ), [handlePressGoDetail]);
+
+  if (queryLoading) {
+    return <Text>Loading...</Text>;
+  }
+
+  if (isError) {
+    return <Text>Error: {error.message}</Text>;
+  }
 
   return (
     <Container>
-      <StatusBar style="auto" />
-
-
-
       <FirstView>
-        <FlatList
-          data={data}
-          renderItem={renderItem}
-          keyExtractor={item => item.id}
-        />
+        <IconAndButtonsInFirstView>
+          <RankIconInFirstView>
+            <FontAwesome6 name="ranking-star" size={24} color="tomato" />
+          </RankIconInFirstView>
+          <ThumbsRankButton onPress={() => handleSort('likes')} disabled={isLoading}>
+            {isLoading && sortBy === 'likes' ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <ButtonText>따봉순</ButtonText>
+            )}
+          </ThumbsRankButton>
+          <CommentsRankButton onPress={() => handleSort('comments')} disabled={isLoading}>
+            {isLoading && sortBy === 'comments' ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <ButtonText>댓글순</ButtonText>
+            )}
+          </CommentsRankButton>
+        </IconAndButtonsInFirstView>
       </FirstView>
+      
+      <FlatList
+        style={styles.container}
+        data={sortedData}
+        renderItem={renderBoardItem}
+        keyExtractor={(item) => item.id.toString()}
+        onEndReached={() => {
+          if (hasNextPage) {
+            fetchNextPage();
+          }
+        }}
+        onEndReachedThreshold={0.1}
+        onRefresh={() => {
+          setSortBy('id');
+          refetch();
+        }}
+        refreshing={isLoading}
+        ListEmptyComponent={<Text>No data available</Text>}
+      />
     </Container>
   );
 };
 
-const ListItem = ({ title, description, number, name}) => (
-  <ItemContainer onPress={() => console.log('Item pressed')}>
-    <ItemContent>
-      <ItemTitle>{title}</ItemTitle>
-      <ItemText>{description}</ItemText>
-      <InformationView>
-        <ItemIcon name={"chatbubble-outline"} size={14} color="blue" />
-        <ItemText>{number}</ItemText>
-        <ItemText>{name}</ItemText>
-      </InformationView>
-      <LineForList />
-    </ItemContent>
-  </ItemContainer>
-);
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  itemContainer: {
+    backgroundColor: "#fff",
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
+  },
+  title: {
+    fontSize: 16,
+    marginBottom: 10,
+  },
+  infoContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    height: 20,
+  },
+  iconContainer: {
+    flexDirection: 'row',
+    width: 120, // 고정 너비 설정
+  },
+  commentContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: 50, // 고정 너비 설정
+  },
+  likeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: 60, // 고정 너비 설정
+  },
+  infoText: {
+    color: "black",
+    fontSize: 12,
+    marginLeft: 5,
+    width: 30, // 고정 너비 설정
+    textAlign: 'left', // 왼쪽 정렬
+  },
+  directorText: {
+    fontSize: 14,
+    color: "#666",
+  },
+});
 
 export default MyFreeBoard;

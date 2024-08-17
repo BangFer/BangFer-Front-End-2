@@ -1,15 +1,10 @@
-import React, { useState, useCallback, useMemo } from "react";
-import { View, Text, Pressable, FlatList, StyleSheet, Image, Alert, ActivityIndicator } from "react-native";
-import { useInfiniteQuery, useMutation } from 'react-query';
-import styled from "styled-components";
-import { EvilIcons, FontAwesome6 } from '@expo/vector-icons';
-import { getTokenFromLocal } from "../LoginPackage/TokenUtils";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
+import { View, Text, Pressable, FlatList, StyleSheet, ActivityIndicator, Alert } from "react-native";
+import styled from "styled-components/native";
+import { FontAwesome5, FontAwesome6 } from '@expo/vector-icons';
 import axios from "axios";
-import { useFocusEffect } from "@react-navigation/native";
-import { FontAwesome5 } from "@expo/vector-icons";
-import { Feather } from '@expo/vector-icons';
-
-
+import { getTokenFromLocal } from "../LoginPackage/TokenUtils";
+import { useInfiniteQuery } from 'react-query';
 
 const Container = styled.View`
   flex: 1;
@@ -42,14 +37,11 @@ const ButtonText = styled.Text`
   color: black;
 `;
 
-
-
 const ThumbsRankButton = styled.TouchableOpacity`
   padding: 5px 10px;
   border-radius: 5px;
   background-color: tomato;
   margin-left: 10px;
-  
   align-items: center;
   justify-content: center;
 `;
@@ -59,12 +51,11 @@ const CommentsRankButton = styled.TouchableOpacity`
   border-radius: 5px;
   background-color: tomato;
   margin-left: 10px;
-  
   align-items: center;
   justify-content: center;
 `;
 
-const GetBoardData = async ({ page, size }) => {
+const GetBoardData = async ({ page, size, sortBy, searchText }) => {
   const token = await getTokenFromLocal();
 
   try {
@@ -74,27 +65,27 @@ const GetBoardData = async ({ page, size }) => {
     };
 
     const params = {
+      title: searchText,
       page: page,
-      size: size
+      size: size,
+      sortBy: sortBy
     };
 
-    console.log(params);
-
     const response = await axios.get(
-      "http://13.125.14.94:8080/board",
+      "http://13.125.14.94:8080/board/search",
       {
         headers: headers,
         params: params
       }
     );
 
-    // 서버 응답 구조에 맞게 수정
     return response.data.result;
   } catch (error) {
     console.error(error.response);
     throw new Error("Failed to fetch board data");
   }
 };
+
 
 const BoardItem = ({ data, handlePress }) => {
   return (
@@ -122,19 +113,22 @@ const BoardItem = ({ data, handlePress }) => {
   );
 };
 
-const FreeBoard = ({ navigation }) => {
+const FreeBoardSearchResult = ({ navigation }) => {
+  const [searchText, setSearchText] = useState("");
   const [size, setSize] = useState(10);
   const [sortBy, setSortBy] = useState('id');
-  const [isLoading, setIsLoading] = useState(false);
 
-  // 여기에 useInfiniteQuery 훅을 사용합니다
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      const params = navigation.getState().routes.find(route => route.name === 'FreeBoardSearchResult')?.params;
+      if (params) {
+        setSearchText(params.searchText);
+        refetch();
+      }
+    });
 
-  const handleSort = useCallback(async (type) => {
-    setIsLoading(true);
-    setSortBy(type);
-    await refetch();
-    setIsLoading(false);
-  }, [refetch]);
+    return unsubscribe;
+  }, [navigation]);
 
   const {
     data,
@@ -145,8 +139,8 @@ const FreeBoard = ({ navigation }) => {
     error,
     refetch
   } = useInfiniteQuery(
-    ['boards', sortBy],
-    ({ pageParam = 0 }) => GetBoardData({ page: pageParam, size, sortBy }),
+    ['boards', sortBy, searchText],
+    ({ pageParam = 0 }) => GetBoardData({ page: pageParam, size, sortBy, searchText }),
     {
       getNextPageParam: (lastPage, pages) => {
         if (!lastPage || typeof lastPage.last !== 'boolean' || typeof lastPage.number !== 'number') {
@@ -155,34 +149,19 @@ const FreeBoard = ({ navigation }) => {
         if (lastPage.last) return undefined;
         return lastPage.number + 1;
       },
+      enabled: !!searchText,
     }
   );
 
-  const sortData = useCallback((data, sortBy) => {
-    if (!data) return [];
-    const sortedData = [...data];
-    switch (sortBy) {
-      case 'id':
-        sortedData.sort((a, b) => a.id - b.id);
-        break;
-      case 'comments':
-        sortedData.sort((a, b) => b.commentCount - a.commentCount);
-        break;
-      case 'likes':
-        sortedData.sort((a, b) => b.likeCount - a.likeCount);
-        break;
-      default:
-        break;
-    }
-    return sortedData;
-  }, []);
+  const handleSort = useCallback((type) => {
+    setSortBy(type);
+    refetch();
+  }, [refetch]);
 
   const sortedData = useMemo(() => {
-    if (!data || !data.pages) return [];
-    const allData = data.pages.flatMap(page => page.content || []);
-    return sortData(allData, sortBy);
-  }, [data, sortBy, sortData]);
-
+    if (!data) return [];
+    return data.pages.flatMap(page => page.content || []);
+  }, [data]);
 
   const handlePressGoDetail = useCallback((id) => {
     navigation.navigate("FreeBoardDetail", { id });
@@ -202,7 +181,7 @@ const FreeBoard = ({ navigation }) => {
   ), [handlePressGoDetail]);
 
   if (queryLoading) {
-    return <Text>Loading...</Text>;
+    return <ActivityIndicator size="large" color="#0000ff" />;
   }
 
   if (isError) {
@@ -216,19 +195,11 @@ const FreeBoard = ({ navigation }) => {
           <RankIconInFirstView>
             <FontAwesome6 name="ranking-star" size={24} color="tomato" />
           </RankIconInFirstView>
-          <ThumbsRankButton onPress={() => handleSort('likes')} disabled={isLoading}>
-            {isLoading && sortBy === 'likes' ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <ButtonText>공감순</ButtonText>
-            )}
+          <ThumbsRankButton onPress={() => handleSort('likes')}>
+            <ButtonText>따봉순</ButtonText>
           </ThumbsRankButton>
-          <CommentsRankButton onPress={() => handleSort('comments')} disabled={isLoading}>
-            {isLoading && sortBy === 'comments' ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <ButtonText>댓글순</ButtonText>
-            )}
+          <CommentsRankButton onPress={() => handleSort('comments')}>
+            <ButtonText>댓글순</ButtonText>
           </CommentsRankButton>
         </IconAndButtonsInFirstView>
       </FirstView>
@@ -244,12 +215,7 @@ const FreeBoard = ({ navigation }) => {
           }
         }}
         onEndReachedThreshold={0.1}
-        onRefresh={() => {
-          setSortBy('id');
-          refetch();
-        }}
-        refreshing={isLoading}
-        ListEmptyComponent={<Text>No data available</Text>}
+        ListEmptyComponent={<Text>검색 결과가 없습니다.</Text>}
       />
     </Container>
   );
@@ -278,24 +244,24 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     flexDirection: 'row',
-    width: 120, // 고정 너비 설정
+    width: 120,
   },
   commentContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: 50, // 고정 너비 설정
+    width: 50,
   },
   likeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: 60, // 고정 너비 설정
+    width: 60,
   },
   infoText: {
     color: "black",
     fontSize: 12,
     marginLeft: 5,
-    width: 30, // 고정 너비 설정
-    textAlign: 'left', // 왼쪽 정렬
+    width: 30,
+    textAlign: 'left',
   },
   directorText: {
     fontSize: 14,
@@ -303,4 +269,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default FreeBoard;
+export default FreeBoardSearchResult;
