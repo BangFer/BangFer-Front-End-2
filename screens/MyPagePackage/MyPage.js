@@ -271,7 +271,25 @@ const GetMyInvitation = async () => {
     console.log("GetMyInvitation의 response는", JSON.stringify(res.data)); // JSON.stringify로 객체를 문자열로 변환
     return res.data.result;
   } catch (error) {
-    console.error("GetMyInvitation의 error는 " + error);
+    if (error.response) {
+      // 서버가 응답했지만 상태 코드가 2xx가 아닌 경우
+      console.error(
+        "GetMyInvitation의 error 응답 데이터:",
+        error.response.data
+      );
+      console.error(
+        "GetMyInvitation의 error 상태 코드:",
+        error.response.status
+      );
+      console.error("GetMyInvitation의 error 헤더:", error.response.headers);
+    } else if (error.request) {
+      // 요청이 이루어졌지만 응답을 받지 못한 경우
+      console.error("GetMyInvitation의 error 요청:", error.request);
+    } else {
+      // 요청을 설정하는 도중에 발생한 에러
+      console.error("GetMyInvitation의 error 메시지:", error.message);
+    }
+    console.error("GetMyInvitation의 error config:", error.config);
   }
 };
 
