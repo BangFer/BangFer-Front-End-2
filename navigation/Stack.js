@@ -41,6 +41,7 @@ import FindPw from '../screens/LoginPackage/FindPw';
 import CreateProfile from '../screens/MyPagePackage/CreateProfile';
 import AdminPlusBanggusukTeam from '../screens/BanggusukTeamPackage/AdminPlusBanggusukTeam';
 import ModifyBanggusukTeam from '../screens/BanggusukTeamPackage/ModifyBanggusukTeam';
+import TacticsDetail from '../screens/TacticsPackage/TacticsDetail';
 import {
   Text,
   View,
@@ -715,6 +716,11 @@ const StackNavigation = (navigation) => {
               </TouchCalander>
             ),
           })}
+        />
+        <Stack.Screen
+          name="TacticsDetail"
+          component={TacticsDetail}
+          options={{ headerShown: true, headerTitleAlign: 'center' }}
         />
       </Stack.Navigator>
       {isCallendarVisible && ( // isCallendarVisible 상태가 true일 때 모달이 보이도록 설정합니다.
