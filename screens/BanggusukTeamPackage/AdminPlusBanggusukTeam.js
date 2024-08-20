@@ -1033,7 +1033,11 @@ const AdminPlusBanggusukTeam = ({ navigation }) => {
         </ViewForTextBar>
         <ViewForTacticBoard>
           <ViewForDropdown>
-            <TacticName value={tacticName}></TacticName>
+            <TacticName
+              value={tacticName}
+              editable={false} // TextInput을 수정 불가능하게 설정
+              pointerEvents="none"
+            ></TacticName>
           </ViewForDropdown>
           <ViewForBoard>
             <TacticsBackImage source={TacticsBack} resizeMode={"stretch"} />

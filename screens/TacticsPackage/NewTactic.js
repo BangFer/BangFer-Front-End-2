@@ -341,8 +341,6 @@ const RegisterTactic = async ({
       positionDetails: positionDetails,
     };
 
-    console.log(data);
-
     const response = await axios.post(
       "http://13.125.14.94:8080/api/v1/tactics",
       data,
@@ -351,8 +349,11 @@ const RegisterTactic = async ({
       }
     );
 
-    navigation.navigate("TacticsDetail");
+    console.log(response.data);
 
+    navigation.navigate("TacticsDetail", {
+      tacticId: response.data.result.tacticId,
+    });
     return response.data; // 반환할 데이터 형식에 맞게 수정
   } catch (error) {
     console.error(error.response);
