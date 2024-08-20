@@ -1,258 +1,407 @@
-import React from "react";
-import { StatusBar } from "expo-status-bar";
-import { Ionicons } from '@expo/vector-icons';
-import {NavigationContainer} from '@react-navigation/native';
+import React, { useState, useCallback, useMemo } from "react";
+import { View, Text, Pressable, FlatList, StyleSheet, Image, Alert, ActivityIndicator } from "react-native";
+import { useInfiniteQuery, useMutation } from 'react-query';
 import styled from "styled-components";
-import { FontAwesome6 } from '@expo/vector-icons';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { MenuProvider } from 'react-native-popup-menu';
-import { FlatList } from "react-native";
+import { EvilIcons, FontAwesome6 } from '@expo/vector-icons';
+import { getTokenFromLocal } from "../LoginPackage/TokenUtils";
+import axios from "axios";
+import { useFocusEffect } from "@react-navigation/native";
+import { FontAwesome5 } from "@expo/vector-icons";
+import { Feather } from '@expo/vector-icons';
+import { Menu, MenuOptions, MenuOption, MenuTrigger } from 'react-native-popup-menu';
+import { refreshToken } from "../LoginPackage/TokenUtils"; // refreshToken 함수를 import합니다
 
-export const App = () => (
-  <MenuProvider>
-    <YourApp />
-  </MenuProvider>
-);
-
-// somewhere in your app
-import {
-  Menu,
-  MenuOptions,
-  MenuOption,
-  MenuTrigger,
-} from 'react-native-popup-menu';
 
 
 const Container = styled.View`
   flex: 1;
   flex-direction: column;
-  background-color: #F5F5F5
+  background-color: #F5F5F5;
 `;
-
 
 const FirstView = styled.View`
   padding: 1px;
-`;
-
-const SecondView = styled.View`
-  height: 1px;
-  background-color: black;
-  margin-vertical: 10px;
-  margin-horizontal: 10px;
-`;
-
-const ThirdView = styled.ScrollView`
-  flex: 1;
-`;
-
-
-const PublicPrivateButton = styled.View`
-padding: 5px 5px; /* 버튼 내부 패딩 설정 */
-border-radius: 5px; /* 둥근 사각형 테두리 반지름 설정 */
-background-color: blue; /* 배경색 설정 */
-margin-left: 10px; /* 각 버튼 사이의 간격을 설정합니다. */
-`;
-const FormationButton = styled.View`
-padding: 5px 5px; /* 버튼 내부 패딩 설정 */
-border-radius: 5px; /* 둥근 사각형 테두리 반지름 설정 */
-background-color: blue; /* 배경색 설정 */
-margin-left: 10px; /* 각 버튼 사이의 간격을 설정합니다. */
+  margin-bottom: 10px;
+  flex-direction: row;
+  align-items: center;
 `;
 
 const IconAndButtonsInFirstView = styled.View`
-flex-direction: row;
-align-items: center;
-justify-content: flex-end;
-margin-top: 10px;
-margin-right: 10px;
-`
-const RankIconInFirstView = styled.View`
-flex-direction: row;
-margin-top: 5px;
-margin-right: 210px;
-`
-const ButtonText = styled.Text`
-  font-size: 16px;
-  font-weight: 500;
-  color: white;
-`;
-
-const Line = styled.View`
   flex: 1;
-  height: 1px; /* 직선의 높이를 설정합니다. */
-  background-color: black; /* 검은색으로 설정합니다. */
-`;
-const LineForList = styled.View`
-  flex: 1;
-  height: 1px; /* 직선의 높이를 설정합니다. */
-  background-color: black; /* 검은색으로 설정합니다. */
-  margin-top: 5px;
-`;
-
-
-const ItemContainer = styled.TouchableOpacity`
-  padding-horizontal: 10px;
-`;
-
-const ItemContent = styled.View`
-  flex-direction: column;
-  margin-left: 5px;
-`;
-
-const ItemTitle = styled.Text`
-  font-size: 18px;
-  font-weight: bold;
-`;
-
-const ItemText = styled.Text`
-  font-size: 16px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 10px;
   margin-right: 10px;
 `;
 
-const ItemIcon = styled(Ionicons)`
-  margin-top: 2px;
-  margin-right: 2px;
+const RankIconInFirstView = styled.View`
+  position: absolute;
+  left: 20px;
+  top: 50%;
 `;
 
-const InformationView = styled.View`
-flex-direction: row;
-align-items: center;
-justify-content: flex-start;
-`
+const ButtonText = styled.Text`
+  font-size: 16px;
+  font-weight: 500;
+  color: black;
+`;
 
+
+
+const ThumbsRankButton = styled.TouchableOpacity`
+  padding: 5px 10px;
+  border-radius: 5px;
+  background-color: tomato;
+  margin-left: 10px;
+  
+  align-items: center;
+  justify-content: center;
+`;
+
+const CommentsRankButton = styled.TouchableOpacity`
+  padding: 5px 10px;
+  border-radius: 5px;
+  background-color: tomato;
+  margin-left: 10px;
+  
+  align-items: center;
+  justify-content: center;
+`;
+
+const FormationButton = styled.View`
+  padding: 5px 5px;
+  border-radius: 5px;
+  background-color: tomato;
+  margin-left: 10px;
+`;
+
+const GetBoardData = async ({ page, size }) => {
+  let token = await getTokenFromLocal();
+
+  try {
+    const headers = {
+      "Content-type": "application/json; charset=UTF-8",
+      "Authorization": "Bearer " + token.accessToken,
+    };
+
+    const params = {
+      page: page,
+      size: size
+    };
+
+    console.log(params);
+
+    const response = await axios.get(
+      "http://13.125.14.94:8080/api/v1/tactics/mylist",
+      {
+        headers: headers,
+        params: params
+      }
+    );
+
+    return response.data.result;
+  } catch (error) {
+    if (error.response && error.response.status === 401) {
+      // 토큰이 만료되었을 경우, 토큰을 갱신하고 다시 시도합니다
+      try {
+        const newToken = await refreshToken();
+        token = newToken;
+        
+        const newHeaders = {
+          "Content-type": "application/json; charset=UTF-8",
+          "Authorization": "Bearer " + newToken.accessToken,
+        };
+        
+        const response = await axios.get(
+          "http://13.125.14.94:8080/api/v1/tactics/mylist",
+          {
+            headers: newHeaders,
+            params: { page, size }
+          }
+        );
+
+        return response.data.result;
+      } catch (refreshError) {
+        console.error("Token refresh failed:", refreshError);
+        throw new Error("Authentication failed. Please log in again.");
+      }
+    }
+    console.error("API request failed:", error);
+    throw new Error("Failed to fetch board data");
+  }
+};
+
+const BoardItem = ({ data, handlePress }) => {
+  return (
+    <Pressable
+      style={styles.itemContainer}
+      onPress={() => handlePress(data.tacticId)}
+    >
+      <Text style={styles.title}>{data.tacticName}</Text>
+      <View style={styles.infoContainer}>
+        <View style={styles.iconContainer}>
+
+          <View style={styles.formationContainer}>
+            <FontAwesome5 name="futbol" size={16} color="#fe6263" />
+            <Text style={styles.infoText}>{data.mainFormation}</Text>
+          </View>
+        </View>
+        {data.nickname && (
+          <Text style={styles.directorText}>{data.nickname}</Text>
+        )}
+      </View>
+    </Pressable>
+  );
+};
 
 const MyTactics = ({ navigation }) => {
-  
-  const data = [
-    { id: '1', type: 'Public', title: 'Title 1', description: 'Description 1', number: '1', formation: '4-4-2', name: '고민영' },
-    { id: '2', type: 'Public', title: 'Title 2', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '3', type: 'Private', title: 'Title 3', description: 'Description 2', formation: '4-3-3', name: '고민영' },
-    { id: '4', type: 'Public', title: 'Title 4', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '5', type: 'Private', title: 'Title 5', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '6', type: 'Private', title: 'Title 6', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '7', type: 'Private', title: 'Title 7', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '8', type: 'Private', title: 'Title 8', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '9', type: 'Public', title: 'Title 9', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '10', type: 'Public', title: 'Title 10', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '11', type: 'Public', title: 'Title 11', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '12', type: 'Private', title: 'Title 12', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-    { id: '13', type: 'Private', title: 'Title 13', description: 'Description 2', number: '2', formation: '4-3-3', name: '고민영' },
-  
-  ];
+  const [size, setSize] = useState(10);
+  const [sortBy, setSortBy] = useState('id');
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedFormation, setSelectedFormation] = useState(null);
+  // 여기에 useInfiniteQuery 훅을 사용합니다
 
-  const renderItem = ({ item }) => {
-    switch(item.type){
-      case 'Public':
-        return(
-          <ListItemPublic
-            title={item.title}
-            description={item.description}
-            number={item.number}
-            formation={item.formation}
-            name={item.name}
-            navigation={navigation}
-          />
-        );
-      case 'Private':
-        return(
-          <ListItemPrivate
-          title={item.title}
-          description={item.description}
-          formation={item.formation}
-          name={item.name}
-          navigation={navigation}
-        />
-        )
-      default:
-        return null;
+  const filterByFormation = useCallback((formation) => {
+    setSelectedFormation(formation);
+  }, []);
+
+  const handleSort = useCallback(async (type) => {
+    setIsLoading(true);
+    setSortBy(type);
+    await refetch();
+    setIsLoading(false);
+  }, [refetch]);
+
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isLoading: queryLoading,
+    isError,
+    error,
+    refetch
+  } = useInfiniteQuery(
+    ['boards', sortBy],  // selectedFormation 제거
+    ({ pageParam = 0 }) => GetBoardData({ page: pageParam, size }),
+    {
+      getNextPageParam: (lastPage) => {
+        if (lastPage.last) return undefined;
+        return lastPage.number + 1;
+      },
+      onError: (error) => {
+        Alert.alert("Error", error.message);
+      },
     }
-  };
+  );
+
+  const sortData = useCallback((data, sortBy) => {
+    if (!data) return [];
+    const sortedData = [...data];
+    switch (sortBy) {
+      case 'id':
+        sortedData.sort((a, b) => a.id - b.id);
+        break;
+      case 'comments':
+        sortedData.sort((a, b) => b.commentCount - a.commentCount);
+        break;
+      case 'likes':
+        sortedData.sort((a, b) => b.likeCount - a.likeCount);
+        break;
+      default:
+        break;
+    }
+    return sortedData;
+  }, []);
+
+  const sortedData = useMemo(() => {
+    if (!data || !data.pages) return [];
+    let filteredData = data.pages.flatMap(page => page.content || []);
+    
+    if (selectedFormation) {
+      filteredData = filteredData.filter(item => item.mainFormation === selectedFormation);
+    }
+    
+    return sortData(filteredData, sortBy);
+  }, [data, selectedFormation, sortBy, sortData]);
+
+
+  const handlePressGoDetail = useCallback((tacticId) => {
+    navigation.navigate("TacticsDetail", { tacticId });
+  }, [navigation]);
+
+  const renderBoardItem = useCallback(({ item }) => (
+    <BoardItem
+      data={item}
+      handlePress={handlePressGoDetail}
+    />
+  ), [handlePressGoDetail]);
+
+  if (queryLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#fe6263" />
+      </View>
+    );
+  }
+
+  if (isError) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>Error: {error.message}</Text>
+        <Pressable style={styles.retryButton} onPress={() => refetch()}>
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </Pressable>
+      </View>
+    );
+  }
 
   return (
     <Container>
-      <StatusBar style="auto" />
-      
-      <FirstView>
+<FirstView>
+  <RankIconInFirstView>
+    <FontAwesome6 name="ranking-star" size={24} color="tomato" />
+  </RankIconInFirstView>
+  <IconAndButtonsInFirstView>
 
-        <IconAndButtonsInFirstView>
-        <RankIconInFirstView>
-        <MaterialCommunityIcons name="order-bool-descending" size={26} color="blue" />
-        </RankIconInFirstView>
-          
-        <Menu>
-          <MenuTrigger>
-          <PublicPrivateButton onPress={() => console.log('commentsrank')}>
-            <ButtonText>공/비공</ButtonText>
-          </PublicPrivateButton>
-          </MenuTrigger>
-          <MenuOptions>
-            <MenuOption onPress={() => console.log('전체')} text='전체' />
-            <MenuOption onPress={() => console.log('공개')} text='공개' />
-            <MenuOption onPress={() => console.log('비공개')} text='비공개' />
-            </MenuOptions>
-          </Menu>
 
-        <Menu>
-          <MenuTrigger>
-            <FormationButton>
-              <ButtonText>포메이션</ButtonText>
-            </FormationButton>
-          </MenuTrigger>
-            <MenuOptions>
-            <MenuOption onPress={() => console.log('4-4-2')} text='4-4-2' />
-            <MenuOption onPress={() => console.log('4-3-3')} text='4-3-3' />
-            <MenuOption onPress={() => console.log('4-3-2-1')} text='4-3-2-1' />
-            <MenuOption onPress={() => console.log('4-2-3-1')} text='4-2-3-1' />
-            <MenuOption onPress={() => console.log('3-4-3')} text='3-4-3' />
-            <MenuOption onPress={() => console.log('3-5-2')} text='3-5-2' />
-            <MenuOption onPress={() => console.log('3-2-4-1')} text='3-2-4-1' />
+    <Menu>
+      <MenuTrigger>
+        <FormationButton>
+          <ButtonText>{selectedFormation || '포메이션'}</ButtonText>
+        </FormationButton>
+      </MenuTrigger>
+            <MenuOptions customStyles={{
+              optionsContainer: { width: 100, maxHeight: 250 }, 
+            }}>
+              <MenuOption onSelect={() => filterByFormation(null)} text='모든 포메이션' />
+              <MenuOption onSelect={() => filterByFormation("4-4-2")} text="4-4-2" />
+              <MenuOption onSelect={() => filterByFormation("4-3-3")} text="4-3-3" />
+              <MenuOption onSelect={() => filterByFormation("4-3-2-1")} text="4-3-2-1" />
+              <MenuOption onSelect={() => filterByFormation("4-2-3-1")} text="4-2-3-1" />
+              <MenuOption onSelect={() => filterByFormation("3-4-3")} text="3-4-3" />
+              <MenuOption onSelect={() => filterByFormation("3-5-2")} text="3-5-2" />
+              <MenuOption onSelect={() => filterByFormation("3-2-4-1")} text="3-2-4-1" />
             </MenuOptions>
           </Menu>
         </IconAndButtonsInFirstView>
       </FirstView>
-
-      <SecondView>
-      <Line/><Line/>
-      </SecondView>
-
+      
       <FlatList
-        data={data}
-        renderItem={renderItem}
-        keyExtractor={item => item.id}
+        style={styles.container}
+        data={sortedData}
+        renderItem={renderBoardItem}
+        keyExtractor={(item) => item.tacticId?.toString() || Math.random().toString()}        onEndReached={() => {
+          if (hasNextPage) {
+            fetchNextPage();
+          }
+        }}
+        onEndReachedThreshold={0.1}
+        onRefresh={() => {
+          setSortBy('id');
+          refetch();
+        }}
+        refreshing={isLoading}
+        ListEmptyComponent={
+          <View style={styles.noDataContainer}>
+            <Text style={styles.noDataText}>
+              {selectedFormation 
+                ? `${selectedFormation} 포메이션의 전술이 없습니다.` 
+                : "데이터가 없습니다."}
+            </Text>
+          </View>
+        }
       />
     </Container>
   );
 };
 
-const ListItemPublic = ({ title, description, number, formation, name}) => (
-  <ItemContainer onPress={() => console.log('Item pressed')}>
-    <ItemContent>
-      <ItemTitle>{title}</ItemTitle>
-      <ItemText>{description}</ItemText>
-      <InformationView>
-        <ItemIcon name={"chatbubble-outline"} size={14} color="blue" />
-        <ItemText>{number}</ItemText>
-        <ItemText>{formation}</ItemText>
-        <ItemText>{name}</ItemText>
-      </InformationView>
-      <LineForList />
-    </ItemContent>
-  </ItemContainer>
-);
-
-const ListItemPrivate = ({ title, description, formation, name}) => (
-  <ItemContainer onPress={() => console.log('Item pressed')}>
-    <ItemContent>
-      <ItemTitle>{title}</ItemTitle>
-      <ItemText>{description}</ItemText>
-      <InformationView>
-        <ItemText>비공개</ItemText>
-        <ItemText>{formation}</ItemText>
-        <ItemText>{name}</ItemText>
-      </InformationView>
-      <LineForList />
-    </ItemContent>
-  </ItemContainer>
-);
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  itemContainer: {
+    backgroundColor: "#fff",
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
+  },
+  title: {
+    fontSize: 16,
+    marginBottom: 10,
+  },
+  infoContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    height: 20,
+  },
+  iconContainer: {
+    flexDirection: 'row',
+    width: 120, // 고정 너비 설정
+  },
+  commentContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: 50, // 고정 너비 설정
+  },
+  likeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: 50, // 고정 너비 설정
+  },
+  infoText: {
+    color: "black",
+    fontSize: 12,
+    marginLeft: 5,
+    width: 30, // 고정 너비 설정
+    textAlign: 'left', // 왼쪽 정렬
+  },
+  directorText: {
+    fontSize: 14,
+    color: "#666",
+  },
+  formationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: 80, // 적절한 너비로 조정
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    fontSize: 16,
+    color: 'red',
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: '#fe6263',
+    padding: 10,
+    borderRadius: 5,
+  },
+  retryButtonText: {
+    color: 'white',
+    fontSize: 16,
+  },
+  noDataContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  noDataText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+  },
+});
 
 export default MyTactics;

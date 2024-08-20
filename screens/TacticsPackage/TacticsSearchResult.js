@@ -10,6 +10,9 @@ import { FontAwesome5 } from "@expo/vector-icons";
 import { Feather } from '@expo/vector-icons';
 import { Menu, MenuOptions, MenuOption, MenuTrigger } from 'react-native-popup-menu';
 import { refreshToken } from "../LoginPackage/TokenUtils"; // refreshToken 함수를 import합니다
+import TacticsSearch from "./TacticsSearch";
+import { Ionicons } from '@expo/vector-icons';
+
 
 
 
@@ -22,23 +25,20 @@ const Container = styled.View`
 const FirstView = styled.View`
   padding: 1px;
   margin-bottom: 10px;
-  flex-direction: row;
-  align-items: center;
 `;
 
 const IconAndButtonsInFirstView = styled.View`
-  flex: 1;
   flex-direction: row;
   align-items: center;
   justify-content: flex-end;
-  margin-top: 10px;
+  margin-top: px;
   margin-right: 10px;
 `;
 
 const RankIconInFirstView = styled.View`
-  position: absolute;
-  left: 20px;
-  top: 50%;
+  flex-direction: row;
+  margin-top: 5px;
+  margin-right: 120px;
 `;
 
 const ButtonText = styled.Text`
@@ -74,6 +74,30 @@ const FormationButton = styled.View`
   border-radius: 5px;
   background-color: tomato;
   margin-left: 10px;
+`;
+
+const SearchView = styled.View`
+  flex-direction: row;
+  align-items: center;
+  border-radius: 10px;
+  border-width: 1px;
+  border-color: #CCCCCC;
+  padding: 5px 10px;
+  margin: 10px;
+`;
+
+const SearchInput = styled.TextInput`
+  flex: 1;
+  height: 30px;
+  font-size: 14px;
+`;
+
+const SearchIcon = styled(Ionicons)`
+  margin-right: 10px;
+`;
+
+const SearchButton = styled.TouchableOpacity`
+  padding: 5px 10px;
 `;
 
 const GetBoardData = async ({ page, size }) => {
@@ -141,14 +165,6 @@ const BoardItem = ({ data, handlePress }) => {
       <Text style={styles.title}>{data.tacticName}</Text>
       <View style={styles.infoContainer}>
         <View style={styles.iconContainer}>
-           <View style={styles.commentContainer}>
-            <FontAwesome5 name="comment-dots" size={16} color="#fe6263" />
-            <Text style={styles.infoText}>{data.commentCnt}</Text>
-          </View>
-         <View style={styles.likeContainer}>
-            <FontAwesome5 name="thumbs-up" size={16} color="#fe6263" />
-            <Text style={styles.infoText}>{data.likeCnt}</Text>
-          </View>
           <View style={styles.formationContainer}>
             <FontAwesome5 name="futbol" size={16} color="#fe6263" />
             <Text style={styles.infoText}>{data.mainFormation}</Text>
@@ -162,76 +178,46 @@ const BoardItem = ({ data, handlePress }) => {
   );
 };
 
-const Tactics = ({ navigation }) => {
-  const [size, setSize] = useState(10);
-  const [sortBy, setSortBy] = useState('id');
+const TacticsSearchResult = ({ route, navigation }) => {
+  const { searchResults, searchText: initialSearchText, totalElements } = route.params;
+  const [sortedData, setSortedData] = useState(searchResults);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedFormation, setSelectedFormation] = useState(null);
-  // 여기에 useInfiniteQuery 훅을 사용합니다
+  const [searchText, setSearchText] = useState(initialSearchText);
 
-  const filterByFormation = useCallback((formation) => {
-    setSelectedFormation(formation);
-  }, []);
-
-  const handleSort = useCallback(async (type) => {
+  const handleSearch = async () => {
     setIsLoading(true);
-    setSortBy(type);
-    await refetch();
+    try {
+      const token = await getTokenFromLocal();
+      const response = await axios.get(`http://13.125.14.94:8080/api/v1/tactics/search`, {
+        params: {
+          title: searchText,
+          page: 0,
+          size: 10
+        },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + token.accessToken
+        }
+      });
+
+      if (response.data.code === 'OK') {
+        setSortedData(response.data.result.content);
+      } else {
+        Alert.alert("검색에 실패했습니다", response.data.message);
+      }
+    } catch (error) {
+      console.error("Error searching tactics:", error);
+      Alert.alert("검색 중 오류가 발생했습니다.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSort = useCallback((type) => {
+    setIsLoading(true);
+    // 정렬 로직 구현 (필요한 경우)
     setIsLoading(false);
-  }, [refetch]);
-
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isLoading: queryLoading,
-    isError,
-    error,
-    refetch
-  } = useInfiniteQuery(
-    ['boards', sortBy],  // selectedFormation 제거
-    ({ pageParam = 0 }) => GetBoardData({ page: pageParam, size }),
-    {
-      getNextPageParam: (lastPage) => {
-        if (lastPage.last) return undefined;
-        return lastPage.number + 1;
-      },
-      onError: (error) => {
-        Alert.alert("Error", error.message);
-      },
-    }
-  );
-
-  const sortData = useCallback((data, sortBy) => {
-    if (!data) return [];
-    const sortedData = [...data];
-    switch (sortBy) {
-      case 'id':
-        sortedData.sort((a, b) => a.id - b.id);
-        break;
-      case 'comments':
-        sortedData.sort((a, b) => b.commentCount - a.commentCount);
-        break;
-      case 'likes':
-        sortedData.sort((a, b) => b.likeCount - a.likeCount);
-        break;
-      default:
-        break;
-    }
-    return sortedData;
   }, []);
-
-  const sortedData = useMemo(() => {
-    if (!data || !data.pages) return [];
-    let filteredData = data.pages.flatMap(page => page.content || []);
-    
-    if (selectedFormation) {
-      filteredData = filteredData.filter(item => item.mainFormation === selectedFormation);
-    }
-    
-    return sortData(filteredData, sortBy);
-  }, [data, selectedFormation, sortBy, sortData]);
-
 
   const handlePressGoDetail = useCallback((tacticId) => {
     navigation.navigate("TacticsDetail", { tacticId });
@@ -244,93 +230,75 @@ const Tactics = ({ navigation }) => {
     />
   ), [handlePressGoDetail]);
 
-  if (queryLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#fe6263" />
-      </View>
-    );
-  }
-
-  if (isError) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Error: {error.message}</Text>
-        <Pressable style={styles.retryButton} onPress={() => refetch()}>
-          <Text style={styles.retryButtonText}>Retry</Text>
-        </Pressable>
-      </View>
-    );
-  }
+  const filterByFormation = useCallback((formation) => {
+    // 포메이션 필터링 로직 구현
+  }, []);
 
   return (
     <Container>
-<FirstView>
-  <RankIconInFirstView>
-    <FontAwesome6 name="ranking-star" size={24} color="tomato" />
-  </RankIconInFirstView>
-  <IconAndButtonsInFirstView>
-    <ThumbsRankButton onPress={() => handleSort('likes')} disabled={isLoading}>
-      {isLoading && sortBy === 'likes' ? (
-        <ActivityIndicator color="#fff" size="small" />
-      ) : (
-        <ButtonText>공감순</ButtonText>
-      )}
-    </ThumbsRankButton>
-    <CommentsRankButton onPress={() => handleSort('comments')} disabled={isLoading}>
-      {isLoading && sortBy === 'comments' ? (
-        <ActivityIndicator color="#fff" size="small" />
-      ) : (
-        <ButtonText>댓글순</ButtonText>
-      )}
-    </CommentsRankButton>
-    <Menu>
-      <MenuTrigger>
-        <FormationButton>
-          <ButtonText>{selectedFormation || '포메이션'}</ButtonText>
-        </FormationButton>
-      </MenuTrigger>
+      <SearchView>
+        <SearchIcon name="search" size={24} color="black" />
+        <SearchInput
+          placeholder="전술명"
+          value={searchText}
+          onChangeText={setSearchText}
+        />
+        <SearchButton onPress={handleSearch}>
+          <Text>검색</Text>
+        </SearchButton>
+      </SearchView>
+
+      <FirstView>
+        <IconAndButtonsInFirstView>
+          <RankIconInFirstView>
+            <FontAwesome6 name="ranking-star" size={24} color="tomato" />
+          </RankIconInFirstView>
+          <ThumbsRankButton onPress={() => handleSort('likes')} disabled={isLoading}>
+            <ButtonText>공감순</ButtonText>
+          </ThumbsRankButton>
+          <CommentsRankButton onPress={() => handleSort('comments')} disabled={isLoading}>
+            <ButtonText>댓글순</ButtonText>
+          </CommentsRankButton>
+          <Menu>
+            <MenuTrigger>
+              <FormationButton>
+                <ButtonText>포메이션</ButtonText>
+              </FormationButton>
+            </MenuTrigger>
             <MenuOptions customStyles={{
-              optionsContainer: { width: 100, maxHeight: 250 },
+              optionsContainer: { width: 60, height: 200 },
             }}>
-              <MenuOption onSelect={() => filterByFormation(null)} text='모든 포메이션' />
-              <MenuOption onSelect={() => filterByFormation("4-4-2")} text="4-4-2" />
-              <MenuOption onSelect={() => filterByFormation("4-3-3")} text="4-3-3" />
-              <MenuOption onSelect={() => filterByFormation("4-3-2-1")} text="4-3-2-1" />
-              <MenuOption onSelect={() => filterByFormation("4-2-3-1")} text="4-2-3-1" />
-              <MenuOption onSelect={() => filterByFormation("3-4-3")} text="3-4-3" />
-              <MenuOption onSelect={() => filterByFormation("3-5-2")} text="3-5-2" />
-              <MenuOption onSelect={() => filterByFormation("3-2-4-1")} text="3-2-4-1" />
+              <MenuOption onPress={() => filterByFormation('4-4-2')} text='4-4-2' />
+              <MenuOption onPress={() => filterByFormation('4-3-3')} text='4-3-3' />
+              <MenuOption onPress={() => filterByFormation('4-3-2-1')} text='4-3-2-1' />
+              <MenuOption onPress={() => filterByFormation('4-2-3-1')} text='4-2-3-1' />
+              <MenuOption onPress={() => filterByFormation('3-4-3')} text='3-4-3' />
+              <MenuOption onPress={() => filterByFormation('3-5-2')} text='3-5-2' />
+              <MenuOption onPress={() => filterByFormation('3-2-4-1')} text='3-2-4-1' />
             </MenuOptions>
           </Menu>
         </IconAndButtonsInFirstView>
       </FirstView>
       
-      <FlatList
-        style={styles.container}
-        data={sortedData}
-        renderItem={renderBoardItem}
-        keyExtractor={(item) => item.tacticId?.toString() || Math.random().toString()}        onEndReached={() => {
-          if (hasNextPage) {
-            fetchNextPage();
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#fe6263" />
+        </View>
+      ) : sortedData.length > 0 ? (
+        <FlatList
+          style={styles.container}
+          data={sortedData}
+          renderItem={renderBoardItem}
+          keyExtractor={(item) => item.tacticId?.toString() || Math.random().toString()}
+          ListHeaderComponent={
+            <Text style={styles.resultCountText}>검색 결과: {sortedData.length}개</Text>
           }
-        }}
-        onEndReachedThreshold={0.1}
-        onRefresh={() => {
-          setSortBy('id');
-          refetch();
-        }}
-        refreshing={isLoading}
-        ListEmptyComponent={
-          <View style={styles.noDataContainer}>
-            <Text style={styles.noDataText}>
-              {selectedFormation 
-                ? `${selectedFormation} 포메이션의 전술이 없습니다.` 
-                : "데이터가 없습니다."}
-            </Text>
-          </View>
-        }
-      />
+        />
+      ) : (
+        <View style={styles.noResultContainer}>
+          <Text style={styles.noResultText}>검색 결과가 없습니다.</Text>
+        </View>
+      )}
     </Container>
   );
 };
@@ -368,7 +336,7 @@ const styles = StyleSheet.create({
   likeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: 50, // 고정 너비 설정
+    width: 60, // 고정 너비 설정
   },
   infoText: {
     color: "black",
@@ -410,17 +378,27 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
   },
-  noDataContainer: {
+  searchResultText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    marginLeft: 10,
+  },
+  noResultContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
   },
-  noDataText: {
+  noResultText: {
     fontSize: 16,
     color: '#666',
-    textAlign: 'center',
+  },
+  resultCountText: {
+    fontSize: 14,
+    color: '#666',
+    marginLeft: 10,
+    marginBottom: 10,
   },
 });
 
-export default Tactics;
+export default TacticsSearchResult;
