@@ -662,19 +662,19 @@ const InviteKaKao = async () => {
   try {
     const response = await KakaoShareLink.sendFeed({
       content: {
-        title: "title",
+        title: "방구석퍼거슨",
         imageUrl:
           "http://t1.daumcdn.net/friends/prod/editor/dc8b3d02-a15a-4afa-a88b-989cf2a50476.jpg",
         link: {
-          webUrl: "https://developers.kakao.com/",
-          mobileWebUrl: "https://developers.kakao.com/",
+          webUrl: "https://http://localhost:8080.kakao.com/",
+          mobileWebUrl: "https://http://localhost:8080.kakao.com/",
         },
-        description: "description",
+        description: "앱 설치 후 친구들과 함께 즐겨보세요!",
       },
-      social: {
-        commentCount: 10,
-        likeCount: 5,
-      },
+      // social: {
+      //   commentCount: 10,
+      //   likeCount: 5,
+      // },
       buttons: [
         {
           title: "앱에서 보기",
@@ -1873,8 +1873,8 @@ const AdminPlusBanggusukTeam = ({ navigation }) => {
             <ViewForListPlayersTitle>
               <TextForListPlayersTitle>선수 목록</TextForListPlayersTitle>
               <TouchForPlusPlayer onPress={() => setinviteFriendVisible(true)}>
-                <Text style={{ fontSize: 15, fontWeight: "bold" }}>
-                  팀원 추가+
+                <Text style={{ fontSize: 14, fontWeight: "bold" }}>
+                  팀원추가 +
                 </Text>
               </TouchForPlusPlayer>
             </ViewForListPlayersTitle>

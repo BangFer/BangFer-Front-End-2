@@ -42,6 +42,7 @@ import FindPw from '../screens/LoginPackage/FindPw';
 import CreateProfile from '../screens/MyPagePackage/CreateProfile';
 import AdminPlusBanggusukTeam from '../screens/BanggusukTeamPackage/AdminPlusBanggusukTeam';
 import ModifyBanggusukTeam from '../screens/BanggusukTeamPackage/ModifyBanggusukTeam';
+import TacticsDetail from '../screens/TacticsPackage/TacticsDetail';
 import {
   Text,
   View,
@@ -128,13 +129,13 @@ const TouchCalander = styled.TouchableOpacity`
 `;
 
 const CalanderEnrollButton = styled.TouchableOpacity`
-  width: 70px;
-  height: 30px;
+  width: 18%;
+  height: 7%;
   border-radius: 8px;
   background-color: red;
   justify-content: center;
   align-items: center;
-  margin-bottom: 10px;
+  margin-top: 10px;
   margin-left: 240px;
 `;
 
@@ -221,7 +222,6 @@ const GetCallenderEvent = async ({ teamId }) => {
       headers: headers_config,
     });
 
-    console.log('시발' + res.data);
     return res;
   } catch (error) {
     console.log(error.response);
@@ -346,7 +346,6 @@ const StackNavigation = (navigation) => {
     setLeaderId();
     try {
       const response = await GetCallenderEvent({ teamId });
-      console.log('예' + response);
       if (response && response.data) {
         const newMarkedDates = {};
         const newCalendarEvents = {};
@@ -561,7 +560,7 @@ const StackNavigation = (navigation) => {
           options={({ navigation }) => ({
             headerShown: true,
             headerTitleAlign: 'center',
-            title : '자유 게시판',
+            title: '자유 게시판',
             headerRight: () => (
               <View>
                 <NavigationButtonView>
@@ -610,7 +609,7 @@ const StackNavigation = (navigation) => {
             title: '내가 쓴 글',
             headerTitleAlign: 'center',
           })}
-        />  
+        />
 
         <Stack.Screen
           name="FreeBoardUpdate"
@@ -637,7 +636,7 @@ const StackNavigation = (navigation) => {
           options={({ navigation }) => ({
             headerShown: true,
             title: '게시글 검색',
-            headerTitleAlign: 'center'
+            headerTitleAlign: 'center',
           })}
         />
 
@@ -650,14 +649,14 @@ const StackNavigation = (navigation) => {
             headerTitleAlign: 'center'
           })}
         />
-
+                                   
         <Stack.Screen
           name="FreeBoardSearchResult"
           component={FreeBoardSearchResult}
           options={({ navigation }) => ({
             headerShown: true,
             title: '검색 결과',
-            headerTitleAlign: 'center'
+            headerTitleAlign: 'center',
           })}
         />
 
@@ -726,6 +725,11 @@ const StackNavigation = (navigation) => {
             ),
           })}
         />
+        <Stack.Screen
+          name="TacticsDetail"
+          component={TacticsDetail}
+          options={{ headerShown: true, headerTitleAlign: 'center' }}
+        />
       </Stack.Navigator>
       {isCallendarVisible && ( // isCallendarVisible 상태가 true일 때 모달이 보이도록 설정합니다.
         <Modal
@@ -744,12 +748,13 @@ const StackNavigation = (navigation) => {
           >
             <View
               style={{
-                flex: 0.46,
+                width: '100%',
+                height: '58%',
                 justifyContent: 'center',
                 alignItems: 'center',
-                borderRadius: 8,
-                borderWidth: 4,
                 backgroundColor: 'white',
+                // borderRadius: 8,
+                // borderWidth: 4,
               }}
             >
               <Calendar
