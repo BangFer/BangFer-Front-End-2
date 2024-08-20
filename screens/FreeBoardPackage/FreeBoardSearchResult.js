@@ -181,7 +181,7 @@ const FreeBoardSearchResult = ({ navigation }) => {
   ), [handlePressGoDetail]);
 
   if (queryLoading) {
-    return <ActivityIndicator size="large" color="#0000ff" />;
+    return <ActivityIndicator size="large" color="tomato" />;
   }
 
   if (isError) {

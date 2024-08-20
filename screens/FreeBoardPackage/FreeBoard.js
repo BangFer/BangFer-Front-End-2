@@ -237,7 +237,7 @@ const FreeBoard = ({ navigation }) => {
         style={styles.container}
         data={sortedData}
         renderItem={renderBoardItem}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item.id?.toString() ?? `fallback-${Math.random()}`}
         onEndReached={() => {
           if (hasNextPage) {
             fetchNextPage();

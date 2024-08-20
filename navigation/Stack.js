@@ -21,6 +21,7 @@ import TacticsSearch from '../screens/TacticsPackage/TacticsSearch';
 import NewTactic from '../screens/TacticsPackage/NewTactic';
 import MyTactics from '../screens/TacticsPackage/MyTactics';
 import TacticExample from '../screens/TacticsPackage/TacticExample';
+import TacticsSearchResult from '../screens/TacticsPackage/TacticsSearchResult';
 import MyPosts from '../screens/MyPosts';
 import NewPost from '../screens/NewPost';
 import PostExample from '../screens/PostExample';
@@ -458,6 +459,7 @@ const StackNavigation = (navigation) => {
           options={({ navigation }) => ({
             headerShown: true,
             headerTitleAlign: 'center',
+            title: '전술게시판',
             headerRight: () => (
               <View>
                 <NavigationButtonView>
@@ -470,15 +472,15 @@ const StackNavigation = (navigation) => {
                     <MenuTrigger>
                       <Feather name="more-vertical" size={24} color="black" />
                     </MenuTrigger>
-                    <MenuOptions>
+                    <MenuOptions customStyles={{optionsContainer: { width: 70, height: 60 },   }}>
                       <MenuOption
                         onSelect={() => navigateToNewTactic(navigation)}
-                        text="새 전술 생성"
+                        text="전술 생성"
                       />
                       <MenuOption
                         onSelect={() => navigateToMyTactics(navigation)}
                       >
-                        <Text style={{ color: 'red' }}>내 전술 보기</Text>
+                        <Text style={{ color: 'red' }}>내 전술</Text>
                       </MenuOption>
                     </MenuOptions>
                   </Menu>
@@ -491,7 +493,7 @@ const StackNavigation = (navigation) => {
         <Stack.Screen
           name="TacticsSearch"
           component={TacticsSearch}
-          options={{ headerShown: false, headerTitleAlign: 'center' }}
+          options={{ headerShown: true, headerTitleAlign: 'center', title: '전술 검색' }}
         />
         <Stack.Screen
           name="NewTactic"
@@ -501,7 +503,12 @@ const StackNavigation = (navigation) => {
         <Stack.Screen
           name="MyTactics"
           component={MyTactics}
-          options={{ headerShown: true, headerTitleAlign: 'center' }}
+          options={{ headerShown: true, headerTitleAlign: 'center',title: '내 전술' }}
+        />
+          <Stack.Screen
+          name="TacticsSearchResult"
+          component={TacticsSearchResult}
+          options={{ headerShown: true, headerTitleAlign: 'center',title: '검색 결과' }}
         />
         <Stack.Screen
           name="TacticExample"
@@ -567,7 +574,7 @@ const StackNavigation = (navigation) => {
                     <MenuTrigger>
                       <Feather name="more-vertical" size={24} color="black" />
                     </MenuTrigger>
-                    <MenuOptions>
+                    <MenuOptions customStyles={{optionsContainer: { width: 70, height: 60 },   }}>
                       <MenuOption
                         onSelect={() => navigateToFreeBoardWrite(navigation)}
                         text="글 쓰기"
@@ -619,6 +626,7 @@ const StackNavigation = (navigation) => {
           component={FreeBoardWrite}
           options={({ navigation }) => ({
             headerShown: true,
+            headerTitleAlign: 'center',
             title: '글쓰기',
           })}
         />
@@ -638,7 +646,7 @@ const StackNavigation = (navigation) => {
           component={MyFreeBoard}
           options={({ navigation }) => ({
             headerShown: true,
-            title: '내 게시판',
+            title: '내가 쓴 글',
             headerTitleAlign: 'center'
           })}
         />
