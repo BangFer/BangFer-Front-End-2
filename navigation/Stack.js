@@ -43,6 +43,7 @@ import CreateProfile from '../screens/MyPagePackage/CreateProfile';
 import AdminPlusBanggusukTeam from '../screens/BanggusukTeamPackage/AdminPlusBanggusukTeam';
 import ModifyBanggusukTeam from '../screens/BanggusukTeamPackage/ModifyBanggusukTeam';
 import TacticsDetail from '../screens/TacticsPackage/TacticsDetail';
+import ShowProfile from '../screens/MyPagePackage/ShowProfile';
 import {
   Text,
   View,
@@ -435,7 +436,11 @@ const StackNavigation = (navigation) => {
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="SignUp" component={SignUp} />
         <Stack.Screen name="FindPwEmail" component={FindPwEmail} />
-
+        <Stack.Screen
+          name="ShowProfile"
+          component={ShowProfile}
+          options={{ headerShown: false }}
+        />
         <Stack.Screen
           name="ModifyBanggusukTeam"
           component={ModifyBanggusukTeam}
@@ -471,7 +476,11 @@ const StackNavigation = (navigation) => {
                     <MenuTrigger>
                       <Feather name="more-vertical" size={24} color="black" />
                     </MenuTrigger>
-                    <MenuOptions customStyles={{optionsContainer: { width: 70, height: 60 },   }}>
+                    <MenuOptions
+                      customStyles={{
+                        optionsContainer: { width: 70, height: 60 },
+                      }}
+                    >
                       <MenuOption
                         onSelect={() => navigateToNewTactic(navigation)}
                         text="전술 생성"
@@ -492,7 +501,11 @@ const StackNavigation = (navigation) => {
         <Stack.Screen
           name="TacticsSearch"
           component={TacticsSearch}
-          options={{ headerShown: true, headerTitleAlign: 'center', title: '전술 검색' }}
+          options={{
+            headerShown: true,
+            headerTitleAlign: 'center',
+            title: '전술 검색',
+          }}
         />
         <Stack.Screen
           name="NewTactic"
@@ -502,12 +515,20 @@ const StackNavigation = (navigation) => {
         <Stack.Screen
           name="MyTactics"
           component={MyTactics}
-          options={{ headerShown: true, headerTitleAlign: 'center',title: '내 전술' }}
+          options={{
+            headerShown: true,
+            headerTitleAlign: 'center',
+            title: '내 전술',
+          }}
         />
-          <Stack.Screen
+        <Stack.Screen
           name="TacticsSearchResult"
           component={TacticsSearchResult}
-          options={{ headerShown: true, headerTitleAlign: 'center',title: '검색 결과' }}
+          options={{
+            headerShown: true,
+            headerTitleAlign: 'center',
+            title: '검색 결과',
+          }}
         />
         <Stack.Screen
           name="TacticExample"
@@ -573,7 +594,11 @@ const StackNavigation = (navigation) => {
                     <MenuTrigger>
                       <Feather name="more-vertical" size={24} color="black" />
                     </MenuTrigger>
-                    <MenuOptions customStyles={{optionsContainer: { width: 70, height: 60 },   }}>
+                    <MenuOptions
+                      customStyles={{
+                        optionsContainer: { width: 70, height: 60 },
+                      }}
+                    >
                       <MenuOption
                         onSelect={() => navigateToFreeBoardWrite(navigation)}
                         text="글 쓰기"
@@ -646,10 +671,10 @@ const StackNavigation = (navigation) => {
           options={({ navigation }) => ({
             headerShown: true,
             title: '내가 쓴 글',
-            headerTitleAlign: 'center'
+            headerTitleAlign: 'center',
           })}
         />
-                                   
+
         <Stack.Screen
           name="FreeBoardSearchResult"
           component={FreeBoardSearchResult}

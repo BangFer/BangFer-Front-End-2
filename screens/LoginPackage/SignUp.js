@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
   logoText: {
     fontSize: 30,
     fontWeight: "bold",
-    marginTop: 320,
+    marginTop: 280,
     textAlign: "center",
     textDecorationLine: "underline",
   },

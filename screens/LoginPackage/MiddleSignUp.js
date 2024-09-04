@@ -8,18 +8,20 @@ const Container = styled.View`
 
 const FirstView = styled.View`
   flex: 1;
+  /* background-color: blue; */
 `;
 
 const SecondView = styled.View`
   flex: 1.1;
   align-items: center;
   justify-content: space-between;
+  /* background-color: red; */
 `;
 
 const TitleText = styled.Text`
   font-size: 30px;
   font-weight: bold;
-  margin-top: 320px;
+  margin-top: 290px;
   text-align: center;
   text-decoration-line: underline;
 `;
@@ -28,7 +30,7 @@ const KaKaoSignUpButton = styled.TouchableOpacity`
   width: 240px;
   height: 50px;
   border-radius: 10px;
-  margin-bottom: 260px;
+  margin-bottom: 200px;
 `;
 
 const GeneralSignUpButton = styled.TouchableOpacity`

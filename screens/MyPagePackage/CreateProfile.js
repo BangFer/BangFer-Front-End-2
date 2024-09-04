@@ -95,7 +95,7 @@ const EnrollProfileButton = styled.TouchableOpacity`
   border-radius: 10px;
   align-items: center;
   justify-content: center;
-  margin-top: 20px;
+  margin-top: 5px;
 `;
 
 const EnrollProfileText = styled.Text`

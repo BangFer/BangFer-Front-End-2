@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import AntDesign from "@expo/vector-icons/AntDesign";
 import { StatusBar } from "expo-status-bar";
 import styled from "styled-components";
 import DropDownPicker from "react-native-dropdown-picker";
@@ -8,6 +9,8 @@ import { Picker } from "@react-native-picker/picker";
 import RNPickerSelect from "react-native-picker-select";
 import { useRoute } from "@react-navigation/native";
 import { verifyTokens, getTokenFromLocal } from "../LoginPackage/TokenUtils";
+import Ionicons from "@expo/vector-icons/Ionicons";
+
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { useQuery, useMutation } from "react-query";
@@ -118,7 +121,8 @@ const TouchForNicknameInvite = styled.TouchableOpacity`
 const ViewforModalOutButton = styled.View`
   flex: 2.5;
   align-items: center;
-  justify-content: center;
+  justify-content: space-around;
+  flex-direction: row;
 `;
 
 const TextForModalPosition = styled.TextInput`
@@ -127,6 +131,21 @@ const TextForModalPosition = styled.TextInput`
   font-size: 20px;
   text-align: center;
 `;
+
+const TextForOutModal = styled.Text`
+  font-weight: bold;
+  color: black;
+  font-size: 25px;
+  text-align: center;
+`;
+
+const TextForRealOutModal = styled.Text`
+  font-weight: bold;
+  color: black;
+  font-size: 15px;
+  text-align: center;
+`;
+
 const TextForOutButton = styled.Text`
   font-weight: bold;
   color: white;
@@ -146,6 +165,8 @@ const TouchForOutButton = styled.TouchableOpacity`
 
 const ViewforModalText = styled.View`
   flex: 5;
+  align-items: center;
+  justify-content: center;
 `;
 
 const ViewforModalPosition = styled.View`
@@ -342,8 +363,13 @@ const TouchForPlayerImage = styled.TouchableOpacity`
   width: 40px;
   height: 40px;
   border-radius: 50px;
-  background-color: grey;
+  background-color: ${(props) => (props.hasImage ? "transparent" : "grey")};
   margin-left: 10px;
+  overflow: hidden;
+`;
+const ProfileImage = styled.Image`
+  width: 100%;
+  height: 100%;
 `;
 
 const ViewForPickerContainer = styled.View`
@@ -354,11 +380,46 @@ const ViewForPickerContainer = styled.View`
   margin-left: 80px;
 `;
 
-const Item = ({ title, mainFormation, teamId, memberId, position }) => {
+const XTouchForPlayer = styled.TouchableOpacity`
+  width: 15px;
+  height: 15px;
+  border-radius: 10px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 30px;
+  margin-left: 3px;
+`;
+
+const Item = ({
+  title,
+  mainFormation,
+  teamId,
+  memberId,
+  position,
+  userId,
+  navigation,
+  setoutplayervisible,
+  setKickOutmemberId,
+  role,
+}) => {
   const [pickerValue, setPickerValue] = useState("");
   const [pickerItems, setPickerItems] = useState([]);
   const isInitialMount = useRef(true);
   const previousPosition = useRef(position);
+  const [profileImage, setProfileImage] = useState(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const profileData = await GetProfile(userId);
+        setProfileImage(profileData.data.result.profileImageUrl);
+      } catch (error) {
+        console.error("프로필 가져오기 오류:", error);
+      }
+    };
+
+    fetchProfile();
+  }, [userId]);
 
   const updatePickerValue = useCallback(() => {
     const positionMap = {
@@ -534,8 +595,26 @@ const Item = ({ title, mainFormation, teamId, memberId, position }) => {
   return (
     <ViewForPlayer>
       <ViewForPlayerLeft>
-        <TouchForPlayerImage></TouchForPlayerImage>
-        <ItemText>{title}</ItemText>
+        {role !== "LEADER" && (
+          <XTouchForPlayer
+            onPress={() => {
+              setoutplayervisible(true);
+              setKickOutmemberId(memberId);
+            }}
+          >
+            <Ionicons name="close-circle-outline" size={15} color="red" />
+          </XTouchForPlayer>
+        )}
+        <TouchForPlayerImage
+          style={role === "LEADER" ? { marginLeft: 27 } : {}}
+          hasImage={!!profileImage}
+          onPress={() => navigation.navigate("ShowProfile", { userId })}
+        >
+          {profileImage && <ProfileImage source={{ uri: profileImage }} />}
+        </TouchForPlayerImage>
+        <ItemText style={role === "LEADER" ? { marginLeft: 7 } : {}}>
+          {title}
+        </ItemText>
       </ViewForPlayerLeft>
       <ViewForPlayerRight>
         <ViewForPickerContainer>
@@ -657,6 +736,29 @@ const TextForListPlayersTitle = styled.Text`
   text-decoration-line: underline;
   margin-left: 10px;
 `;
+
+const GetProfile = async (userId) => {
+  const Token = await getTokenFromLocal();
+
+  const headers_config = {
+    "Content-Type": "application/json; charset=UTF-8",
+    "Authorization": "Bearer " + Token.accessToken,
+  };
+
+  const url = "http://13.125.14.94:8080/accounts/profile/" + userId;
+
+  try {
+    const res = await axios.get(url, {
+      headers: headers_config,
+    });
+    console.log("GetProfile의 response는", JSON.stringify(res.data));
+    // JSON.stringify로 객체를 문자열로 변환
+    return res;
+  } catch (error) {
+    // 공통 오류 메시지 출력 (추가 디버깅 정보)
+    console.error("전체 오류 객체:", error.toJSON());
+  }
+};
 
 const InviteKaKao = async () => {
   try {
@@ -805,6 +907,34 @@ const UnAssignPosition = async ({ teamId, memberId }) => {
   }
 };
 
+const KickOutMember = async ({ KickOutMemberId, teamId }) => {
+  const Token = await getTokenFromLocal();
+  try {
+    const headers = {
+      "Content-type": "application/json; charset=UTF-8",
+      "Authorization": "Bearer " + Token.accessToken,
+    };
+
+    const url =
+      "http://13.125.14.94:8080/kickout" + "/" + teamId + "/" + KickOutMemberId;
+
+    console.log("what member " + KickOutMemberId);
+    console.log("what Team" + teamId);
+
+    const response = await axios.delete(
+      url,
+
+      {
+        headers: headers,
+      }
+    );
+
+    return response.data; // 반환할 데이터 형식에 맞게 수정
+  } catch (error) {
+    console.error(error.response);
+  }
+};
+
 const AssignPosition = async ({ teamId, memberId, position }) => {
   const Token = await getTokenFromLocal();
   try {
@@ -851,7 +981,6 @@ const AdminPlusBanggusukTeam = ({ navigation }) => {
   const { teamId } = route.params;
   const [teamData, setTeamData] = useState([]);
   const [mainformation, setmainformation] = useState("");
-
   const fetchTeamMemberData = async (teamId) => {
     try {
       const data = await GetTeam(teamId);
@@ -863,6 +992,8 @@ const AdminPlusBanggusukTeam = ({ navigation }) => {
         title: item.memberNickName,
         memberId: item.memberId,
         position: item.position,
+        userId: item.userId,
+        role: item.role,
       }));
 
       setTeamData(transformedData);
@@ -890,12 +1021,13 @@ const AdminPlusBanggusukTeam = ({ navigation }) => {
   const [TenPositionValue, setTenPositionValue] = useState("");
   const [ElevenPositionValue, setElevenPositionValue] = useState("");
   const [NickNameText, setNickNameText] = useState("");
-
+  const [KickOutMemberId, setKickOutmemberId] = useState("");
   const [TacticsNameplaceholder, setTacticsNamePlaceholder] = useState("팀 명");
   const [DetailTacticsplaceholder, setDetailTacticsplaceholder] = useState("");
   const [DetailPositionplaceholder, setDetailPositionplaceholder] =
     useState("");
 
+  console.log("하하" + KickOutMemberId);
   const [isMainTactic, setIsMainTactic] = useState(true);
   const [mainText, setMainText] = useState("");
   const [subText, setSubText] = useState("");
@@ -971,6 +1103,7 @@ const AdminPlusBanggusukTeam = ({ navigation }) => {
   const [isGKModalVisible, setIsGKModalVisible] = useState(false);
   const [inviteFriendVisible, setinviteFriendVisible] = useState(false);
   const [inviteNicknameVisible, setinviteNickNameVisible] = useState(false);
+  const [OutPlayerVisible, setoutplayervisible] = useState(false);
 
   const { mutate: requestInviteMember } = useMutation(InviteMember, {
     onSuccess: (data) => {
@@ -999,6 +1132,17 @@ const AdminPlusBanggusukTeam = ({ navigation }) => {
   const TouchNickName = () => {
     setinviteFriendVisible(false);
     setinviteNickNameVisible(true);
+  };
+
+  const handleKickOutMember = async () => {
+    try {
+      setoutplayervisible(false);
+
+      await KickOutMember({ KickOutMemberId, teamId });
+      await fetchTeamMemberData(teamId);
+    } catch (error) {
+      console.error("Error kicking out member:", error);
+    }
   };
 
   return (
@@ -1094,6 +1238,39 @@ const AdminPlusBanggusukTeam = ({ navigation }) => {
                       <Text>초대하기</Text>
                     </TouchForNicknameInvite>
                   </ModalInviteSecondView>
+                </ModalView>
+              </ContainerModalView>
+            </Modal>
+            <Modal // 멤버 강퇴 모달
+              animationType="slide"
+              visible={OutPlayerVisible}
+              transparent={true}
+            >
+              <ContainerModalView onPress={() => setoutplayervisible(false)}>
+                <ModalView style={{ borderColor: "black" }}>
+                  <ViewforModalPosition>
+                    <TextForOutModal>추방하기</TextForOutModal>
+                  </ViewforModalPosition>
+
+                  <ViewforModalText>
+                    <TextForRealOutModal>
+                      해당 유저를 추방하시겠습니까?
+                    </TextForRealOutModal>
+                  </ViewforModalText>
+                  <ViewforModalOutButton>
+                    <TouchForOutButton
+                      style={{ backgroundColor: "black" }}
+                      onPress={handleKickOutMember}
+                    >
+                      <TextForOutButton>예</TextForOutButton>
+                    </TouchForOutButton>
+                    <TouchForOutButton
+                      style={{ backgroundColor: "black" }}
+                      onPress={() => setoutplayervisible(false)}
+                    >
+                      <TextForOutButton>아니오</TextForOutButton>
+                    </TouchForOutButton>
+                  </ViewforModalOutButton>
                 </ModalView>
               </ContainerModalView>
             </Modal>
@@ -1892,6 +2069,11 @@ const AdminPlusBanggusukTeam = ({ navigation }) => {
                     teamId={teamId}
                     memberId={item.memberId}
                     position={item.position}
+                    userId={item.userId}
+                    navigation={navigation}
+                    setoutplayervisible={setoutplayervisible}
+                    setKickOutmemberId={setKickOutmemberId}
+                    role={item.role}
                   />
                 )}
                 keyExtractor={(item) => item.id}

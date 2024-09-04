@@ -342,8 +342,13 @@ const TouchForPlayerImage = styled.TouchableOpacity`
   width: 40px;
   height: 40px;
   border-radius: 50px;
-  background-color: grey;
+  background-color: ${(props) => (props.hasImage ? "transparent" : "grey")};
   margin-left: 10px;
+  overflow: hidden;
+`;
+const ProfileImage = styled.Image`
+  width: 100%;
+  height: 100%;
 `;
 
 const ViewForPickerContainer = styled.View`
@@ -354,10 +359,31 @@ const ViewForPickerContainer = styled.View`
   margin-left: 80px;
 `;
 
-const Item = ({ title, mainFormation, teamId, memberId, position }) => {
+const Item = ({
+  title,
+  mainFormation,
+  teamId,
+  memberId,
+  position,
+  userId,
+  navigation,
+}) => {
   const [pickerValue, setPickerValue] = useState("12"); // 초기값 설정
   const [pickerItems, setPickerItems] = useState([]);
-  console.log(position);
+  const [profileImage, setProfileImage] = useState(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const profileData = await GetProfile(userId);
+        setProfileImage(profileData.profileImageUrl);
+      } catch (error) {
+        console.error("프로필 가져오기 오류:", error);
+      }
+    };
+
+    fetchProfile();
+  }, [userId]);
 
   useEffect(() => {
     const positionMap = {
@@ -517,7 +543,12 @@ const Item = ({ title, mainFormation, teamId, memberId, position }) => {
   return (
     <ViewForPlayer>
       <ViewForPlayerLeft>
-        <TouchForPlayerImage></TouchForPlayerImage>
+        <TouchForPlayerImage
+          hasImage={!!profileImage}
+          onPress={() => navigation.navigate("ShowProfile", { userId })}
+        >
+          {profileImage && <ProfileImage source={{ uri: profileImage }} />}
+        </TouchForPlayerImage>
         <ItemText>{title}</ItemText>
       </ViewForPlayerLeft>
       <ViewForPlayerRight>
@@ -682,6 +713,28 @@ const InviteKaKao = async () => {
   }
 };
 
+const GetProfile = async (userId) => {
+  const Token = await getTokenFromLocal();
+
+  const headers_config = {
+    "Content-Type": "application/json; charset=UTF-8",
+    "Authorization": "Bearer " + Token.accessToken,
+  };
+
+  const url = "http://13.125.14.94:8080/accounts/profile/" + userId;
+
+  try {
+    const res = await axios.get(url, {
+      headers: headers_config,
+    });
+    console.log("GetProfile의 response는", JSON.stringify(res.data));
+    // JSON.stringify로 객체를 문자열로 변환
+    return res.data.result;
+  } catch (error) {
+    console.error("Get Profile의 error는 " + error);
+  }
+};
+
 const GetTeam = async (teamId) => {
   const Token = await getTokenFromLocal();
 
@@ -820,6 +873,7 @@ const UserPlusBanggusukTeam = ({ navigation }) => {
         title: item.memberNickName,
         memberId: item.memberId,
         position: item.position,
+        userId: item.userId,
       }));
 
       setTeamData(transformedData);
@@ -1845,6 +1899,8 @@ const UserPlusBanggusukTeam = ({ navigation }) => {
                     teamId={teamId}
                     memberId={item.memberId}
                     position={item.position}
+                    userId={item.userId}
+                    navigation={navigation}
                   />
                 )}
                 keyExtractor={(item) => item.id}
