@@ -52,7 +52,7 @@ const EmailVerifySecondView = styled.View`
 const TitleText = styled.Text`
   font-size: 30px;
   font-weight: bold;
-  margin-top: 300px;
+  margin-top: 260px;
   text-decoration-line: underline;
 `;
 
