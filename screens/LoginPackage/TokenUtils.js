@@ -16,7 +16,7 @@ export const getTokenFromLocal = async () => {
 };
 
 export const verifyTokens = async (navigation) => {
-  await AsyncStorage.clear();
+  // await AsyncStorage.clear();
   const Token = await getTokenFromLocal();
   console.log("토큰 확인 : ", Token);
   // 최초 접속
