@@ -14,19 +14,23 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AntDesign, Entypo } from "@expo/vector-icons";
 import { useActionSheet } from "@expo/react-native-action-sheet";
-import axios from 'axios';
+import axios from "axios";
 import { getTokenFromLocal } from "../LoginPackage/TokenUtils";
 import { FontAwesome5 } from "@expo/vector-icons";
-import { Alert } from 'react-native';
+import { Alert } from "react-native";
 
 // 신고 함수
-const reportUser = async (reportedUserId, reportActivity) => {
+const reportUser = async ({ reportedUserId, reportActivity }) => {
   const token = await getTokenFromLocal();
   try {
-    console.log(`Reporting user: ${reportedUserId} for activity: ${reportActivity}`);
+    console.log("reporteduserId :" + reportedUserId);
+    console.log("reportedActivity : " + reportActivity);
+    const url = `http://13.125.14.94:8080/report/user/${reportedUserId}?reportActivity=${encodeURIComponent(
+      reportActivity
+    )}`;
     const response = await axios.post(
-      `http://13.125.14.94:8080/report/user/${reportedUserId}?reportActivity=${reportActivity}`,
-      {},  // 빈 객체를 body로 전송
+      url,
+      {}, // 빈 객체를 body로 전송
       {
         headers: {
           "Content-Type": "application/json; charset=UTF-8",
@@ -94,13 +98,17 @@ const createReply = async (boardId, parentCommentId, commentText) => {
 
 const handleReply = async (parentCommentId, replyText) => {
   try {
-    const newReply = await createReply(route.params.id, parentCommentId, replyText);
-    setData(prevData => {
-      const updatedComments = prevData.commentList.map(comment => {
+    const newReply = await createReply(
+      route.params.id,
+      parentCommentId,
+      replyText
+    );
+    setData((prevData) => {
+      const updatedComments = prevData.commentList.map((comment) => {
         if (comment.commentId === parentCommentId) {
           return {
             ...comment,
-            replies: [...(comment.replies || []), newReply]
+            replies: [...(comment.replies || []), newReply],
           };
         }
         return comment;
@@ -108,7 +116,7 @@ const handleReply = async (parentCommentId, replyText) => {
       return {
         ...prevData,
         commentList: updatedComments,
-        commentCount: prevData.commentCount + 1
+        commentCount: prevData.commentCount + 1,
       };
     });
   } catch (error) {
@@ -123,7 +131,7 @@ const deleteComment = async (commentId) => {
       `http://13.125.14.94:8080/board/comment/${commentId}`,
       {
         headers: {
-          "Authorization": "Bearer " + token.accessToken,
+          Authorization: "Bearer " + token.accessToken,
         },
       }
     );
@@ -150,16 +158,18 @@ const GetBoardDetail = async (boardId) => {
     );
 
     console.log("Board detail response:", response.data);
-    
+
     // 댓글과 대댓글 구조화
-    const structuredComments = response.data.result.commentList.filter(comment => !comment.deleted).map(comment => ({
-      ...comment,
-      replies: comment.children.filter(reply => !reply.deleted)
-    }));
+    const structuredComments = response.data.result.commentList
+      .filter((comment) => !comment.deleted)
+      .map((comment) => ({
+        ...comment,
+        replies: comment.children.filter((reply) => !reply.deleted),
+      }));
 
     return {
       ...response.data.result,
-      commentList: structuredComments
+      commentList: structuredComments,
     };
   } catch (error) {
     console.error("Error fetching board detail:", error);
@@ -201,23 +211,22 @@ const toggleLike = async (boardId, setData) => {
         },
       }
     );
-    console.log(response.data.code)
-    console.log(response.data.message)
-    if (response.data.code == 'OK') {
+    console.log(response.data.code);
+    console.log(response.data.message);
+    if (response.data.code == "OK") {
       // 서버로부터 업데이트된 좋아요 정보를 받아옵니다
       const updatedLikeInfo = await GetBoardDetail(boardId);
 
       // 상태를 업데이트합니다
-      setData(prevData => ({
+      setData((prevData) => ({
         ...prevData,
         isLiked: updatedLikeInfo.isLiked,
-        likeCount: updatedLikeInfo.likeCount
+        likeCount: updatedLikeInfo.likeCount,
       }));
 
       // 게시글 데이터를 다시 받아와서 상태를 업데이트합니다
       // const updatedBoardData = await GetBoardDetail(boardId);
       // setData(updatedBoardData);
-      
     }
   } catch (error) {
     console.error("Error toggling like:", error);
@@ -231,35 +240,38 @@ const toggleLike = async (boardId, setData) => {
   }
 };
 
-
-
-const CommentItem = ({ data, onReply, onDelete, isOwnComment, boardId, showActionSheetWithOptions, setReplyingTo, token }) => {
+const CommentItem = ({
+  data,
+  onReply,
+  onDelete,
+  isOwnComment,
+  boardId,
+  showActionSheetWithOptions,
+  setReplyingTo,
+  token,
+}) => {
   const [showReplyInput, setShowReplyInput] = useState(false);
-  const [replyText, setReplyText] = useState('');
+  const [replyText, setReplyText] = useState("");
 
   const handleReplyPress = () => {
-    Alert.alert(
-      "대댓글",
-      "대댓글을 다시겠습니까?",
-      [
-        {
-          text: "아니오",
-          style: "cancel"
+    Alert.alert("대댓글", "대댓글을 다시겠습니까?", [
+      {
+        text: "아니오",
+        style: "cancel",
+      },
+      {
+        text: "예",
+        onPress: () => {
+          setReplyingTo(data.commentId);
         },
-        { 
-          text: "예", 
-          onPress: () => {
-            setReplyingTo(data.commentId);
-          }
-        }
-      ]
-    );
+      },
+    ]);
   };
 
   const handleSendReply = () => {
     if (replyText.trim()) {
       onReply(data.commentId, replyText);
-      setReplyText('');
+      setReplyText("");
       setShowReplyInput(false);
     }
   };
@@ -304,7 +316,15 @@ const CommentItem = ({ data, onReply, onDelete, isOwnComment, boardId, showActio
               async (reportIndex) => {
                 if (reportIndex !== reportOptions.length) {
                   try {
-                    const result = await reportUser(data.userId, reportActivities[reportIndex]);
+                    console.log(data.userId);
+                    console.log(reportActivities[reportIndex]);
+
+                    const reportedUserId = data.userId; // 변수명을 변경
+                    const reportActivity = reportActivities[reportIndex]; // 변수명을 변경
+                    const result = await reportUser({
+                      reportedUserId, // 변경된 키 이름
+                      reportActivity, // 변경된 키 이름
+                    });
                     alert("신고가 접수되었습니다.");
                   } catch (error) {
                     alert("신고 처리 중 오류가 발생했습니다.");
@@ -360,21 +380,28 @@ const CommentItem = ({ data, onReply, onDelete, isOwnComment, boardId, showActio
           </Pressable>
         </View>
       )}
-      {data.replies && data.replies.map(reply => (
-        <ReCommentItem
-          key={`reply-${reply.commentId}`}
-          data={reply}
-          onDelete={onDelete}
-          isOwnComment={isOwnComment}
-          showActionSheetWithOptions={showActionSheetWithOptions}
-          token={token}
-        />
-      ))}
+      {data.replies &&
+        data.replies.map((reply) => (
+          <ReCommentItem
+            key={`reply-${reply.commentId}`}
+            data={reply}
+            onDelete={onDelete}
+            isOwnComment={isOwnComment}
+            showActionSheetWithOptions={showActionSheetWithOptions}
+            token={token}
+          />
+        ))}
     </View>
   );
 };
 
-const ReCommentItem = ({ data, onDelete, isOwnComment, showActionSheetWithOptions, token }) => {
+const ReCommentItem = ({
+  data,
+  onDelete,
+  isOwnComment,
+  showActionSheetWithOptions,
+  token,
+}) => {
   const handleMorePress = () => {
     const reportOptions = [
       "욕설/비하",
@@ -415,9 +442,17 @@ const ReCommentItem = ({ data, onDelete, isOwnComment, showActionSheetWithOption
               async (reportIndex) => {
                 if (reportIndex !== reportOptions.length) {
                   try {
-                    const result = await reportUser(data.userId, reportActivities[reportIndex]);
+                    const reportedUserId = data.userId; // 변수명을 변경
+                    const reportActivity = reportActivities[reportIndex]; // 변수명을 변경
+                    console.log("rr" + reportedUserId);
+                    console.log("AA" + reportActivity);
+                    const result = await reportUser({
+                      reportedUserId, // 변경된 키 이름
+                      reportActivity, // 변경된 키 이름
+                    });
                     alert("신고가 접수되었습니다.");
                   } catch (error) {
+                    console.log(error);
                     alert("신고 처리 중 오류가 발생했습니다.");
                   }
                 }
@@ -466,7 +501,6 @@ const FreeBoardDetail = ({ navigation, route }) => {
   const [token, setToken] = useState(null);
   const [replyingTo, setReplyingTo] = useState(null);
 
-
   const { showActionSheetWithOptions } = useActionSheet();
 
   const handleReport = async (reportActivity) => {
@@ -477,7 +511,7 @@ const FreeBoardDetail = ({ navigation, route }) => {
       alert("신고 처리 중 오류가 발생했습니다.");
     }
   };
-  
+
   const handleBlock = async () => {
     try {
       const result = await blockUser(data.writerId);
@@ -486,7 +520,7 @@ const FreeBoardDetail = ({ navigation, route }) => {
       alert("차단 처리 중 오류가 발생했습니다.");
     }
   };
-  
+
   const onPress = () => {
     const reportOptions = [
       "욕설/비하",
@@ -495,7 +529,7 @@ const FreeBoardDetail = ({ navigation, route }) => {
       "사칭",
       "상업적 광고 및 판매",
     ];
-  
+
     const reportActivities = [
       "CURSING",
       "OBSCENE",
@@ -503,10 +537,10 @@ const FreeBoardDetail = ({ navigation, route }) => {
       "IMPOSTOR",
       "COMMERCIAL",
     ];
-  
+
     const options = ["신고", "차단", "취소"];
     const cancelButtonIndex = 2;
-  
+
     showActionSheetWithOptions(
       {
         options,
@@ -524,15 +558,30 @@ const FreeBoardDetail = ({ navigation, route }) => {
               async (reportIndex) => {
                 if (reportIndex !== reportOptions.length) {
                   try {
-                    const selectedReportActivity = reportActivities[reportIndex];
-                    console.log(`Selected report option: ${reportOptions[reportIndex]}`);
-                    console.log(`Corresponding report activity: ${selectedReportActivity}`);
-                    const result = await reportUser(data.writerId, selectedReportActivity);
+                    const selectedReportActivity =
+                      reportActivities[reportIndex];
+                    console.log(
+                      `Selected report option: ${reportOptions[reportIndex]}`
+                    );
+                    console.log(
+                      `Corresponding report activity: ${selectedReportActivity}`
+                    );
+                    console.log(data);
+                    console.log("writerId" + data.writerId);
+                    console.log("select" + selectedReportActivity);
+                    const reportedUserId = data.writerId; // 변수명을 변경
+                    const reportActivity = selectedReportActivity; // 변수명을 변경
+                    const result = await reportUser({
+                      reportedUserId,
+                      reportActivity,
+                    });
                     console.log("Report result:", result);
                     alert("신고가 접수되었습니다.");
                   } catch (error) {
                     console.error("Error in report process:", error);
-                    alert("신고 처리 중 오류가 발생했습니다. 다시 시도해 주세요.");
+                    alert(
+                      "신고 처리 중 오류가 발생했습니다. 다시 시도해 주세요."
+                    );
                   }
                 }
               }
@@ -590,11 +639,11 @@ const FreeBoardDetail = ({ navigation, route }) => {
       alert("댓글을 입력해주세요.");
       return;
     }
-  
+
     try {
       const token = await getTokenFromLocal();
       let response;
-      
+
       if (replyingTo) {
         // 대댓글 작성
         response = await axios.post(
@@ -620,35 +669,38 @@ const FreeBoardDetail = ({ navigation, route }) => {
           }
         );
       }
-  
-      if (response.data.code === 'OK') {
+
+      if (response.data.code === "OK") {
         const newComment = response.data.result;
-        setData(prevData => {
+        setData((prevData) => {
           let updatedCommentList;
           if (replyingTo) {
             // 대댓글 추가
-            updatedCommentList = prevData.commentList.map(comment => 
+            updatedCommentList = prevData.commentList.map((comment) =>
               comment.commentId === replyingTo
-                ? { 
-                    ...comment, 
+                ? {
+                    ...comment,
                     replies: [
-                      ...(comment.replies || []), 
-                      {...newComment, parentCommentId: replyingTo}
-                    ] 
+                      ...(comment.replies || []),
+                      { ...newComment, parentCommentId: replyingTo },
+                    ],
                   }
                 : comment
             );
           } else {
             // 일반 댓글 추가
-            updatedCommentList = [...prevData.commentList, {...newComment, replies: []}];
+            updatedCommentList = [
+              ...prevData.commentList,
+              { ...newComment, replies: [] },
+            ];
           }
           return {
             ...prevData,
             commentList: updatedCommentList,
-            commentCount: prevData.commentCount + 1
+            commentCount: prevData.commentCount + 1,
           };
         });
-  
+
         setCommentText("");
         setReplyingTo(null);
         Keyboard.dismiss();
@@ -664,15 +716,23 @@ const FreeBoardDetail = ({ navigation, route }) => {
   const handleDeleteComment = async (commentId) => {
     try {
       await deleteComment(commentId);
-      setData(prevData => {
-        const updatedComments = prevData.commentList.map(comment => {
+      setData((prevData) => {
+        const updatedComments = prevData.commentList.map((comment) => {
           if (comment.commentId === commentId) {
-            return { ...comment, deleted: true, commentText: "삭제된 댓글입니다." };
+            return {
+              ...comment,
+              deleted: true,
+              commentText: "삭제된 댓글입니다.",
+            };
           }
           if (comment.replies) {
-            const updatedReplies = comment.replies.map(reply => {
+            const updatedReplies = comment.replies.map((reply) => {
               if (reply.commentId === commentId) {
-                return { ...reply, deleted: true, commentText: "삭제된 댓글입니다." };
+                return {
+                  ...reply,
+                  deleted: true,
+                  commentText: "삭제된 댓글입니다.",
+                };
               }
               return reply;
             });
@@ -704,7 +764,7 @@ const FreeBoardDetail = ({ navigation, route }) => {
         setLoading(false);
       }
     };
-  
+
     fetchBoardDetail();
   }, [route.params.id]);
 
@@ -713,8 +773,6 @@ const FreeBoardDetail = ({ navigation, route }) => {
     setSelectedImage(imageUrl);
     setModalVisible(true);
   };
-
-
 
   useEffect(() => {
     navigation.setOptions({
@@ -727,23 +785,19 @@ const FreeBoardDetail = ({ navigation, route }) => {
   }, [data, onPress]);
 
   const handleReplyPress = (commentId) => {
-    Alert.alert(
-      "대댓글",
-      "대댓글을 다시겠습니까?",
-      [
-        {
-          text: "아니오",
-          style: "cancel"
+    Alert.alert("대댓글", "대댓글을 다시겠습니까?", [
+      {
+        text: "아니오",
+        style: "cancel",
+      },
+      {
+        text: "예",
+        onPress: () => {
+          setReplyingTo(commentId);
+          setCommentText(`@${data.nickName} `);
         },
-        { 
-          text: "예", 
-          onPress: () => {
-            setReplyingTo(commentId);
-            setCommentText(`@${data.nickName} `);
-          }
-        }
-      ]
-    );
+      },
+    ]);
   };
 
   if (loading) {
@@ -777,7 +831,10 @@ const FreeBoardDetail = ({ navigation, route }) => {
               {data.images?.length > 0 && (
                 <View style={styles.imageBox}>
                   {data.images.map((image, index) => (
-                    <Pressable key={image.imageId} onPress={() => handleImagePress(image.boardImageUrl)}>
+                    <Pressable
+                      key={image.imageId}
+                      onPress={() => handleImagePress(image.boardImageUrl)}
+                    >
                       <Image
                         style={styles.image}
                         source={{ uri: image.boardImageUrl }}
@@ -789,12 +846,22 @@ const FreeBoardDetail = ({ navigation, route }) => {
 
               <View style={[styles.bar, { marginTop: 20 }]} />
               <View style={styles.buttonBox}>
-                  <FontAwesome5 name="comment-dots" size={16} color="#fe6263" marginRight={5}/>
-                  <Text style={{ color: "#666", fontSize: 14 }}>
-                    {data.commentCount}
-                  </Text>
+                <FontAwesome5
+                  name="comment-dots"
+                  size={16}
+                  color="#fe6263"
+                  marginRight={5}
+                />
+                <Text style={{ color: "#666", fontSize: 14 }}>
+                  {data.commentCount}
+                </Text>
                 <View style={styles.button}>
-                  <FontAwesome5 name="thumbs-up" size={16} color="#fe6263" marginLeft={15} />
+                  <FontAwesome5
+                    name="thumbs-up"
+                    size={16}
+                    color="#fe6263"
+                    marginLeft={15}
+                  />
                   <Text style={{ color: "#666", fontSize: 14 }}>
                     {data.likeCount}
                   </Text>
@@ -825,26 +892,31 @@ const FreeBoardDetail = ({ navigation, route }) => {
         }
         renderItem={renderCommentItem}
         keyExtractor={(item) => `comment-${item.commentId}`}
+      />
+      <View style={styles.commentInputContainer}>
+        <TextInput
+          placeholder={
+            replyingTo ? "대댓글을 입력하세요." : "댓글을 입력하세요."
+          }
+          style={styles.commentInput}
+          value={commentText}
+          onChangeText={setCommentText}
         />
-   <View style={styles.commentInputContainer}>
-  <TextInput
-    placeholder={replyingTo ? "대댓글을 입력하세요." : "댓글을 입력하세요."}
-    style={styles.commentInput}
-    value={commentText}
-    onChangeText={setCommentText}
-  />
-  <Pressable style={styles.sendButton} onPress={handlePressSendComment}>
-    <Entypo name="triangle-right" size={24} color="tomato" />
-  </Pressable>
-  {replyingTo && (
-    <Pressable style={styles.cancelReplyButton} onPress={() => {
-      setReplyingTo(null);
-      setCommentText("");
-    }}>
-      <Text style={styles.cancelReplyText}>취소</Text>
-    </Pressable>
-  )}
-</View>
+        <Pressable style={styles.sendButton} onPress={handlePressSendComment}>
+          <Entypo name="triangle-right" size={24} color="tomato" />
+        </Pressable>
+        {replyingTo && (
+          <Pressable
+            style={styles.cancelReplyButton}
+            onPress={() => {
+              setReplyingTo(null);
+              setCommentText("");
+            }}
+          >
+            <Text style={styles.cancelReplyText}>취소</Text>
+          </Pressable>
+        )}
+      </View>
 
       {/* 이미지 확대를 위한 모달 추가 */}
       {selectedImage && (
@@ -974,15 +1046,15 @@ const styles = StyleSheet.create({
   reCommentBox: {
     marginLeft: 20,
     borderLeftWidth: 1,
-    borderLeftColor: '#ddd',
+    borderLeftColor: "#ddd",
   },
   commentHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   commentButtons: {
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   replyButton: {
     padding: 5,
@@ -996,28 +1068,28 @@ const styles = StyleSheet.create({
     marginRight: -20,
   },
   replyInputContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginTop: 10,
   },
   replyInput: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 5,
     padding: 5,
   },
   sendReplyButton: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 5,
     marginLeft: 5,
-    backgroundColor: '#fe6263',
+    backgroundColor: "#fe6263",
     borderRadius: 5,
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   commentInputContainer: {
     backgroundColor: "#fff",
@@ -1055,7 +1127,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   cancelReplyText: {
-    color: 'tomato',
+    color: "tomato",
   },
 });
 
