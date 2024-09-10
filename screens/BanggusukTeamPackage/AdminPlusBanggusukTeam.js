@@ -47,7 +47,7 @@ const ModalView = styled.View`
   height: 170px;
   margin: 30px;
   margin-bottom: 75px;
-  border-radius: 15px;
+  border-radius: 10px;
   background-color: white;
   border-width: 3px;
   border-color: black;
@@ -67,17 +67,17 @@ const ModalInviteSecondView = styled.View`
 
 const TextForNickNameInvite = styled.Text`
   font-weight: bold;
-  color: black;
+  color: #ff6262;
   font-size: 20px;
   text-align: center;
-  text-decoration: underline;
+
 `;
 
 const TouchForInviteNickName = styled.TouchableOpacity`
   height: 50%;
   width: 70%;
   border-radius: 5px;
-  background-color: grey;
+  background-color: #FF6262;
   align-items: center;
   justify-content: center;
 `;
@@ -86,7 +86,7 @@ const TouchForInviteKaKao = styled.TouchableOpacity`
   height: 50%;
   width: 70%;
   border-radius: 5px;
-  background-color: grey;
+  background-color: #FF6262;
   align-items: center;
   justify-content: center;
   margin-top: 15px;
@@ -94,7 +94,7 @@ const TouchForInviteKaKao = styled.TouchableOpacity`
 
 const TextForInviteNickName = styled.Text`
   font-weight: bold;
-  color: black;
+  color: white;
   font-size: 15px;
 `;
 
@@ -112,10 +112,16 @@ const TouchForNicknameInvite = styled.TouchableOpacity`
   width: 20%;
   height: 30%;
   border-radius: 5px;
-  background-color: grey;
+  background-color: #ff6262;
   align-items: center;
   justify-content: center;
   margin-bottom: 25px;
+`;
+
+const TextForInviteButton = styled.Text`
+  font-weight: bold;
+  color: white;
+  font-size: 12px;
 `;
 
 const ViewforModalOutButton = styled.View`
@@ -193,10 +199,11 @@ const ViewForTacticBoard = styled.View`
   width: 90%;
   height: 470px;
   margin-left: 20px;
+  margin-top: -5px;
 `;
 
 const ViewForBoard = styled.View`
-  margin-top: 5px;
+  margin-top: 10px;
   height: 420px;
 `;
 
@@ -204,11 +211,12 @@ const ViewForSlideTactic = styled.View`
   width: 100%;
   height: 150px;
   align-items: center;
+  margin-top: 5px;
 `;
 
 const TacticBox = styled.View`
-  border-radius: 15px;
-  background-color: ${({ isMain }) => (isMain ? "tomato" : "blue")};
+  border-radius: 10px;
+  background-color: ${({ isMain }) => (isMain ? "#FF6262" : "#5182FF")};
   padding: 10px;
   height: 90%; /* 높이 조정 */
   width: ${Dimensions.get("window").width -
@@ -225,14 +233,14 @@ const TextBox = styled.TextInput`
 `;
 
 const Title = styled.Text`
-  font-size: 24px;
+  font-size: 20px;
   font-weight: bold;
   margin-bottom: 5px;
   color: white;
 `;
 
 const RegisterButton = styled.TouchableOpacity`
-  border-radius: 8px;
+  border-radius: 10px;
   width: 60px;
   height: 40px;
   background-color: #d9d9d9;
@@ -264,6 +272,7 @@ const ViewForListPlayersReal = styled.View`
   height: 370px;
   align-items: center;
   border-width: 4px;
+  border-radius : 10px;
 `;
 
 const ViewForFlatList = styled.View`
@@ -693,24 +702,27 @@ const TouchForPlusPlayer = styled.TouchableOpacity`
 
 const TaticsName = styled.TextInput`
   height: 35px;
-  width: 120px;
+  width: 165px;
   border-width: 4px;
   margin-left: 24px;
   border-radius: 10px;
   padding-left: 10px;
   font-size: 17px;
   font-weight: bold;
+  color: black;
 `;
 
 const DirectorName = styled.TextInput`
   height: 35px;
-  width: 120px;
+  width: 100px;
   border-width: 4px;
   margin-right: 24px;
   border-radius: 10px;
   padding-left: 10px;
   font-size: 17px;
   font-weight: bold;
+  color: black;
+  text-align: left;  
 `;
 
 const TacticName = styled.TextInput`
@@ -731,9 +743,8 @@ const TacticsBackImage = styled.Image`
   z-index: -1;
 `;
 const TextForListPlayersTitle = styled.Text`
-  font-size: 28px;
+  font-size: 24px;
   font-weight: bold;
-  text-decoration-line: underline;
   margin-left: 10px;
 `;
 
@@ -1160,8 +1171,8 @@ const AdminPlusBanggusukTeam = ({ navigation }) => {
             alignItems: "center",
           }}
         >
-          <Text style={{ marginLeft: 25 }}>팀 이름</Text>
-          <Text style={{ marginRight: 85 }}>리더 이름</Text>
+          <Text style={{ marginLeft: 25, marginTop:5, marginBottom: -5 }}>팀명</Text>
+          <Text style={{ marginRight: 25, marginTop:5, marginBottom: -5 }}>리더명</Text>
         </View>
         <ViewForTextBar>
           <TaticsName
@@ -1235,7 +1246,7 @@ const AdminPlusBanggusukTeam = ({ navigation }) => {
                         requestInviteMember({ teamId, NickNameText })
                       }
                     >
-                      <Text>초대하기</Text>
+                      <TextForInviteButton>초대하기</TextForInviteButton>
                     </TouchForNicknameInvite>
                   </ModalInviteSecondView>
                 </ModalView>
@@ -2089,14 +2100,14 @@ const AdminPlusBanggusukTeam = ({ navigation }) => {
         <View
           style={{
             width: "100%",
-            height: 55,
+            height: 20,
             alignItems: "flex-end",
             justifyContent: "center",
           }}
         >
-          <RegisterButton onPress={() => navigation.navigate(BanggusukTeam)}>
+          {/* <RegisterButton onPress={() => navigation.navigate(BanggusukTeam)}>
             <RegisterText>확인</RegisterText>
-          </RegisterButton>
+          </RegisterButton> */}
         </View>
       </ScrollView>
     </Container>

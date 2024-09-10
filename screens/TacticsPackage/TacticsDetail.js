@@ -1,25 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
 import styled from "styled-components";
-import DropDownPicker from "react-native-dropdown-picker";
-import TacticsBack from "../../assets/TacticsBack.png";
-import { FontAwesome5 } from "@expo/vector-icons";
-import { Picker } from "@react-native-picker/picker";
-import RNPickerSelect from "react-native-picker-select";
-import { Ionicons } from "@expo/vector-icons";
-import { Feather } from "@expo/vector-icons";
-import Entypo from "@expo/vector-icons/Entypo";
-import ProfileImg from "../../assets/profileimg.jpg";
-import { useRoute } from "@react-navigation/native";
-import BouncyCheckbox from "react-native-bouncy-checkbox";
-import { verifyTokens, getTokenFromLocal } from "../LoginPackage/TokenUtils";
-import axios from "axios";
-
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-
 import {
-  Text,
   View,
+  Text,
+  Pressable,
+  TextInput,
+  FlatList,
   StyleSheet,
   Image,
   TouchableOpacity,
@@ -27,9 +14,403 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   Dimensions,
-  FlatList,
   Keyboard,
+  ActivityIndicator,
 } from "react-native";
+import DropDownPicker from "react-native-dropdown-picker";
+import TacticsBack from "../../assets/TacticsBack.png";
+import ProfileImg from "../../assets/profileimg.jpg";
+import {
+  FontAwesome5,
+  AntDesign,
+  Entypo,
+  MaterialCommunityIcons,
+  Ionicons,
+  Feather,
+} from "@expo/vector-icons";
+import { Picker } from "@react-native-picker/picker";
+import RNPickerSelect from "react-native-picker-select";
+import BouncyCheckbox from "react-native-bouncy-checkbox";
+import axios from "axios";
+import { verifyTokens, getTokenFromLocal } from "../LoginPackage/TokenUtils";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useActionSheet } from "@expo/react-native-action-sheet";
+
+const reportUser = async (reportedUserId, reportActivity) => {
+  const token = await getTokenFromLocal();
+  try {
+    console.log(
+      `Reporting user: ${reportedUserId} for activity: ${reportActivity}`
+    );
+    const response = await axios.post(
+      `http://13.125.14.94:8080/report/user/${reportedUserId}?reportActivity=${reportActivity}`,
+      {},
+      {
+        headers: {
+          "Content-Type": "application/json; charset=UTF-8",
+          "Authorization": "Bearer " + token.accessToken,
+        },
+      }
+    );
+    console.log("Report response:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error reporting user:", error);
+    throw error;
+  }
+};
+
+const blockUser = async (isBlockedUserId) => {
+  const token = await getTokenFromLocal();
+  try {
+    const response = await axios.post(
+      `http://13.125.14.94:8080/api/v1/tactics/block/${isBlockedUserId}`,
+      {},
+      {
+        headers: {
+          "Content-Type": "application/json; charset=UTF-8",
+          "Authorization": "Bearer " + token.accessToken,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error blocking user:", error);
+    throw error;
+  }
+};
+
+const createReply = async (taticId, parentCommentId, commentText) => {
+  const token = await getTokenFromLocal();
+  try {
+    const response = await axios.post(
+      `http://13.125.14.94:8080/api/v1/tactics/${tacticId}/comment/${parentCommentId}`,
+      { commentText },
+      {
+        headers: {
+          "Content-Type": "application/json; charset=UTF-8",
+          "Authorization": "Bearer " + token.accessToken,
+        },
+      }
+    );
+    return response.data.result;
+  } catch (error) {
+    console.error("Error creating reply:", error);
+    throw error;
+  }
+};
+
+const deleteComment = async (commentId) => {
+  const token = await getTokenFromLocal();
+  try {
+    const response = await axios.delete(
+      `http://13.125.14.94:8080/api/v1/tactics/comment/${commentId}`,
+      {
+        headers: {
+          Authorization: "Bearer " + token.accessToken,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting comment:", error);
+    throw error;
+  }
+};
+
+const UserInfo = ({ nickName }) => {
+  return (
+    <View style={styles.userInfoBox}>
+      <View style={styles.userInfoImageBox}>
+        <Image
+          style={styles.userInfoImage}
+          source={{
+            uri: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQGujC5DzQ77Bi70CpaM3TlK-P_AkLr4ronKg&s",
+          }}
+        />
+      </View>
+      <Text style={styles.userInfoText}>{nickName}</Text>
+    </View>
+  );
+};
+
+const toggleLike = async (tacticId, setData) => {
+  try {
+    const token = await getTokenFromLocal();
+    const response = await axios.post(
+      `http://13.125.14.94:8080/api/v1/tactics/${tacticId}/like`,
+      {},
+      {
+        headers: {
+          "Content-Type": "application/json; charset=UTF-8",
+          "Authorization": "Bearer " + token.accessToken,
+        },
+      }
+    );
+    console.log(response.data.code);
+    console.log(response.data.message);
+    if (response.data.code == "OK") {
+      const updatedLikeInfo = await GetTatics(tacticId);
+      setData((prevData) => ({
+        ...prevData,
+        isLiked: updatedLikeInfo.isLiked,
+        likeCount: updatedLikeInfo.likeCount,
+      }));
+    }
+  } catch (error) {
+    console.error("Error toggling like:", error);
+    if (error.response) {
+      alert("좋아요 처리 실패: " + error.response.data.message);
+    } else if (error.request) {
+      alert("서버로부터 응답이 없습니다. 네트워크 연결을 확인해주세요.");
+    } else {
+      alert("좋아요 처리 중 오류가 발생했습니다.");
+    }
+  }
+};
+
+// 컴포넌트들
+const CommentItem = ({
+  data,
+  onReply,
+  onDelete,
+  isOwnComment,
+  tacticId,
+  showActionSheetWithOptions,
+  setReplyingTo,
+  token,
+}) => {
+  const [showReplyInput, setShowReplyInput] = useState(false);
+  const [replyText, setReplyText] = useState("");
+
+  const handleReplyPress = () => {
+    Alert.alert("대댓글", "대댓글을 다시겠습니까?", [
+      {
+        text: "아니오",
+        style: "cancel",
+      },
+      {
+        text: "예",
+        onPress: () => {
+          setReplyingTo(data.commentId);
+        },
+      },
+    ]);
+  };
+
+  const handleSendReply = () => {
+    if (replyText.trim()) {
+      onReply(data.commentId, replyText);
+      setReplyText("");
+      setShowReplyInput(false);
+    }
+  };
+
+  const handleMorePress = () => {
+    const reportOptions = [
+      "욕설/비하",
+      "음란물/불건전한 만남 및 대화",
+      "정치적 발언",
+      "사칭",
+      "상업적 광고 및 판매",
+    ];
+
+    const reportActivities = [
+      "CURSING",
+      "OBSCENE",
+      "POLITICAL",
+      "IMPOSTOR",
+      "COMMERCIAL",
+    ];
+
+    const options = ["신고", "차단"];
+    if (isOwnComment(data.userId)) {
+      options.push("삭제");
+    }
+    options.push("취소");
+
+    showActionSheetWithOptions(
+      {
+        options,
+        cancelButtonIndex: options.length - 1,
+        destructiveButtonIndex: isOwnComment(data.userId) ? 2 : -1,
+      },
+      async (selectedIndex) => {
+        switch (selectedIndex) {
+          case 0: // 신고
+            showActionSheetWithOptions(
+              {
+                options: [...reportOptions, "취소"],
+                cancelButtonIndex: reportOptions.length,
+              },
+              async (reportIndex) => {
+                if (reportIndex !== reportOptions.length) {
+                  try {
+                    const result = await reportUser(
+                      data.userId,
+                      reportActivities[reportIndex]
+                    );
+                    alert("신고가 접수되었습니다.");
+                  } catch (error) {
+                    alert("신고 처리 중 오류가 발생했습니다.");
+                  }
+                }
+              }
+            );
+            break;
+          case 1: // 차단
+            try {
+              const result = await blockUser(data.userId);
+              alert("사용자가 차단되었습니다.");
+            } catch (error) {
+              alert("차단 처리 중 오류가 발생했습니다.");
+            }
+            break;
+          case 2: // 삭제
+            if (isOwnComment(data.userId)) {
+              onDelete(data.commentId);
+            }
+            break;
+        }
+      }
+    );
+  };
+
+  return (
+    <View style={styles.commentBox}>
+      <View style={styles.commentHeader}>
+        <UserInfo nickName={data.nickName} />
+        <View style={styles.commentButtons}>
+          <Pressable onPress={handleReplyPress} style={styles.replyButton}>
+            <FontAwesome5 name="comment-dots" size={16} color="#fe6263" />
+          </Pressable>
+          <Pressable onPress={handleMorePress} style={styles.moreButton}>
+            <Entypo name="dots-three-vertical" size={16} color="black" />
+          </Pressable>
+        </View>
+      </View>
+      <View style={{ marginTop: 8 }}>
+        <Text style={styles.contents}>{data.commentText}</Text>
+      </View>
+      {showReplyInput && (
+        <View style={styles.replyInputContainer}>
+          <TextInput
+            style={styles.replyInput}
+            value={replyText}
+            onChangeText={setReplyText}
+            placeholder="대댓글을 입력하세요"
+          />
+          <Pressable onPress={handleSendReply} style={styles.sendReplyButton}>
+            <Text>보내기</Text>
+          </Pressable>
+        </View>
+      )}
+      {data.replies &&
+        data.replies.map((reply) => (
+          <ReCommentItem
+            key={`reply-${reply.commentId}`}
+            data={reply}
+            onDelete={onDelete}
+            isOwnComment={isOwnComment}
+            showActionSheetWithOptions={showActionSheetWithOptions}
+            token={token}
+          />
+        ))}
+    </View>
+  );
+};
+
+const ReCommentItem = ({
+  data,
+  onDelete,
+  isOwnComment,
+  showActionSheetWithOptions,
+  token,
+}) => {
+  const handleMorePress = () => {
+    const reportOptions = [
+      "욕설/비하",
+      "음란물/불건전한 만남 및 대화",
+      "정치적 발언",
+      "사칭",
+      "상업적 광고 및 판매",
+    ];
+
+    const reportActivities = [
+      "CURSING",
+      "OBSCENE",
+      "POLITICAL",
+      "IMPOSTOR",
+      "COMMERCIAL",
+    ];
+
+    const options = ["신고", "차단"];
+    if (isOwnComment(data.userId)) {
+      options.push("삭제");
+    }
+    options.push("취소");
+
+    showActionSheetWithOptions(
+      {
+        options,
+        cancelButtonIndex: options.length - 1,
+        destructiveButtonIndex: isOwnComment(data.userId) ? 2 : -1,
+      },
+      async (selectedIndex) => {
+        switch (selectedIndex) {
+          case 0: // 신고
+            showActionSheetWithOptions(
+              {
+                options: [...reportOptions, "취소"],
+                cancelButtonIndex: reportOptions.length,
+              },
+              async (reportIndex) => {
+                if (reportIndex !== reportOptions.length) {
+                  try {
+                    const result = await reportUser(
+                      data.userId,
+                      reportActivities[reportIndex]
+                    );
+                    alert("신고가 접수되었습니다.");
+                  } catch (error) {
+                    alert("신고 처리 중 오류가 발생했습니다.");
+                  }
+                }
+              }
+            );
+            break;
+          case 1: // 차단
+            try {
+              const result = await blockUser(data.userId);
+              alert("사용자가 차단되었습니다.");
+            } catch (error) {
+              alert("차단 처리 중 오류가 발생했습니다.");
+            }
+            break;
+          case 2: // 삭제
+            if (isOwnComment(data.userId)) {
+              onDelete(data.commentId);
+            }
+            break;
+        }
+      }
+    );
+  };
+
+  return (
+    <View style={[styles.commentBox, styles.reCommentBox]}>
+      <View style={styles.commentHeader}>
+        <UserInfo nickName={data.nickName} />
+        <Pressable onPress={handleMorePress} style={styles.replymoreButton}>
+          <Entypo name="dots-three-vertical" size={16} color="black" />
+        </Pressable>
+      </View>
+      <View style={{ marginTop: 8 }}>
+        <Text style={styles.contents}>{data.commentText}</Text>
+      </View>
+    </View>
+  );
+};
 
 const Container = styled.View`
   flex: 1;
@@ -364,18 +745,6 @@ const StyledScrollView = styled.ScrollView`
   margin-bottom: 10px; /* 입력창 높이와 동일하게 설정 */
 `;
 
-const styles = StyleSheet.create({
-  input: {
-    fontSize: 17,
-    height: 30,
-    fontWeight: "bold",
-  },
-  inputContainer: {
-    width: "30%",
-    alignItems: "center",
-  },
-});
-
 const Forward = styled.TouchableOpacity`
   border-radius: 15px;
   width: 30px;
@@ -651,87 +1020,411 @@ const GetTatics = async (taticsId) => {
   };
   const url = "http://13.125.14.94:8080/api/v1/tactics/" + taticsId;
   console.log("url :" + url);
+
   try {
-    const res = await axios.get(url, {
+    const response = await axios.get(url, {
       headers: headers_config,
     });
-    console.log("GetTactics의 response는", JSON.stringify(res.data)); // JSON.stringify로 객체를 문자열로 변환
-    return res;
+    console.log("GetTactics의 response는", JSON.stringify(response.data)); // JSON.stringify로 객체를 문자열로 변환
+
+    // 댓글과 대댓글 구조화
+    const structuredComments = response.data.result.comments
+      .filter((comment) => !comment.deleted)
+      .map((comment) => ({
+        ...comment,
+        replies: comment.children.filter((reply) => !reply.deleted),
+      }));
+
+    console.log(response.data.result);
+
+    return {
+      ...response.data.result,
+      comments: structuredComments,
+    };
   } catch (error) {
-    console.error("Get Tactic의 error는 " + error);
+    console.error("Error fetching tactic detail:", error);
+    if (error.response) {
+      console.error("Response data:", error.response.data);
+      console.error("Response status:", error.response.status);
+      console.error("Response headers:", error.response.headers);
+    }
+    throw error;
   }
 };
 
-const TacticsDetail = ({ navigation }) => {
-  const route = useRoute();
-  const { tacticId } = route.params;
-  const renderItem = ({ item }) => {
-    switch (item.type) {
-      case "comment":
-        return (
-          <CommentItem
-            username={item.username}
-            description={item.description}
-            number={item.number}
-          />
-        );
-      case "recomment":
-        return (
-          <ReCommentItem
-            username={item.username}
-            description={item.description}
-            number={item.number}
-          />
-        );
-      default:
-        return null; // 타입이 맞지 않을 경우 null 반환
+const handleTacticCall = async (selectedTacticId, setters) => {
+  try {
+    const data = await GetTatics(selectedTacticId);
+    console.log(JSON.stringify(data));
+    setters.setData(data);
+    setters.setMainText(data.result.subTactic);
+    setters.setSubText(data.result.tacticDetails);
+
+    setters.setSlectedFormation(data.result.mainFormation);
+    setters.setTacticName(data.result.tacticName);
+    setters.setannonymous(data.result.anonymous);
+    console.log(anonymous);
+    setters.setOnePositionValue(
+      data.result.positionDetail[0].positionDescription
+    );
+    setters.setTwoPositionValue(
+      data.result.positionDetail[1].positionDescription
+    );
+    setters.setThreePositionValue(
+      data.result.positionDetail[2].positionDescription
+    );
+    setters.setFourPositionValue(
+      data.result.positionDetail[3].positionDescription
+    );
+    setters.setFivePositionValue(
+      data.result.positionDetail[4].positionDescription
+    );
+    setters.setSixPositionValue(
+      data.result.positionDetail[5].positionDescription
+    );
+    setters.setSevenPositionValue(
+      data.result.positionDetail[6].positionDescription
+    );
+    setters.setEightPositionValue(
+      data.result.positionDetail[7].positionDescription
+    );
+    setters.setNinePositionValue(
+      data.result.positionDetail[8].positionDescription
+    );
+    setters.setTenPositionValue(
+      data.result.positionDetail[9].positionDescription
+    );
+    setters.setElevenPositionValue(
+      data.result.positionDetail[10].positionDescription
+    );
+  } catch (error) {
+    console.error("error fetching tactic data:", error);
+  }
+};
+
+const TacticsDetail = ({ navigation, route }) => {
+  const [data, setData] = useState();
+  const [loading, setLoading] = useState(true);
+  const [commentText, setCommentText] = useState("");
+  const [modalVisible, setModalVisible] = useState(false); // 모달 상태 추가
+  const [selectedImage, setSelectedImage] = useState(null); // 선택된 이미지 상태 추가
+  const [token, setToken] = useState(null);
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [anonymous, setannonymous] = useState("");
+  const [OnePositionValue, setOnePositionValue] = useState("");
+  const [TwoPositionValue, setTwoPositionValue] = useState("");
+  const [ThreePositionValue, setThreePositionValue] = useState("");
+  const [FourPositionValue, setFourPositionValue] = useState("");
+  const [FivePositionValue, setFivePositionValue] = useState("");
+  const [SixPositionValue, setSixPositionValue] = useState("");
+  const [SevenPositionValue, setSevenPositionValue] = useState("");
+  const [EightPositionValue, setEightPositionValue] = useState("");
+  const [NinePositionValue, setNinePositionValue] = useState("");
+  const [TenPositionValue, setTenPositionValue] = useState("");
+  const [ElevenPositionValue, setElevenPositionValue] = useState("");
+  const [NickNameText, setNickNameText] = useState("");
+  const { showActionSheetWithOptions } = useActionSheet();
+  const [tacticName, setTacticName] = useState("");
+  const [selectedFormation, setSlectedFormation] = useState("");
+  const [TacticsNameplaceholder, setTacticsNamePlaceholder] = useState("팀 명");
+  const [DetailTacticsplaceholder, setDetailTacticsplaceholder] = useState("");
+  const [DetailPositionplaceholder, setDetailPositionplaceholder] =
+    useState("");
+
+  const [pickerValue, setPickerValue] = useState("1");
+
+  const [isMainTactic, setIsMainTactic] = useState(true);
+  const [mainText, setMainText] = useState("");
+  const [subText, setSubText] = useState("");
+
+  const handleReport = async (reportActivity) => {
+    try {
+      const result = await reportUser(data.writerId, reportActivity);
+      alert("신고가 접수되었습니다.");
+    } catch (error) {
+      alert("신고 처리 중 오류가 발생했습니다.");
     }
   };
 
-  const data = [
-    {
-      type: "comment",
-      username: "고민영",
-      description: "헉 ㄷㄷ",
-      number: "3",
-    },
-    {
-      type: "comment",
-      username: "김종우",
-      description: "나 같은 경우에는",
-      number: "3",
-    },
-    {
-      type: "recomment",
-      username: "오우석",
-      description: "공감?유해진?",
-      number: "2",
-    },
-    {
-      type: "comment",
-      username: "김민우",
-      description: "그만...",
-      number: "1",
-    },
-    {
-      type: "comment",
-      username: "김현우",
-      description: "헉 ㄷㄷ",
-      number: "1",
-    },
-    {
-      type: "recomment",
-      username: "김근식",
-      description: "헉 ㄷㄷ",
-      number: "1",
-    },
-    {
-      type: "recomment",
-      username: "고민영",
-      description: "헉 ㄷㄷ",
-      number: "1",
-    },
-  ];
+  const handleBlock = async () => {
+    try {
+      const result = await blockUser(data.writerId);
+      alert("사용자가 차단되었습니다.");
+    } catch (error) {
+      alert("차단 처리 중 오류가 발생했습니다.");
+    }
+  };
+
+  const onPress = () => {
+    const reportOptions = [
+      "욕설/비하",
+      "음란물/불건전한 만남 및 대화",
+      "정치적 발언",
+      "사칭",
+      "상업적 광고 및 판매",
+    ];
+
+    const reportActivities = [
+      "CURSING",
+      "OBSCENE",
+      "POLITICAL",
+      "IMPOSTOR",
+      "COMMERCIAL",
+    ];
+
+    const options = ["신고", "차단", "취소"];
+    const cancelButtonIndex = 2;
+
+    showActionSheetWithOptions(
+      {
+        options,
+        cancelButtonIndex,
+        destructiveButtonIndex: -1,
+      },
+      (selectedIndex) => {
+        switch (selectedIndex) {
+          case 0: // 신고
+            showActionSheetWithOptions(
+              {
+                options: [...reportOptions, "취소"],
+                cancelButtonIndex: reportOptions.length,
+              },
+              async (reportIndex) => {
+                if (reportIndex !== reportOptions.length) {
+                  try {
+                    const selectedReportActivity =
+                      reportActivities[reportIndex];
+                    console.log(
+                      `Selected report option: ${reportOptions[reportIndex]}`
+                    );
+                    console.log(
+                      `Corresponding report activity: ${selectedReportActivity}`
+                    );
+                    const result = await reportUser(
+                      data.writerId,
+                      selectedReportActivity
+                    );
+                    console.log("Report result:", result);
+                    alert("신고가 접수되었습니다.");
+                  } catch (error) {
+                    console.error("Error in report process:", error);
+                    alert(
+                      "신고 처리 중 오류가 발생했습니다. 다시 시도해 주세요."
+                    );
+                  }
+                }
+              }
+            );
+            break;
+
+          case 1: // 차단
+            handleBlock();
+            break;
+          case cancelButtonIndex:
+            console.log("취소됨");
+            break;
+        }
+      }
+    );
+  };
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <Pressable onPress={onPress}>
+          <Entypo name="dots-three-vertical" size={16} color="black" />
+        </Pressable>
+      ),
+    });
+  }, [data, onPress]);
+
+  useEffect(() => {
+    const fetchToken = async () => {
+      const fetchedToken = await getTokenFromLocal();
+      setToken(fetchedToken);
+    };
+    fetchToken();
+  }, []);
+
+  const isOwnComment = (commentUserId) => {
+    return token && commentUserId === token.userId;
+  };
+
+  const renderCommentItem = ({ item }) => (
+    <CommentItem
+      data={item}
+      onReply={handleReply}
+      onDelete={handleDeleteComment}
+      isOwnComment={isOwnComment}
+      tacticId={route.params.tacticId}
+      showActionSheetWithOptions={showActionSheetWithOptions}
+      setReplyingTo={setReplyingTo}
+      token={token}
+    />
+  );
+
+  const handlePressSendComment = async () => {
+    if (!commentText.trim()) {
+      alert("댓글을 입력해주세요.");
+      return;
+    }
+
+    try {
+      const token = await getTokenFromLocal();
+      let response;
+
+      if (replyingTo) {
+        // 대댓글 작성
+        response = await axios.post(
+          `http://13.125.14.94:8080/api/v1/tactics/${route.params.tacticId}/comment/${replyingTo}`,
+          { commentText: commentText.trim() },
+          {
+            headers: {
+              "Content-Type": "application/json; charset=UTF-8",
+              "Authorization": "Bearer " + token.accessToken,
+            },
+          }
+        );
+      } else {
+        // 일반 댓글 작성
+        response = await axios.post(
+          `http://13.125.14.94:8080/api/v1/tactics/${route.params.tacticId}/comment`,
+          { commentText: commentText.trim() },
+          {
+            headers: {
+              "Content-Type": "application/json; charset=UTF-8",
+              "Authorization": "Bearer " + token.accessToken,
+            },
+          }
+        );
+      }
+
+      if (response.data.code === "OK") {
+        const newComment = response.data.result;
+        setData((prevData) => {
+          let updatedCommentList;
+          if (replyingTo) {
+            // 대댓글 추가
+            updatedCommentList = prevData.comments.map((comment) =>
+              comment.commentId === replyingTo
+                ? {
+                    ...comment,
+                    replies: [
+                      ...(comment.replies || []),
+                      { ...newComment, parentCommentId: replyingTo },
+                    ],
+                  }
+                : comment
+            );
+          } else {
+            // 일반 댓글 추가
+            updatedCommentList = [
+              ...prevData.comments,
+              { ...newComment, replies: [] },
+            ];
+          }
+          return {
+            ...prevData,
+            comments: updatedCommentList,
+            commentCnt: prevData.commentCnt + 1,
+          };
+        });
+
+        setCommentText("");
+        setReplyingTo(null);
+        Keyboard.dismiss();
+      } else {
+        alert("댓글 등록에 실패했습니다: " + response.data.message);
+      }
+    } catch (error) {
+      console.error("Error posting comment:", error);
+      // 에러 처리 로직...
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    try {
+      await deleteComment(commentId);
+      setData((prevData) => {
+        const updatedComments = prevData.comments.map((comment) => {
+          if (comment.commentId === commentId) {
+            return {
+              ...comment,
+              deleted: true,
+              commentText: "삭제된 댓글입니다.",
+            };
+          }
+          if (comment.replies) {
+            const updatedReplies = comment.replies.map((reply) => {
+              if (reply.commentId === commentId) {
+                return {
+                  ...reply,
+                  deleted: true,
+                  commentText: "삭제된 댓글입니다.",
+                };
+              }
+              return reply;
+            });
+            return { ...comment, replies: updatedReplies };
+          }
+          return comment;
+        });
+        return {
+          ...prevData,
+          comments: updatedComments,
+        };
+      });
+      alert("댓글이 삭제되었습니다.");
+    } catch (error) {
+      alert("댓글 삭제에 실패했습니다.");
+    }
+  };
+
+  // 이미지 클릭 핸들러 추가
+  const handleImagePress = (imageUrl) => {
+    setSelectedImage(imageUrl);
+    setModalVisible(true);
+  };
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <Pressable onPress={onPress}>
+          <Entypo name="dots-three-vertical" size={16} color="black" />
+        </Pressable>
+      ),
+    });
+  }, [data, onPress]);
+
+  const handleReplyPress = (commentId) => {
+    Alert.alert("대댓글", "대댓글을 다시겠습니까?", [
+      {
+        text: "아니오",
+        style: "cancel",
+      },
+      {
+        text: "예",
+        onPress: () => {
+          setReplyingTo(commentId);
+          setCommentText(`@${data.nickName} `);
+        },
+      },
+    ]);
+  };
+
+  // if (loading) {
+  //   return (
+  //     <View style={styles.loadingContainer}>
+  //       <ActivityIndicator size="large" color="tomato" />
+  //     </View>
+  //   );
+  // }
+
+  // if (!data) return <Text>데이터를 불러오는데 실패했습니다.</Text>;
+
+  const handleToggleLike = () => {
+    toggleLike(data.id, setData);
+  };
   const handleAttackerPositionPress = (DetailText, PositionText) => {
     setDetailTacticsplaceholder(DetailText);
     setDetailPositionplaceholder(PositionText);
@@ -757,24 +1450,6 @@ const TacticsDetail = ({ navigation }) => {
 
     setIsGKModalVisible(true);
   };
-  const [tacticName, setTacticName] = useState("");
-  const [selectedFormation, setSlectedFormation] = useState("");
-  const [TacticsNameplaceholder, setTacticsNamePlaceholder] = useState("팀 명");
-  const [DetailTacticsplaceholder, setDetailTacticsplaceholder] = useState("");
-  const [DetailPositionplaceholder, setDetailPositionplaceholder] =
-    useState("");
-  const handleFocus = () => {
-    setTacticsNamePlaceholder("");
-  };
-  const handleBlur = () => {
-    setTacticsNamePlaceholder("팀 명");
-  };
-
-  const [pickerValue, setPickerValue] = useState("1");
-
-  const [isMainTactic, setIsMainTactic] = useState(true);
-  const [mainText, setMainText] = useState("");
-  const [subText, setSubText] = useState("");
 
   const handleToggleTactic = () => {
     setIsMainTactic(!isMainTactic);
@@ -788,26 +1463,6 @@ const TacticsDetail = ({ navigation }) => {
   const handleChangeSubText = (inputText) => {
     setSubText(inputText);
   };
-  const [DirectorNameplaceholder, setDirectorNamePlaceholder] =
-    useState("감독명");
-  const handleFocus2 = () => {
-    setDirectorNamePlaceholder("");
-  };
-  const handleBlur2 = () => {
-    setDirectorNamePlaceholder("감독명");
-  };
-
-  const [open, setOpen] = useState(false);
-  const [value, setValue] = useState({ label: "4-4-2", value: "1" });
-  const [items, setItems] = useState([
-    { label: "내 전술", value: "1" },
-    { label: "클롭", value: "2" },
-    { label: "사비", value: "3" },
-    { label: "알론소", value: "4" },
-    { label: "맨시티식", value: "5" },
-    { label: "맨유", value: "6" },
-    { label: "첼시", value: "7" },
-  ]);
 
   const [isAttackerModalVisible, setIsAttackerModalVisible] = useState(false);
   const [isMidfielderModalVisible, setIsMidfielderModalVisible] =
@@ -843,6 +1498,66 @@ const TacticsDetail = ({ navigation }) => {
     }
   };
 
+  useEffect(() => {
+    const fetchTacticDetail = async () => {
+      try {
+        console.log("Fetching tactic detail for ID:", route.params.tacticId);
+        await handleTacticCall(route.params.tacticId, {
+          setData,
+          setMainText,
+          setSubText,
+          setSlectedFormation,
+          setTacticName,
+          setannonymous,
+          setOnePositionValue,
+          setTwoPositionValue,
+          setThreePositionValue,
+          setFourPositionValue,
+          setFivePositionValue,
+          setSixPositionValue,
+          setSevenPositionValue,
+          setEightPositionValue,
+          setNinePositionValue,
+          setTenPositionValue,
+          setElevenPositionValue,
+        });
+      } catch (error) {
+        console.error("Error fetching tactic detail:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTacticDetail();
+  }, [route.params.tacticId]);
+
+  const handleReply = async (parentCommentId, replyText) => {
+    try {
+      const newReply = await createReply(
+        route.params.tacticId,
+        parentCommentId,
+        replyText
+      );
+      setData((prevData) => {
+        const updatedComments = prevData.comments.map((comment) => {
+          if (comment.commentId === parentCommentId) {
+            return {
+              ...comment,
+              replies: [...(comment.replies || []), newReply],
+            };
+          }
+          return comment;
+        });
+        return {
+          ...prevData,
+          comments: updatedComments,
+          commentCnt: prevData.commentCnt + 1,
+        };
+      });
+    } catch (error) {
+      alert("대댓글 작성에 실패했습니다.");
+    }
+  };
   const CommentItem = ({ username, description, number }) => (
     <ItemContainer>
       <ItemContent>
@@ -919,920 +1634,1090 @@ const TacticsDetail = ({ navigation }) => {
     console.log("검색어:", searchText);
   };
 
-  const [anonymous, setannonymous] = useState("");
-  const [OnePositionValue, setOnePositionValue] = useState("");
-  const [TwoPositionValue, setTwoPositionValue] = useState("");
-  const [ThreePositionValue, setThreePositionValue] = useState("");
-  const [FourPositionValue, setFourPositionValue] = useState("");
-  const [FivePositionValue, setFivePositionValue] = useState("");
-  const [SixPositionValue, setSixPositionValue] = useState("");
-  const [SevenPositionValue, setSevenPositionValue] = useState("");
-  const [EightPositionValue, setEightPositionValue] = useState("");
-  const [NinePositionValue, setNinePositionValue] = useState("");
-  const [TenPositionValue, setTenPositionValue] = useState("");
-  const [ElevenPositionValue, setElevenPositionValue] = useState("");
-  const [NickNameText, setNickNameText] = useState("");
+  // useEffect(() => {
+  //   const fetchTactics = async () => {
+  //     handleTacticCall(tacticId);
+  //   };
 
-  const handleTacticCall = async (selectedTacticId) => {
-    const data = await GetTatics(selectedTacticId);
+  //   fetchTactics();
+  // }, []);
 
-    setMainText(data.data.result.subTactic);
-    setSubText(data.data.result.tacticDetails);
-
-    setSlectedFormation(data.data.result.mainFormation);
-    setTacticName(data.data.result.tacticName);
-    setannonymous(data.data.result.anonymous);
-    console.log(anonymous);
-    setOnePositionValue(data.data.result.positionDetail[0].positionDescription);
-    setTwoPositionValue(data.data.result.positionDetail[1].positionDescription);
-    setThreePositionValue(
-      data.data.result.positionDetail[2].positionDescription
-    );
-    setFourPositionValue(
-      data.data.result.positionDetail[3].positionDescription
-    );
-    setFivePositionValue(
-      data.data.result.positionDetail[4].positionDescription
-    );
-    setSixPositionValue(data.data.result.positionDetail[5].positionDescription);
-    setSevenPositionValue(
-      data.data.result.positionDetail[6].positionDescription
-    );
-    setEightPositionValue(
-      data.data.result.positionDetail[7].positionDescription
-    );
-    setNinePositionValue(
-      data.data.result.positionDetail[8].positionDescription
-    );
-    setTenPositionValue(data.data.result.positionDetail[9].positionDescription);
-    setElevenPositionValue(
-      data.data.result.positionDetail[10].positionDescription
-    );
-  };
-
-  useEffect(() => {
-    const fetchTactics = async () => {
-      handleTacticCall(tacticId);
-    };
-
-    fetchTactics();
-  }, []);
   return (
-    <Container>
-      <StyledScrollView
-        contentContainerStyle={{
-          flexGrow: 1,
-        }}
-        nestedScrollEnabled={true}
-      >
-        <ViewForTextBar>
-          <TaticsName
-            value={tacticName}
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: "#fff" }}
+      edges={["bottom", "right", "left"]}
+    >
+      <ViewForTextBar>
+        <TaticsName
+          value={tacticName}
+          editable={false} // TextInput을 수정 불가능하게 설정
+          pointerEvents="none" // 모든 터치 이벤트 차단
+        />
+        <BouncyCheckbox
+          size={20}
+          fillColor="black"
+          unfillColor="#FFFFFF"
+          text="익명"
+          iconStyle={{ borderColor: "black" }}
+          textStyle={{
+            fontFamily: "JosefinSans-Regular",
+            textDecorationLine: "none",
+          }}
+          style={{ marginLeft: 125 }}
+          isChecked={anonymous} // 체크박스가 anonymous 값에 따라 체크됨
+          onPress={() => {}} // 빈 함수를 전달하여 터치 이벤트 무시
+          disableBuiltInState={true} // 내장된 상태 변경 비활성화
+          disabled={true} // 체크박스를 비활성화 상태로 만듦
+        />
+      </ViewForTextBar>
+      <ViewForTacticBoard>
+        <ViewForDropdown>
+          <TacticName
+            value={selectedFormation}
+            editable={false} // TextInput을 수정 불가능하게 설정
+            pointerEvents="none"
+          ></TacticName>
+        </ViewForDropdown>
+        <ViewForBoard>
+          <TacticsBackImage source={TacticsBack} resizeMode={"stretch"} />
+          <Modal // 공격수 모달
+            animationType="slide"
+            visible={isAttackerModalVisible}
+            transparent={true}
+          >
+            <ContainerModalView
+              onPress={() => setIsAttackerModalVisible(false)}
+            >
+              <ModalView style={{ borderColor: "#ff6262" }}>
+                <ViewforModalPosition>
+                  <TextForModalPosition
+                    editable={false} // TextInput을 수정 불가능하게 설정
+                    pointerEvents="none" // 모든 터치 이벤트 차단
+                    numberOfLines={1}
+                    value={DetailPositionplaceholder}
+                    maxLenth={10}
+                    placeholder="포지션 입력"
+                    onChangeText={(newText) =>
+                      setDetailPositionplaceholder(newText)
+                    }
+                    placeholderTextColor="#ff6262"
+                  ></TextForModalPosition>
+                </ViewforModalPosition>
+
+                <ViewforModalText>
+                  <TextInputforModalTactics
+                    editable={false} // TextInput을 수정 불가능하게 설정
+                    pointerEvents="none" // 모든 터치 이벤트 차단
+                    multiline
+                    numberOfLines={3}
+                    value={DetailTacticsplaceholder}
+                    maxLength={100}
+                    placeholder="세부 전술을 입력하세요."
+                    onChangeText={(newText) =>
+                      setDetailTacticsplaceholder(newText)
+                    }
+                    placeholderTextColor="#ff6262"
+                  ></TextInputforModalTactics>
+                </ViewforModalText>
+                <ViewforModalOutButton>
+                  <TouchForOutButton
+                    onPress={() => setIsAttackerModalVisible(false)}
+                  >
+                    <TextForOutButton>확인</TextForOutButton>
+                  </TouchForOutButton>
+                </ViewforModalOutButton>
+              </ModalView>
+            </ContainerModalView>
+          </Modal>
+          <Modal // 미드필더 모달
+            animationType="slide"
+            visible={isMidfielderModalVisible}
+            transparent={true}
+          >
+            <ContainerModalView
+              onPress={() => setIsMidfielderModalVisible(false)}
+            >
+              <ModalView style={{ borderColor: "#5182FF" }}>
+                <ViewforModalPosition>
+                  <TextForModalPosition
+                    editable={false} // TextInput을 수정 불가능하게 설정
+                    pointerEvents="none" // 모든 터치 이벤트 차단
+                    numberOfLines={1}
+                    value={DetailPositionplaceholder}
+                    maxLenth={10}
+                    placeholder="포지션 입력"
+                    onChangeText={(newText) =>
+                      setDetailPositionplaceholder(newText)
+                    }
+                    placeholderTextColor="#5182FF"
+                    style={{ color: "#5182FF" }}
+                  ></TextForModalPosition>
+                </ViewforModalPosition>
+
+                <ViewforModalText>
+                  <TextInputforModalTactics
+                    editable={false} // TextInput을 수정 불가능하게 설정
+                    pointerEvents="none" // 모든 터치 이벤트 차단
+                    multiline
+                    numberOfLines={3}
+                    value={DetailTacticsplaceholder}
+                    maxLength={100}
+                    placeholder="세부 전술을 입력하세요."
+                    onChangeText={(newText) =>
+                      setDetailTacticsplaceholder(newText)
+                    }
+                    placeholderTextColor="#5182FF"
+                    style={{ color: "#5182FF" }}
+                  ></TextInputforModalTactics>
+                </ViewforModalText>
+                <ViewforModalOutButton>
+                  <TouchForOutButton
+                    style={{ backgroundColor: "#5182FF" }}
+                    onPress={() => setIsMidfielderModalVisible(false)}
+                  >
+                    <TextForOutButton>확인</TextForOutButton>
+                  </TouchForOutButton>
+                </ViewforModalOutButton>
+              </ModalView>
+            </ContainerModalView>
+          </Modal>
+          <Modal // 수비수 모달
+            animationType="slide"
+            visible={isDefenderModalVisible}
+            transparent={true}
+          >
+            <ContainerModalView
+              onPress={() => setIsDefenderModalVisible(false)}
+            >
+              <ModalView style={{ borderColor: "#6CD163" }}>
+                <ViewforModalPosition>
+                  <TextForModalPosition
+                    editable={false} // TextInput을 수정 불가능하게 설정
+                    pointerEvents="none" // 모든 터치 이벤트 차단
+                    numberOfLines={1}
+                    value={DetailPositionplaceholder}
+                    maxLenth={10}
+                    placeholder="포지션 입력"
+                    onChangeText={(newText) =>
+                      setDetailPositionplaceholder(newText)
+                    }
+                    placeholderTextColor="#6CD163"
+                    style={{ color: "#6CD163" }}
+                  ></TextForModalPosition>
+                </ViewforModalPosition>
+
+                <ViewforModalText>
+                  <TextInputforModalTactics
+                    editable={false} // TextInput을 수정 불가능하게 설정
+                    pointerEvents="none" // 모든 터치 이벤트 차단
+                    multiline
+                    numberOfLines={3}
+                    value={DetailTacticsplaceholder}
+                    maxLength={100}
+                    placeholder="세부 전술을 입력하세요."
+                    onChangeText={(newText) =>
+                      setDetailTacticsplaceholder(newText)
+                    }
+                    placeholderTextColor="#6CD163"
+                    style={{ color: "#6CD163" }}
+                  ></TextInputforModalTactics>
+                </ViewforModalText>
+                <ViewforModalOutButton>
+                  <TouchForOutButton
+                    style={{ backgroundColor: "#6CD163" }}
+                    onPress={() => setIsDefenderModalVisible(false)}
+                  >
+                    <TextForOutButton>확인</TextForOutButton>
+                  </TouchForOutButton>
+                </ViewforModalOutButton>
+              </ModalView>
+            </ContainerModalView>
+          </Modal>
+          <Modal // 골키퍼 모달
+            animationType="slide"
+            visible={isGKModalVisible}
+            transparent={true}
+          >
+            <ContainerModalView onPress={() => setIsGKModalVisible(false)}>
+              <ModalView style={{ borderColor: "#FFB056" }}>
+                <ViewforModalPosition>
+                  <TextForModalPosition
+                    editable
+                    numberOfLines={1}
+                    value={DetailPositionplaceholder}
+                    maxLenth={10}
+                    placeholder="포지션 입력"
+                    onChangeText={(newText) =>
+                      setDetailPositionplaceholder(newText)
+                    }
+                    placeholderTextColor="#FFB056"
+                    style={{ color: "#FFB056" }}
+                  ></TextForModalPosition>
+                </ViewforModalPosition>
+
+                <ViewforModalText>
+                  <TextInputforModalTactics
+                    editable
+                    multiline
+                    numberOfLines={3}
+                    value={DetailTacticsplaceholder}
+                    maxLength={100}
+                    placeholder="세부 전술을 입력하세요."
+                    onChangeText={(newText) =>
+                      setDetailTacticsplaceholder(newText)
+                    }
+                    placeholderTextColor="#FFB056"
+                    style={{ color: "#FFB056" }}
+                  ></TextInputforModalTactics>
+                </ViewforModalText>
+                <ViewforModalOutButton>
+                  <TouchForOutButton
+                    style={{ backgroundColor: "#FFB056" }}
+                    onPress={() => setIsGKModalVisible(false)}
+                  >
+                    <TextForOutButton>확인</TextForOutButton>
+                  </TouchForOutButton>
+                </ViewforModalOutButton>
+              </ModalView>
+            </ContainerModalView>
+          </Modal>
+          {selectedFormation === "4-4-2" && (
+            <TestView>
+              <ViewForForward>
+                <Forward
+                  style={{ marginTop: 70 }}
+                  onPress={() =>
+                    handleAttackerPositionPress(OnePositionValue, "LS")
+                  }
+                ></Forward>
+                <Forward
+                  style={{ marginTop: 70 }}
+                  onPress={() =>
+                    handleAttackerPositionPress(TwoPositionValue, "RS")
+                  }
+                ></Forward>
+              </ViewForForward>
+              <ViewForMidfielder>
+                <Midfielder
+                  onPress={() =>
+                    handleMidfielderPositionPress(ThreePositionValue, "LM")
+                  }
+                ></Midfielder>
+                <Midfielder
+                  onPress={() =>
+                    handleMidfielderPositionPress(FourPositionValue, "LCM")
+                  }
+                  style={{ marginTop: 25 }}
+                ></Midfielder>
+                <Midfielder
+                  onPress={() =>
+                    handleMidfielderPositionPress(FivePositionValue, "RCM")
+                  }
+                  style={{ marginTop: 25 }}
+                ></Midfielder>
+                <Midfielder
+                  onPress={() =>
+                    handleMidfielderPositionPress(SixPositionValue, "RM")
+                  }
+                ></Midfielder>
+              </ViewForMidfielder>
+              <ViewForDefender>
+                <Defender
+                  onPress={() =>
+                    handleDefenderPositionPress(SevenPositionValue, "LB")
+                  }
+                ></Defender>
+                <Defender
+                  onPress={() =>
+                    handleDefenderPositionPress(EightPositionValue, "LCB")
+                  }
+                  style={{ marginTop: 25 }}
+                ></Defender>
+                <Defender
+                  onPress={() =>
+                    handleDefenderPositionPress(NinePositionValue, "RCB")
+                  }
+                  style={{ marginTop: 25 }}
+                ></Defender>
+                <Defender
+                  onPress={() =>
+                    handleDefenderPositionPress(TenPositionValue, "RB")
+                  }
+                ></Defender>
+              </ViewForDefender>
+              <ViewForGoalkeeper>
+                <Goalkeeper
+                  onPress={() =>
+                    handleGoalkeeperPositionPress(ElevenPositionValue, "GK")
+                  }
+                  style={{ marginTop: 25 }}
+                ></Goalkeeper>
+              </ViewForGoalkeeper>
+            </TestView>
+          )}
+          {selectedFormation === "4-3-3" && (
+            <TestView>
+              <ViewForForward style={{ justifyContent: "space-around" }}>
+                <Forward
+                  onPress={() =>
+                    handleAttackerPositionPress(OnePositionValue, "LW")
+                  }
+                  style={{ marginTop: 80 }}
+                ></Forward>
+                <Forward
+                  onPress={() =>
+                    handleAttackerPositionPress(TwoPositionValue, "ST")
+                  }
+                  style={{ marginBottom: 60 }}
+                ></Forward>
+                <Forward
+                  onPress={() =>
+                    handleAttackerPositionPress(ThreePositionValue, "RW")
+                  }
+                  style={{ marginTop: 80 }}
+                ></Forward>
+              </ViewForForward>
+              <ViewForMidfielder>
+                <Midfielder
+                  onPress={() =>
+                    handleMidfielderPositionPress(FourPositionValue, "LCM")
+                  }
+                  style={{ marginLeft: 45 }}
+                ></Midfielder>
+                <Midfielder
+                  onPress={() =>
+                    handleMidfielderPositionPress(FivePositionValue, "CM")
+                  }
+                  style={{ marginTop: 50 }}
+                ></Midfielder>
+                <Midfielder
+                  onPress={() =>
+                    handleMidfielderPositionPress(SixPositionValue, "RCM")
+                  }
+                  style={{ marginRight: 45 }}
+                ></Midfielder>
+              </ViewForMidfielder>
+              <ViewForDefender>
+                <Defender
+                  onPress={() =>
+                    handleDefenderPositionPress(SevenPositionValue, "LB")
+                  }
+                  style={{ marginTop: 15 }}
+                ></Defender>
+                <Defender
+                  onPress={() =>
+                    handleDefenderPositionPress(EightPositionValue, "LCB")
+                  }
+                  style={{ marginTop: 35 }}
+                ></Defender>
+                <Defender
+                  onPress={() =>
+                    handleDefenderPositionPress(NinePositionValue, "RCB")
+                  }
+                  style={{ marginTop: 35 }}
+                ></Defender>
+                <Defender
+                  onPress={() =>
+                    handleDefenderPositionPress(TenPositionValue, "RB")
+                  }
+                  style={{ marginTop: 15 }}
+                ></Defender>
+              </ViewForDefender>
+              <ViewForGoalkeeper>
+                <Goalkeeper
+                  onPress={() =>
+                    handleGoalkeeperPositionPress(ElevenPositionValue, "GK")
+                  }
+                  style={{ marginTop: 30 }}
+                ></Goalkeeper>
+              </ViewForGoalkeeper>
+            </TestView>
+          )}
+          {selectedFormation === "4-3-2-1" && (
+            <TestView>
+              <ViewForForward>
+                <Forward
+                  onPress={() =>
+                    handleAttackerPositionPress(OnePositionValue, "ST")
+                  }
+                  style={{ marginBottom: 60 }}
+                ></Forward>
+              </ViewForForward>
+              <SecondViewForMidfielder style={{ height: "20%" }}>
+                <Midfielder
+                  style={{ marginBottom: 20, marginLeft: 60 }}
+                  onPress={() =>
+                    handleMidfielderPositionPress(TwoPositionValue, "LAM")
+                  }
+                ></Midfielder>
+                <Midfielder
+                  style={{ marginBottom: 20, marginRight: 60 }}
+                  onPress={() =>
+                    handleMidfielderPositionPress(ThreePositionValue, "RAM")
+                  }
+                ></Midfielder>
+              </SecondViewForMidfielder>
+              <ViewForMidfielder style={{ height: "20%" }}>
+                <Midfielder
+                  onPress={() =>
+                    handleMidfielderPositionPress(FourPositionValue, "LCM")
+                  }
+                  style={{ marginLeft: 15 }}
+                ></Midfielder>
+                <Midfielder
+                  onPress={() =>
+                    handleMidfielderPositionPress(FivePositionValue, "CM")
+                  }
+                  style={{}}
+                ></Midfielder>
+                <Midfielder
+                  onPress={() =>
+                    handleMidfielderPositionPress(SixPositionValue, "RCM")
+                  }
+                  style={{ marginRight: 15 }}
+                ></Midfielder>
+              </ViewForMidfielder>
+              <ViewForDefender>
+                <Defender
+                  onPress={() =>
+                    handleDefenderPositionPress(SevenPositionValue, "LB")
+                  }
+                  style={{ marginTop: 30 }}
+                ></Defender>
+                <Defender
+                  onPress={() =>
+                    handleDefenderPositionPress(EightPositionValue, "LCB")
+                  }
+                  style={{ marginTop: 50 }}
+                ></Defender>
+                <Defender
+                  onPress={() =>
+                    handleDefenderPositionPress(NinePositionValue, "RCB")
+                  }
+                  style={{ marginTop: 50 }}
+                ></Defender>
+                <Defender
+                  onPress={() =>
+                    handleDefenderPositionPress(TenPositionValue, "RB")
+                  }
+                  style={{ marginTop: 30 }}
+                ></Defender>
+              </ViewForDefender>
+              <ViewForGoalkeeper>
+                <Goalkeeper
+                  onPress={() =>
+                    handleGoalkeeperPositionPress(ElevenPositionValue, "GK")
+                  }
+                  style={{ marginTop: 25 }}
+                ></Goalkeeper>
+              </ViewForGoalkeeper>
+            </TestView>
+          )}
+          {selectedFormation === "4-2-3-1" && (
+            <TestView>
+              <ViewForForward>
+                <Forward
+                  onPress={() =>
+                    handleAttackerPositionPress(OnePositionValue, "ST")
+                  }
+                  style={{ marginBottom: 60 }}
+                ></Forward>
+              </ViewForForward>
+              <SecondViewForMidfielder style={{ height: "20%" }}>
+                <Midfielder
+                  onPress={() =>
+                    handleMidfielderPositionPress(TwoPositionValue, "LAM")
+                  }
+                  style={{ marginBottom: 10, marginLeft: 5 }}
+                ></Midfielder>
+                <Midfielder
+                  onPress={() =>
+                    handleMidfielderPositionPress(ThreePositionValue, "CAM")
+                  }
+                  style={{ marginBottom: 10 }}
+                ></Midfielder>
+                <Midfielder
+                  onPress={() =>
+                    handleMidfielderPositionPress(FourPositionValue, "RAM")
+                  }
+                  style={{ marginBottom: 10, marginRight: 5 }}
+                ></Midfielder>
+              </SecondViewForMidfielder>
+              <ViewForMidfielder style={{ height: "20%" }}>
+                <Midfielder
+                  onPress={() =>
+                    handleMidfielderPositionPress(FivePositionValue, "LDM")
+                  }
+                  style={{ marginLeft: 55 }}
+                ></Midfielder>
+                <Midfielder
+                  onPress={() =>
+                    handleMidfielderPositionPress(SixPositionValue, "RDM")
+                  }
+                  style={{ marginRight: 55 }}
+                ></Midfielder>
+              </ViewForMidfielder>
+              <ViewForDefender>
+                <Defender
+                  onPress={() =>
+                    handleDefenderPositionPress(SevenPositionValue, "LB")
+                  }
+                  style={{ marginTop: 15 }}
+                ></Defender>
+                <Defender
+                  onPress={() =>
+                    handleDefenderPositionPress(EightPositionValue, "LCB")
+                  }
+                  style={{ marginTop: 35 }}
+                ></Defender>
+                <Defender
+                  onPress={() =>
+                    handleDefenderPositionPress(NinePositionValue, "RCB")
+                  }
+                  style={{ marginTop: 35 }}
+                ></Defender>
+                <Defender
+                  onPress={() =>
+                    handleDefenderPositionPress(TenPositionValue, "RB")
+                  }
+                  style={{ marginTop: 15 }}
+                ></Defender>
+              </ViewForDefender>
+              <ViewForGoalkeeper>
+                <Goalkeeper
+                  onPress={() =>
+                    handleGoalkeeperPositionPress(ElevenPositionValue, "GK")
+                  }
+                  style={{ marginTop: 25 }}
+                ></Goalkeeper>
+              </ViewForGoalkeeper>
+            </TestView>
+          )}
+          {selectedFormation === "3-4-3" && (
+            <TestView>
+              <ViewForForward style={{ justifyContent: "space-around" }}>
+                <Forward
+                  style={{ marginTop: 80 }}
+                  onPress={() =>
+                    handleAttackerPositionPress(OnePositionValue, "LW")
+                  }
+                ></Forward>
+                <Forward
+                  onPress={() =>
+                    handleAttackerPositionPress(TwoPositionValue, "ST")
+                  }
+                  style={{ marginTop: 20 }}
+                ></Forward>
+                <Forward
+                  style={{ marginTop: 80 }}
+                  onPress={() =>
+                    handleAttackerPositionPress(ThreePositionValue, "RW")
+                  }
+                ></Forward>
+              </ViewForForward>
+              <ViewForMidfielder>
+                <Midfielder
+                  style={{ marginTop: 25 }}
+                  onPress={() =>
+                    handleMidfielderPositionPress(FourPositionValue, "LM")
+                  }
+                ></Midfielder>
+                <Midfielder
+                  onPress={() =>
+                    handleMidfielderPositionPress(FivePositionValue, "LCM")
+                  }
+                  style={{ marginTop: 45 }}
+                ></Midfielder>
+                <Midfielder
+                  onPress={() =>
+                    handleMidfielderPositionPress(SixPositionValue, "RCM")
+                  }
+                  style={{ marginTop: 45 }}
+                ></Midfielder>
+                <Midfielder
+                  style={{ marginTop: 25 }}
+                  onPress={() =>
+                    handleMidfielderPositionPress(SevenPositionValue, "RM")
+                  }
+                ></Midfielder>
+              </ViewForMidfielder>
+              <ViewForDefender>
+                <Defender
+                  onPress={() =>
+                    handleDefenderPositionPress(EightPositionValue, "LCB")
+                  }
+                  style={{ marginLeft: 25, marginBottom: 15 }}
+                ></Defender>
+                <Defender
+                  onPress={() =>
+                    handleDefenderPositionPress(NinePositionValue, "CB")
+                  }
+                  style={{}}
+                ></Defender>
+                <Defender
+                  onPress={() =>
+                    handleDefenderPositionPress(TenPositionValue, "RCB")
+                  }
+                  style={{ marginRight: 25, marginBottom: 15 }}
+                ></Defender>
+              </ViewForDefender>
+              <ViewForGoalkeeper>
+                <Goalkeeper
+                  onPress={() =>
+                    handleGoalkeeperPositionPress(ElevenPositionValue, "GK")
+                  }
+                  style={{ marginTop: 25 }}
+                ></Goalkeeper>
+              </ViewForGoalkeeper>
+            </TestView>
+          )}
+          {selectedFormation === "3-5-2" && (
+            <TestView>
+              <ViewForForward>
+                <Forward
+                  onPress={() =>
+                    handleAttackerPositionPress(OnePositionValue, "LS")
+                  }
+                ></Forward>
+                <Forward
+                  onPress={() =>
+                    handleAttackerPositionPress(TwoPositionValue, "RS")
+                  }
+                ></Forward>
+              </ViewForForward>
+              <SecondViewForMidfielder
+                style={{ justifyContent: "space-between", height: "20%" }}
+              >
+                <Midfielder
+                  onPress={() =>
+                    handleMidfielderPositionPress(ThreePositionValue, "CAM")
+                  }
+                  style={{ marginLeft: 20, marginTop: 70 }}
+                ></Midfielder>
+                <Midfielder
+                  onPress={() =>
+                    handleMidfielderPositionPress(FourPositionValue, "LM")
+                  }
+                  style={{ marginTop: 10 }}
+                ></Midfielder>
+                <Midfielder
+                  onPress={() =>
+                    handleMidfielderPositionPress(FivePositionValue, "RM")
+                  }
+                  style={{ marginRight: 20, marginTop: 70 }}
+                ></Midfielder>
+              </SecondViewForMidfielder>
+              <ViewForMidfielder style={{ height: "20%" }}>
+                <Midfielder
+                  onPress={() =>
+                    handleMidfielderPositionPress(SixPositionValue, "RCM")
+                  }
+                  style={{ marginLeft: 60 }}
+                ></Midfielder>
+                <Midfielder
+                  onPress={() =>
+                    handleMidfielderPositionPress(SevenPositionValue, "LCM")
+                  }
+                  style={{ marginRight: 60 }}
+                ></Midfielder>
+              </ViewForMidfielder>
+              <ViewForDefender>
+                <Defender
+                  onPress={() =>
+                    handleDefenderPositionPress(EightPositionValue, "LCB")
+                  }
+                  style={{ marginLeft: 25, marginBottom: 15 }}
+                ></Defender>
+                <Defender
+                  onPress={() =>
+                    handleDefenderPositionPress(NinePositionValue, "CB")
+                  }
+                  style={{}}
+                ></Defender>
+                <Defender
+                  onPress={() =>
+                    handleDefenderPositionPress(TenPositionValue, "RCB")
+                  }
+                  style={{ marginRight: 25, marginBottom: 15 }}
+                ></Defender>
+              </ViewForDefender>
+              <ViewForGoalkeeper>
+                <Goalkeeper
+                  onPress={() =>
+                    handleGoalkeeperPositionPress(ElevenPositionValue, "GK")
+                  }
+                  style={{ marginTop: 25 }}
+                ></Goalkeeper>
+              </ViewForGoalkeeper>
+            </TestView>
+          )}
+          {selectedFormation === "3-2-4-1" && (
+            <TestView>
+              <ViewForForward>
+                <Forward
+                  onPress={() =>
+                    handleAttackerPositionPress(OnePositionValue, "ST")
+                  }
+                  style={{ marginBottom: 60 }}
+                ></Forward>
+              </ViewForForward>
+              <SecondViewForMidfielder style={{ height: "20%" }}>
+                <Midfielder
+                  onPress={() =>
+                    handleMidfielderPositionPress(TwoPositionValue, "LM")
+                  }
+                  style={{ marginBottom: 15 }}
+                ></Midfielder>
+                <Midfielder
+                  onPress={() =>
+                    handleMidfielderPositionPress(ThreePositionValue, "LAM")
+                  }
+                  style={{ marginBottom: 15 }}
+                ></Midfielder>
+                <Midfielder
+                  onPress={() =>
+                    handleMidfielderPositionPress(FourPositionValue, "RAM")
+                  }
+                  style={{ marginBottom: 15 }}
+                ></Midfielder>
+                <Midfielder
+                  onPress={() =>
+                    handleMidfielderPositionPress(FivePositionValue, "RM")
+                  }
+                  style={{ marginBottom: 15 }}
+                ></Midfielder>
+              </SecondViewForMidfielder>
+              <ViewForMidfielder style={{ height: "20%" }}>
+                <Midfielder
+                  onPress={() =>
+                    handleMidfielderPositionPress(SixPositionValue, "RDM")
+                  }
+                  style={{ marginLeft: 75 }}
+                ></Midfielder>
+                <Midfielder
+                  onPress={() =>
+                    handleMidfielderPositionPress(SevenPositionValue, "LDM")
+                  }
+                  style={{ marginRight: 75 }}
+                ></Midfielder>
+              </ViewForMidfielder>
+              <ViewForDefender>
+                <Defender
+                  onPress={() =>
+                    handleDefenderPositionPress(EightPositionValue, "LCB")
+                  }
+                  style={{ marginLeft: 25, marginBottom: 15 }}
+                ></Defender>
+                <Defender
+                  onPress={() =>
+                    handleDefenderPositionPress(NinePositionValue, "CB")
+                  }
+                  style={{ marginTop: 15 }}
+                ></Defender>
+                <Defender
+                  onPress={() =>
+                    handleDefenderPositionPress(TenPositionValue, "RCB")
+                  }
+                  style={{ marginRight: 25, marginBottom: 15 }}
+                ></Defender>
+              </ViewForDefender>
+              <ViewForGoalkeeper>
+                <Goalkeeper
+                  onPress={() =>
+                    handleGoalkeeperPositionPress(ElevenPositionValue, "GK")
+                  }
+                  style={{ marginTop: 25 }}
+                ></Goalkeeper>
+              </ViewForGoalkeeper>
+            </TestView>
+          )}
+        </ViewForBoard>
+      </ViewForTacticBoard>
+      <ViewForSlideTactic>
+        <TacticBox isMain={isMainTactic}>
+          <Title>{isMainTactic ? "메인전술" : "세부전술"}</Title>
+          <TextBox
+            multiline={true}
+            onChangeText={
+              isMainTactic ? handleChangeMainText : handleChangeSubText
+            }
+            value={isMainTactic ? mainText : subText}
+            placeholder="내용을 입력하세요..."
+            textAlignVertical="top"
+            style={{ paddingTop: 10 }}
+            placeholderTextColor="white"
             editable={false} // TextInput을 수정 불가능하게 설정
             pointerEvents="none" // 모든 터치 이벤트 차단
           />
-          <BouncyCheckbox
-            size={20}
-            fillColor="black"
-            unfillColor="#FFFFFF"
-            text="익명"
-            iconStyle={{ borderColor: "black" }}
-            textStyle={{
-              fontFamily: "JosefinSans-Regular",
-              textDecorationLine: "none",
-            }}
-            style={{ marginLeft: 125 }}
-            isChecked={anonymous} // 체크박스가 anonymous 값에 따라 체크됨
-            onPress={() => {}} // 빈 함수를 전달하여 터치 이벤트 무시
-            disableBuiltInState={true} // 내장된 상태 변경 비활성화
-            disabled={true} // 체크박스를 비활성화 상태로 만듦
-          />
-        </ViewForTextBar>
-        <ViewForTacticBoard>
-          <ViewForDropdown>
-            <TacticName
-              value={selectedFormation}
-              editable={false} // TextInput을 수정 불가능하게 설정
-              pointerEvents="none"
-            ></TacticName>
-          </ViewForDropdown>
-          <ViewForBoard>
-            <TacticsBackImage source={TacticsBack} resizeMode={"stretch"} />
-            <Modal // 공격수 모달
-              animationType="slide"
-              visible={isAttackerModalVisible}
-              transparent={true}
-            >
-              <ContainerModalView
-                onPress={() => setIsAttackerModalVisible(false)}
-              >
-                <ModalView style={{ borderColor: "#ff6262" }}>
-                  <ViewforModalPosition>
-                    <TextForModalPosition
-                      editable={false} // TextInput을 수정 불가능하게 설정
-                      pointerEvents="none" // 모든 터치 이벤트 차단
-                      numberOfLines={1}
-                      value={DetailPositionplaceholder}
-                      maxLenth={10}
-                      placeholder="포지션 입력"
-                      onChangeText={(newText) =>
-                        setDetailPositionplaceholder(newText)
-                      }
-                      placeholderTextColor="#ff6262"
-                    ></TextForModalPosition>
-                  </ViewforModalPosition>
-
-                  <ViewforModalText>
-                    <TextInputforModalTactics
-                      editable={false} // TextInput을 수정 불가능하게 설정
-                      pointerEvents="none" // 모든 터치 이벤트 차단
-                      multiline
-                      numberOfLines={3}
-                      value={DetailTacticsplaceholder}
-                      maxLength={100}
-                      placeholder="세부 전술을 입력하세요."
-                      onChangeText={(newText) =>
-                        setDetailTacticsplaceholder(newText)
-                      }
-                      placeholderTextColor="#ff6262"
-                    ></TextInputforModalTactics>
-                  </ViewforModalText>
-                  <ViewforModalOutButton>
-                    <TouchForOutButton
-                      onPress={() => setIsAttackerModalVisible(false)}
-                    >
-                      <TextForOutButton>확인</TextForOutButton>
-                    </TouchForOutButton>
-                  </ViewforModalOutButton>
-                </ModalView>
-              </ContainerModalView>
-            </Modal>
-            <Modal // 미드필더 모달
-              animationType="slide"
-              visible={isMidfielderModalVisible}
-              transparent={true}
-            >
-              <ContainerModalView
-                onPress={() => setIsMidfielderModalVisible(false)}
-              >
-                <ModalView style={{ borderColor: "#5182FF" }}>
-                  <ViewforModalPosition>
-                    <TextForModalPosition
-                      editable={false} // TextInput을 수정 불가능하게 설정
-                      pointerEvents="none" // 모든 터치 이벤트 차단
-                      numberOfLines={1}
-                      value={DetailPositionplaceholder}
-                      maxLenth={10}
-                      placeholder="포지션 입력"
-                      onChangeText={(newText) =>
-                        setDetailPositionplaceholder(newText)
-                      }
-                      placeholderTextColor="#5182FF"
-                      style={{ color: "#5182FF" }}
-                    ></TextForModalPosition>
-                  </ViewforModalPosition>
-
-                  <ViewforModalText>
-                    <TextInputforModalTactics
-                      editable={false} // TextInput을 수정 불가능하게 설정
-                      pointerEvents="none" // 모든 터치 이벤트 차단
-                      multiline
-                      numberOfLines={3}
-                      value={DetailTacticsplaceholder}
-                      maxLength={100}
-                      placeholder="세부 전술을 입력하세요."
-                      onChangeText={(newText) =>
-                        setDetailTacticsplaceholder(newText)
-                      }
-                      placeholderTextColor="#5182FF"
-                      style={{ color: "#5182FF" }}
-                    ></TextInputforModalTactics>
-                  </ViewforModalText>
-                  <ViewforModalOutButton>
-                    <TouchForOutButton
-                      style={{ backgroundColor: "#5182FF" }}
-                      onPress={() => setIsMidfielderModalVisible(false)}
-                    >
-                      <TextForOutButton>확인</TextForOutButton>
-                    </TouchForOutButton>
-                  </ViewforModalOutButton>
-                </ModalView>
-              </ContainerModalView>
-            </Modal>
-            <Modal // 수비수 모달
-              animationType="slide"
-              visible={isDefenderModalVisible}
-              transparent={true}
-            >
-              <ContainerModalView
-                onPress={() => setIsDefenderModalVisible(false)}
-              >
-                <ModalView style={{ borderColor: "#6CD163" }}>
-                  <ViewforModalPosition>
-                    <TextForModalPosition
-                      editable={false} // TextInput을 수정 불가능하게 설정
-                      pointerEvents="none" // 모든 터치 이벤트 차단
-                      numberOfLines={1}
-                      value={DetailPositionplaceholder}
-                      maxLenth={10}
-                      placeholder="포지션 입력"
-                      onChangeText={(newText) =>
-                        setDetailPositionplaceholder(newText)
-                      }
-                      placeholderTextColor="#6CD163"
-                      style={{ color: "#6CD163" }}
-                    ></TextForModalPosition>
-                  </ViewforModalPosition>
-
-                  <ViewforModalText>
-                    <TextInputforModalTactics
-                      editable={false} // TextInput을 수정 불가능하게 설정
-                      pointerEvents="none" // 모든 터치 이벤트 차단
-                      multiline
-                      numberOfLines={3}
-                      value={DetailTacticsplaceholder}
-                      maxLength={100}
-                      placeholder="세부 전술을 입력하세요."
-                      onChangeText={(newText) =>
-                        setDetailTacticsplaceholder(newText)
-                      }
-                      placeholderTextColor="#6CD163"
-                      style={{ color: "#6CD163" }}
-                    ></TextInputforModalTactics>
-                  </ViewforModalText>
-                  <ViewforModalOutButton>
-                    <TouchForOutButton
-                      style={{ backgroundColor: "#6CD163" }}
-                      onPress={() => setIsDefenderModalVisible(false)}
-                    >
-                      <TextForOutButton>확인</TextForOutButton>
-                    </TouchForOutButton>
-                  </ViewforModalOutButton>
-                </ModalView>
-              </ContainerModalView>
-            </Modal>
-            <Modal // 골키퍼 모달
-              animationType="slide"
-              visible={isGKModalVisible}
-              transparent={true}
-            >
-              <ContainerModalView onPress={() => setIsGKModalVisible(false)}>
-                <ModalView style={{ borderColor: "#FFB056" }}>
-                  <ViewforModalPosition>
-                    <TextForModalPosition
-                      editable
-                      numberOfLines={1}
-                      value={DetailPositionplaceholder}
-                      maxLenth={10}
-                      placeholder="포지션 입력"
-                      onChangeText={(newText) =>
-                        setDetailPositionplaceholder(newText)
-                      }
-                      placeholderTextColor="#FFB056"
-                      style={{ color: "#FFB056" }}
-                    ></TextForModalPosition>
-                  </ViewforModalPosition>
-
-                  <ViewforModalText>
-                    <TextInputforModalTactics
-                      editable
-                      multiline
-                      numberOfLines={3}
-                      value={DetailTacticsplaceholder}
-                      maxLength={100}
-                      placeholder="세부 전술을 입력하세요."
-                      onChangeText={(newText) =>
-                        setDetailTacticsplaceholder(newText)
-                      }
-                      placeholderTextColor="#FFB056"
-                      style={{ color: "#FFB056" }}
-                    ></TextInputforModalTactics>
-                  </ViewforModalText>
-                  <ViewforModalOutButton>
-                    <TouchForOutButton
-                      style={{ backgroundColor: "#FFB056" }}
-                      onPress={() => setIsGKModalVisible(false)}
-                    >
-                      <TextForOutButton>확인</TextForOutButton>
-                    </TouchForOutButton>
-                  </ViewforModalOutButton>
-                </ModalView>
-              </ContainerModalView>
-            </Modal>
-            {selectedFormation === "4-4-2" && (
-              <TestView>
-                <ViewForForward>
-                  <Forward
-                    style={{ marginTop: 70 }}
-                    onPress={() =>
-                      handleAttackerPositionPress(OnePositionValue, "LS")
-                    }
-                  ></Forward>
-                  <Forward
-                    style={{ marginTop: 70 }}
-                    onPress={() =>
-                      handleAttackerPositionPress(TwoPositionValue, "RS")
-                    }
-                  ></Forward>
-                </ViewForForward>
-                <ViewForMidfielder>
-                  <Midfielder
-                    onPress={() =>
-                      handleMidfielderPositionPress(ThreePositionValue, "LM")
-                    }
-                  ></Midfielder>
-                  <Midfielder
-                    onPress={() =>
-                      handleMidfielderPositionPress(FourPositionValue, "LCM")
-                    }
-                    style={{ marginTop: 25 }}
-                  ></Midfielder>
-                  <Midfielder
-                    onPress={() =>
-                      handleMidfielderPositionPress(FivePositionValue, "RCM")
-                    }
-                    style={{ marginTop: 25 }}
-                  ></Midfielder>
-                  <Midfielder
-                    onPress={() =>
-                      handleMidfielderPositionPress(SixPositionValue, "RM")
-                    }
-                  ></Midfielder>
-                </ViewForMidfielder>
-                <ViewForDefender>
-                  <Defender
-                    onPress={() =>
-                      handleDefenderPositionPress(SevenPositionValue, "LB")
-                    }
-                  ></Defender>
-                  <Defender
-                    onPress={() =>
-                      handleDefenderPositionPress(EightPositionValue, "LCB")
-                    }
-                    style={{ marginTop: 25 }}
-                  ></Defender>
-                  <Defender
-                    onPress={() =>
-                      handleDefenderPositionPress(NinePositionValue, "RCB")
-                    }
-                    style={{ marginTop: 25 }}
-                  ></Defender>
-                  <Defender
-                    onPress={() =>
-                      handleDefenderPositionPress(TenPositionValue, "RB")
-                    }
-                  ></Defender>
-                </ViewForDefender>
-                <ViewForGoalkeeper>
-                  <Goalkeeper
-                    onPress={() =>
-                      handleGoalkeeperPositionPress(ElevenPositionValue, "GK")
-                    }
-                    style={{ marginTop: 25 }}
-                  ></Goalkeeper>
-                </ViewForGoalkeeper>
-              </TestView>
-            )}
-            {selectedFormation === "4-3-3" && (
-              <TestView>
-                <ViewForForward style={{ justifyContent: "space-around" }}>
-                  <Forward
-                    onPress={() =>
-                      handleAttackerPositionPress(OnePositionValue, "LW")
-                    }
-                    style={{ marginTop: 80 }}
-                  ></Forward>
-                  <Forward
-                    onPress={() =>
-                      handleAttackerPositionPress(TwoPositionValue, "ST")
-                    }
-                    style={{ marginBottom: 60 }}
-                  ></Forward>
-                  <Forward
-                    onPress={() =>
-                      handleAttackerPositionPress(ThreePositionValue, "RW")
-                    }
-                    style={{ marginTop: 80 }}
-                  ></Forward>
-                </ViewForForward>
-                <ViewForMidfielder>
-                  <Midfielder
-                    onPress={() =>
-                      handleMidfielderPositionPress(FourPositionValue, "LCM")
-                    }
-                    style={{ marginLeft: 45 }}
-                  ></Midfielder>
-                  <Midfielder
-                    onPress={() =>
-                      handleMidfielderPositionPress(FivePositionValue, "CM")
-                    }
-                    style={{ marginTop: 50 }}
-                  ></Midfielder>
-                  <Midfielder
-                    onPress={() =>
-                      handleMidfielderPositionPress(SixPositionValue, "RCM")
-                    }
-                    style={{ marginRight: 45 }}
-                  ></Midfielder>
-                </ViewForMidfielder>
-                <ViewForDefender>
-                  <Defender
-                    onPress={() =>
-                      handleDefenderPositionPress(SevenPositionValue, "LB")
-                    }
-                    style={{ marginTop: 15 }}
-                  ></Defender>
-                  <Defender
-                    onPress={() =>
-                      handleDefenderPositionPress(EightPositionValue, "LCB")
-                    }
-                    style={{ marginTop: 35 }}
-                  ></Defender>
-                  <Defender
-                    onPress={() =>
-                      handleDefenderPositionPress(NinePositionValue, "RCB")
-                    }
-                    style={{ marginTop: 35 }}
-                  ></Defender>
-                  <Defender
-                    onPress={() =>
-                      handleDefenderPositionPress(TenPositionValue, "RB")
-                    }
-                    style={{ marginTop: 15 }}
-                  ></Defender>
-                </ViewForDefender>
-                <ViewForGoalkeeper>
-                  <Goalkeeper
-                    onPress={() =>
-                      handleGoalkeeperPositionPress(ElevenPositionValue, "GK")
-                    }
-                    style={{ marginTop: 30 }}
-                  ></Goalkeeper>
-                </ViewForGoalkeeper>
-              </TestView>
-            )}
-            {selectedFormation === "4-3-2-1" && (
-              <TestView>
-                <ViewForForward>
-                  <Forward
-                    onPress={() =>
-                      handleAttackerPositionPress(OnePositionValue, "ST")
-                    }
-                    style={{ marginBottom: 60 }}
-                  ></Forward>
-                </ViewForForward>
-                <SecondViewForMidfielder style={{ height: "20%" }}>
-                  <Midfielder
-                    style={{ marginBottom: 20, marginLeft: 60 }}
-                    onPress={() =>
-                      handleMidfielderPositionPress(TwoPositionValue, "LAM")
-                    }
-                  ></Midfielder>
-                  <Midfielder
-                    style={{ marginBottom: 20, marginRight: 60 }}
-                    onPress={() =>
-                      handleMidfielderPositionPress(ThreePositionValue, "RAM")
-                    }
-                  ></Midfielder>
-                </SecondViewForMidfielder>
-                <ViewForMidfielder style={{ height: "20%" }}>
-                  <Midfielder
-                    onPress={() =>
-                      handleMidfielderPositionPress(FourPositionValue, "LCM")
-                    }
-                    style={{ marginLeft: 15 }}
-                  ></Midfielder>
-                  <Midfielder
-                    onPress={() =>
-                      handleMidfielderPositionPress(FivePositionValue, "CM")
-                    }
-                    style={{}}
-                  ></Midfielder>
-                  <Midfielder
-                    onPress={() =>
-                      handleMidfielderPositionPress(SixPositionValue, "RCM")
-                    }
-                    style={{ marginRight: 15 }}
-                  ></Midfielder>
-                </ViewForMidfielder>
-                <ViewForDefender>
-                  <Defender
-                    onPress={() =>
-                      handleDefenderPositionPress(SevenPositionValue, "LB")
-                    }
-                    style={{ marginTop: 30 }}
-                  ></Defender>
-                  <Defender
-                    onPress={() =>
-                      handleDefenderPositionPress(EightPositionValue, "LCB")
-                    }
-                    style={{ marginTop: 50 }}
-                  ></Defender>
-                  <Defender
-                    onPress={() =>
-                      handleDefenderPositionPress(NinePositionValue, "RCB")
-                    }
-                    style={{ marginTop: 50 }}
-                  ></Defender>
-                  <Defender
-                    onPress={() =>
-                      handleDefenderPositionPress(TenPositionValue, "RB")
-                    }
-                    style={{ marginTop: 30 }}
-                  ></Defender>
-                </ViewForDefender>
-                <ViewForGoalkeeper>
-                  <Goalkeeper
-                    onPress={() =>
-                      handleGoalkeeperPositionPress(ElevenPositionValue, "GK")
-                    }
-                    style={{ marginTop: 25 }}
-                  ></Goalkeeper>
-                </ViewForGoalkeeper>
-              </TestView>
-            )}
-            {selectedFormation === "4-2-3-1" && (
-              <TestView>
-                <ViewForForward>
-                  <Forward
-                    onPress={() =>
-                      handleAttackerPositionPress(OnePositionValue, "ST")
-                    }
-                    style={{ marginBottom: 60 }}
-                  ></Forward>
-                </ViewForForward>
-                <SecondViewForMidfielder style={{ height: "20%" }}>
-                  <Midfielder
-                    onPress={() =>
-                      handleMidfielderPositionPress(TwoPositionValue, "LAM")
-                    }
-                    style={{ marginBottom: 10, marginLeft: 5 }}
-                  ></Midfielder>
-                  <Midfielder
-                    onPress={() =>
-                      handleMidfielderPositionPress(ThreePositionValue, "CAM")
-                    }
-                    style={{ marginBottom: 10 }}
-                  ></Midfielder>
-                  <Midfielder
-                    onPress={() =>
-                      handleMidfielderPositionPress(FourPositionValue, "RAM")
-                    }
-                    style={{ marginBottom: 10, marginRight: 5 }}
-                  ></Midfielder>
-                </SecondViewForMidfielder>
-                <ViewForMidfielder style={{ height: "20%" }}>
-                  <Midfielder
-                    onPress={() =>
-                      handleMidfielderPositionPress(FivePositionValue, "LDM")
-                    }
-                    style={{ marginLeft: 55 }}
-                  ></Midfielder>
-                  <Midfielder
-                    onPress={() =>
-                      handleMidfielderPositionPress(SixPositionValue, "RDM")
-                    }
-                    style={{ marginRight: 55 }}
-                  ></Midfielder>
-                </ViewForMidfielder>
-                <ViewForDefender>
-                  <Defender
-                    onPress={() =>
-                      handleDefenderPositionPress(SevenPositionValue, "LB")
-                    }
-                    style={{ marginTop: 15 }}
-                  ></Defender>
-                  <Defender
-                    onPress={() =>
-                      handleDefenderPositionPress(EightPositionValue, "LCB")
-                    }
-                    style={{ marginTop: 35 }}
-                  ></Defender>
-                  <Defender
-                    onPress={() =>
-                      handleDefenderPositionPress(NinePositionValue, "RCB")
-                    }
-                    style={{ marginTop: 35 }}
-                  ></Defender>
-                  <Defender
-                    onPress={() =>
-                      handleDefenderPositionPress(TenPositionValue, "RB")
-                    }
-                    style={{ marginTop: 15 }}
-                  ></Defender>
-                </ViewForDefender>
-                <ViewForGoalkeeper>
-                  <Goalkeeper
-                    onPress={() =>
-                      handleGoalkeeperPositionPress(ElevenPositionValue, "GK")
-                    }
-                    style={{ marginTop: 25 }}
-                  ></Goalkeeper>
-                </ViewForGoalkeeper>
-              </TestView>
-            )}
-            {selectedFormation === "3-4-3" && (
-              <TestView>
-                <ViewForForward style={{ justifyContent: "space-around" }}>
-                  <Forward
-                    style={{ marginTop: 80 }}
-                    onPress={() =>
-                      handleAttackerPositionPress(OnePositionValue, "LW")
-                    }
-                  ></Forward>
-                  <Forward
-                    onPress={() =>
-                      handleAttackerPositionPress(TwoPositionValue, "ST")
-                    }
-                    style={{ marginTop: 20 }}
-                  ></Forward>
-                  <Forward
-                    style={{ marginTop: 80 }}
-                    onPress={() =>
-                      handleAttackerPositionPress(ThreePositionValue, "RW")
-                    }
-                  ></Forward>
-                </ViewForForward>
-                <ViewForMidfielder>
-                  <Midfielder
-                    style={{ marginTop: 25 }}
-                    onPress={() =>
-                      handleMidfielderPositionPress(FourPositionValue, "LM")
-                    }
-                  ></Midfielder>
-                  <Midfielder
-                    onPress={() =>
-                      handleMidfielderPositionPress(FivePositionValue, "LCM")
-                    }
-                    style={{ marginTop: 45 }}
-                  ></Midfielder>
-                  <Midfielder
-                    onPress={() =>
-                      handleMidfielderPositionPress(SixPositionValue, "RCM")
-                    }
-                    style={{ marginTop: 45 }}
-                  ></Midfielder>
-                  <Midfielder
-                    style={{ marginTop: 25 }}
-                    onPress={() =>
-                      handleMidfielderPositionPress(SevenPositionValue, "RM")
-                    }
-                  ></Midfielder>
-                </ViewForMidfielder>
-                <ViewForDefender>
-                  <Defender
-                    onPress={() =>
-                      handleDefenderPositionPress(EightPositionValue, "LCB")
-                    }
-                    style={{ marginLeft: 25, marginBottom: 15 }}
-                  ></Defender>
-                  <Defender
-                    onPress={() =>
-                      handleDefenderPositionPress(NinePositionValue, "CB")
-                    }
-                    style={{}}
-                  ></Defender>
-                  <Defender
-                    onPress={() =>
-                      handleDefenderPositionPress(TenPositionValue, "RCB")
-                    }
-                    style={{ marginRight: 25, marginBottom: 15 }}
-                  ></Defender>
-                </ViewForDefender>
-                <ViewForGoalkeeper>
-                  <Goalkeeper
-                    onPress={() =>
-                      handleGoalkeeperPositionPress(ElevenPositionValue, "GK")
-                    }
-                    style={{ marginTop: 25 }}
-                  ></Goalkeeper>
-                </ViewForGoalkeeper>
-              </TestView>
-            )}
-            {selectedFormation === "3-5-2" && (
-              <TestView>
-                <ViewForForward>
-                  <Forward
-                    onPress={() =>
-                      handleAttackerPositionPress(OnePositionValue, "LS")
-                    }
-                  ></Forward>
-                  <Forward
-                    onPress={() =>
-                      handleAttackerPositionPress(TwoPositionValue, "RS")
-                    }
-                  ></Forward>
-                </ViewForForward>
-                <SecondViewForMidfielder
-                  style={{ justifyContent: "space-between", height: "20%" }}
-                >
-                  <Midfielder
-                    onPress={() =>
-                      handleMidfielderPositionPress(ThreePositionValue, "CAM")
-                    }
-                    style={{ marginLeft: 20, marginTop: 70 }}
-                  ></Midfielder>
-                  <Midfielder
-                    onPress={() =>
-                      handleMidfielderPositionPress(FourPositionValue, "LM")
-                    }
-                    style={{ marginTop: 10 }}
-                  ></Midfielder>
-                  <Midfielder
-                    onPress={() =>
-                      handleMidfielderPositionPress(FivePositionValue, "RM")
-                    }
-                    style={{ marginRight: 20, marginTop: 70 }}
-                  ></Midfielder>
-                </SecondViewForMidfielder>
-                <ViewForMidfielder style={{ height: "20%" }}>
-                  <Midfielder
-                    onPress={() =>
-                      handleMidfielderPositionPress(SixPositionValue, "RCM")
-                    }
-                    style={{ marginLeft: 60 }}
-                  ></Midfielder>
-                  <Midfielder
-                    onPress={() =>
-                      handleMidfielderPositionPress(SevenPositionValue, "LCM")
-                    }
-                    style={{ marginRight: 60 }}
-                  ></Midfielder>
-                </ViewForMidfielder>
-                <ViewForDefender>
-                  <Defender
-                    onPress={() =>
-                      handleDefenderPositionPress(EightPositionValue, "LCB")
-                    }
-                    style={{ marginLeft: 25, marginBottom: 15 }}
-                  ></Defender>
-                  <Defender
-                    onPress={() =>
-                      handleDefenderPositionPress(NinePositionValue, "CB")
-                    }
-                    style={{}}
-                  ></Defender>
-                  <Defender
-                    onPress={() =>
-                      handleDefenderPositionPress(TenPositionValue, "RCB")
-                    }
-                    style={{ marginRight: 25, marginBottom: 15 }}
-                  ></Defender>
-                </ViewForDefender>
-                <ViewForGoalkeeper>
-                  <Goalkeeper
-                    onPress={() =>
-                      handleGoalkeeperPositionPress(ElevenPositionValue, "GK")
-                    }
-                    style={{ marginTop: 25 }}
-                  ></Goalkeeper>
-                </ViewForGoalkeeper>
-              </TestView>
-            )}
-            {selectedFormation === "3-2-4-1" && (
-              <TestView>
-                <ViewForForward>
-                  <Forward
-                    onPress={() =>
-                      handleAttackerPositionPress(OnePositionValue, "ST")
-                    }
-                    style={{ marginBottom: 60 }}
-                  ></Forward>
-                </ViewForForward>
-                <SecondViewForMidfielder style={{ height: "20%" }}>
-                  <Midfielder
-                    onPress={() =>
-                      handleMidfielderPositionPress(TwoPositionValue, "LM")
-                    }
-                    style={{ marginBottom: 15 }}
-                  ></Midfielder>
-                  <Midfielder
-                    onPress={() =>
-                      handleMidfielderPositionPress(ThreePositionValue, "LAM")
-                    }
-                    style={{ marginBottom: 15 }}
-                  ></Midfielder>
-                  <Midfielder
-                    onPress={() =>
-                      handleMidfielderPositionPress(FourPositionValue, "RAM")
-                    }
-                    style={{ marginBottom: 15 }}
-                  ></Midfielder>
-                  <Midfielder
-                    onPress={() =>
-                      handleMidfielderPositionPress(FivePositionValue, "RM")
-                    }
-                    style={{ marginBottom: 15 }}
-                  ></Midfielder>
-                </SecondViewForMidfielder>
-                <ViewForMidfielder style={{ height: "20%" }}>
-                  <Midfielder
-                    onPress={() =>
-                      handleMidfielderPositionPress(SixPositionValue, "RDM")
-                    }
-                    style={{ marginLeft: 75 }}
-                  ></Midfielder>
-                  <Midfielder
-                    onPress={() =>
-                      handleMidfielderPositionPress(SevenPositionValue, "LDM")
-                    }
-                    style={{ marginRight: 75 }}
-                  ></Midfielder>
-                </ViewForMidfielder>
-                <ViewForDefender>
-                  <Defender
-                    onPress={() =>
-                      handleDefenderPositionPress(EightPositionValue, "LCB")
-                    }
-                    style={{ marginLeft: 25, marginBottom: 15 }}
-                  ></Defender>
-                  <Defender
-                    onPress={() =>
-                      handleDefenderPositionPress(NinePositionValue, "CB")
-                    }
-                    style={{ marginTop: 15 }}
-                  ></Defender>
-                  <Defender
-                    onPress={() =>
-                      handleDefenderPositionPress(TenPositionValue, "RCB")
-                    }
-                    style={{ marginRight: 25, marginBottom: 15 }}
-                  ></Defender>
-                </ViewForDefender>
-                <ViewForGoalkeeper>
-                  <Goalkeeper
-                    onPress={() =>
-                      handleGoalkeeperPositionPress(ElevenPositionValue, "GK")
-                    }
-                    style={{ marginTop: 25 }}
-                  ></Goalkeeper>
-                </ViewForGoalkeeper>
-              </TestView>
-            )}
-          </ViewForBoard>
-        </ViewForTacticBoard>
-        <ViewForSlideTactic>
-          <TacticBox isMain={isMainTactic}>
-            <Title>{isMainTactic ? "메인전술" : "세부전술"}</Title>
-            <TextBox
-              multiline={true}
-              onChangeText={
-                isMainTactic ? handleChangeMainText : handleChangeSubText
-              }
-              value={isMainTactic ? mainText : subText}
-              placeholder="내용을 입력하세요..."
-              textAlignVertical="top"
-              style={{ paddingTop: 10 }}
-              placeholderTextColor="white"
-              editable={false} // TextInput을 수정 불가능하게 설정
-              pointerEvents="none" // 모든 터치 이벤트 차단
-            />
-            <ToggleButton onPress={handleToggleTactic}>
-              <FontAwesome5 name="exchange-alt" size={20} color="white" />
-            </ToggleButton>
-          </TacticBox>
-        </ViewForSlideTactic>
-
-        <ViewForCommentData>
-          <FontAwesome5 name="thumbs-up" size={16} color="tomato" />
-          <ThumbsUpNumber>6</ThumbsUpNumber>
-          <FontAwesome5 name="comment-dots" size={16} color="blue" />
-          <ChatBubbleNumber>6</ChatBubbleNumber>
-          <ThumbsUpButton onPress={() => console.log("thumbsup")}>
-            <ThumbsUpIcon name="thumbs-up" size={16} color="white" />
-            <ButtonText>따봉</ButtonText>
-          </ThumbsUpButton>
-
-          <TakeTacticButton onPress={() => console.log("taketactic")}>
-            <ButtonText>가져가기</ButtonText>
-          </TakeTacticButton>
-        </ViewForCommentData>
-
-        <ViewForLine>
-          <Line></Line>
-        </ViewForLine>
-
-        <ViewForFlatList>
-          <FlatList
-            data={data}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.id}
-          />
-        </ViewForFlatList>
-      </StyledScrollView>
-
-      <SearchView>
-        <SearchInput
-          placeholder="댓글을 입력하세요"
-          value={searchText}
-          onChangeText={setSearchText}
+          <ToggleButton onPress={handleToggleTactic}>
+            <FontAwesome5 name="exchange-alt" size={20} color="white" />
+          </ToggleButton>
+        </TacticBox>
+      </ViewForSlideTactic>
+      <View style={[styles.bar, { marginTop: 20 }]} />
+      <View style={styles.buttonBox}>
+        <FontAwesome5
+          name="comment-dots"
+          size={16}
+          color="#fe6263"
+          marginRight={5}
         />
-        <SubmitButton onPress={() => navigation.goBack()}>
+        <Text style={{ color: "#666", fontSize: 14 }}>{data.commentCnt}</Text>
+        <View style={styles.button}>
+          <FontAwesome5
+            name="thumbs-up"
+            size={16}
+            color="#fe6263"
+            marginLeft={15}
+          />
+          <Text style={{ color: "#666", fontSize: 14 }}>{data.likeCount}</Text>
+        </View>
+        <Pressable
+          style={[styles.button, styles.likeButton]}
+          onPress={handleToggleLike}
+        >
+          <AntDesign
+            name={data.isLiked ? "heart" : "hearto"}
+            size={16}
+            color={data.isLiked ? "#fe6263" : "#666"}
+            marginLeft={235}
+          />
+          <Text style={{ color: "#666", fontSize: 12, marginLeft: 0 }}>
+            좋아요
+          </Text>
+        </Pressable>
+      </View>
+      data={data.comments}
+      ListEmptyComponent=
+      {
+        <View style={{ padding: 20, alignItems: "center" }}>
+          <Text>댓글이 없습니다.</Text>
+        </View>
+      }
+      renderItem={renderCommentItem}
+      keyExtractor={(item) => `comment-${item.commentId}`}
+      <View style={styles.commentInputContainer}>
+        <TextInput
+          placeholder={
+            replyingTo ? "대댓글을 입력하세요." : "댓글을 입력하세요."
+          }
+          style={styles.commentInput}
+          value={commentText}
+          onChangeText={setCommentText}
+        />
+        <Pressable style={styles.sendButton} onPress={handlePressSendComment}>
           <Entypo name="triangle-right" size={24} color="tomato" />
-        </SubmitButton>
-      </SearchView>
-    </Container>
+        </Pressable>
+        {replyingTo && (
+          <Pressable
+            style={styles.cancelReplyButton}
+            onPress={() => {
+              setReplyingTo(null);
+              setCommentText("");
+            }}
+          >
+            <Text style={styles.cancelReplyText}>취소</Text>
+          </Pressable>
+        )}
+      </View>
+    </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  input: {
+    fontSize: 17,
+    height: 30,
+    fontWeight: "bold",
+  },
+  inputContainer: {
+    width: "30%",
+    alignItems: "center",
+  },
+  commentBox: {
+    flex: 1,
+    backgroundColor: "#fff",
+    padding: 20,
+    borderBottomColor: "#eee",
+    borderBottomWidth: 1,
+    borderRadius: 10,
+  },
+  reCommentBox: {
+    marginLeft: 20,
+    borderLeftWidth: 1,
+    borderLeftColor: "#ddd",
+  },
+  commentHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  commentButtons: {
+    flexDirection: "row",
+  },
+  replyButton: {
+    padding: 5,
+    marginRight: 5,
+  },
+  moreButton: {
+    padding: 5,
+  },
+  replymoreButton: {
+    padding: 5,
+    marginRight: -20,
+  },
+  replyInputContainer: {
+    flexDirection: "row",
+    marginTop: 10,
+  },
+  replyInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 5,
+    padding: 5,
+  },
+  sendReplyButton: {
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 5,
+    marginLeft: 5,
+    backgroundColor: "#fe6263",
+    borderRadius: 5,
+  },
+  contents: {
+    fontSize: 14,
+    lineHeight: 18,
+    color: "#666",
+    marginTop: 8,
+  },
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  itemContainer: {
+    backgroundColor: "#fff",
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
+    flexDirection: "column",
+    gap: 8,
+  },
+  categoryBox: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 4,
+    marginTop: 12,
+  },
+  categoryText: {
+    fontSize: 12,
+  },
+  categoryItem: {
+    padding: 4,
+    backgroundColor: "#f1f1f1",
+    borderRadius: 4,
+  },
+  title: {
+    fontSize: 14,
+  },
+  buttonBox: {
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    marginTop: 12,
+  },
+  bar: {
+    width: "100%",
+    height: 1,
+    backgroundColor: "#ddd",
+  },
+  button: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+  },
+  imageBox: {
+    flexDirection: "row",
+    gap: 4,
+    marginTop: 12,
+  },
+  image: {
+    borderRadius: 12,
+    overflow: "hidden",
+    width: 160,
+    height: 160,
+  },
+  userInfoBox: {
+    flexDirection: "row",
+    gap: 12,
+    alignItems: "center",
+  },
+  userInfoImageBox: {
+    width: 30,
+    height: 30,
+    borderRadius: 20,
+    borderWidth: 1,
+    overflow: "hidden",
+    borderColor: "#ddd",
+  },
+  userInfoImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 20,
+  },
+  userInfoText: {
+    fontSize: 14,
+  },
+  commentInput: {
+    backgroundColor: "#fff",
+    padding: 20,
+    fontSize: 14,
+    flex: 1,
+    borderColor: "black",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  commentInputContainer: {
+    backgroundColor: "#fff",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    borderTopColor: "#ddd",
+    borderTopWidth: 1,
+  },
+  sendButton: {
+    padding: 20,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.8)", // 배경을 어둡게 설정
+  },
+  modalImage: {
+    width: "90%",
+    height: "80%",
+  },
+  modalCloseButton: {
+    marginTop: 20,
+    padding: 10,
+    backgroundColor: "tomato",
+    borderRadius: 8,
+  },
+  modalCloseText: {
+    color: "#fff",
+    fontSize: 18,
+  },
+  cancelReplyButton: {
+    padding: 10,
+    marginLeft: 10,
+  },
+  cancelReplyText: {
+    color: "tomato",
+  },
+});
 
 export default TacticsDetail;
