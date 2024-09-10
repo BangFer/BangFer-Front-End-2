@@ -55,3 +55,14 @@ export const verifyTokens = async (navigation) => {
     }
   }
 };
+
+// AsyncStorage에서 토큰을 제거
+export const removeTokenFromLocal = async () => {
+  try {
+    await AsyncStorage.removeItem('Tokens');
+    console.log('Tokens removed successfully');
+  } catch (error) {
+    console.error('Error removing tokens:', error);
+    throw error;
+  }
+};
