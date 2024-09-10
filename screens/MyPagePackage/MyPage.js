@@ -8,7 +8,7 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import Feather from "@expo/vector-icons/Feather";
 import axios from "axios";
-import { verifyTokens, getTokenFromLocal } from "../LoginPackage/TokenUtils";
+import { verifyTokens, getTokenFromLocal, removeTokenFromLocal } from "../LoginPackage/TokenUtils";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useMutation } from "react-query";
 
@@ -22,6 +22,7 @@ import {
   Modal,
   FlatList,
   ToastAndroid,
+  Alert,
 } from "react-native";
 
 const Container = styled.View`
@@ -324,6 +325,43 @@ const MyPage = ({ navigation }) => {
     },
   });
 
+  const handleLogout = async () => {
+    Alert.alert(
+      "로그아웃",
+      "정말로 로그아웃 하시겠습니까?",
+      [
+        {
+          text: "취소",
+          style: "cancel"
+        },
+        {
+          text: "확인",
+          onPress: async () => {
+            try {
+              // 1. 로컬 저장소에서 토큰 삭제
+              await removeTokenFromLocal();
+              
+              // 2. 전역 상태 초기화 (React Context나 Redux를 사용중이라면 여기서 처리)
+              // 예: dispatch({ type: 'RESET_USER_STATE' });
+
+              // 3. 로그인 화면으로 네비게이션
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'Login' }],
+              });
+
+              // 로그아웃 성공 메시지 표시
+              ToastAndroid.show("로그아웃 되었습니다.", ToastAndroid.SHORT);
+            } catch (error) {
+              console.error("로그아웃 중 오류 발생:", error);
+              ToastAndroid.show("로그아웃 중 오류가 발생했습니다.", ToastAndroid.SHORT);
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const { mutate: InviteRejectMutate } = useMutation(InviteReject, {
     onSuccess: (data) => {
       // 성공 시 필요한 처리 추가
@@ -497,7 +535,7 @@ const MyPage = ({ navigation }) => {
         <TouchContent>
           <ContentText>회원 탈퇴</ContentText>
         </TouchContent>
-        <TouchContent>
+        <TouchContent onPress={handleLogout}>
           <ContentText>로그아웃</ContentText>
         </TouchContent>
       </FifthView>
