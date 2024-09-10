@@ -44,7 +44,7 @@ const ModalView = styled.View`
   height: 170px;
   margin: 30px;
   margin-bottom: 75px;
-  border-radius: 15px;
+  border-radius: 10px;
   background-color: white;
   border-width: 3px;
   border-color: black;
@@ -109,7 +109,7 @@ const TouchForNicknameInvite = styled.TouchableOpacity`
   width: 20%;
   height: 30%;
   border-radius: 5px;
-  background-color: grey;
+  background-color: #ff6262;
   align-items: center;
   justify-content: center;
   margin-bottom: 25px;
@@ -172,10 +172,11 @@ const ViewForTacticBoard = styled.View`
   width: 90%;
   height: 470px;
   margin-left: 20px;
+  margin-top: -5px;
 `;
 
 const ViewForBoard = styled.View`
-  margin-top: 5px;
+  margin-top: 10px;
   height: 420px;
 `;
 
@@ -183,11 +184,12 @@ const ViewForSlideTactic = styled.View`
   width: 100%;
   height: 150px;
   align-items: center;
+  margin-top: 5px;
 `;
 
 const TacticBox = styled.View`
-  border-radius: 15px;
-  background-color: ${({ isMain }) => (isMain ? "tomato" : "blue")};
+  border-radius: 10px;
+  background-color: ${({ isMain }) => (isMain ? "#FF6262" : "#5182FF")};
   padding: 10px;
   height: 90%; /* 높이 조정 */
   width: ${Dimensions.get("window").width -
@@ -204,14 +206,14 @@ const TextBox = styled.TextInput`
 `;
 
 const Title = styled.Text`
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 5px;
-  color: white;
+font-size: 20px;
+font-weight: bold;
+margin-bottom: 5px;
+color: white;
 `;
 
 const RegisterButton = styled.TouchableOpacity`
-  border-radius: 8px;
+  border-radius: 10px;
   width: 60px;
   height: 40px;
   background-color: #d9d9d9;
@@ -243,6 +245,8 @@ const ViewForListPlayersReal = styled.View`
   height: 370px;
   align-items: center;
   border-width: 4px;
+  border-radius : 10px;
+
 `;
 
 const ViewForFlatList = styled.View`
@@ -600,25 +604,28 @@ const TouchForPlusPlayer = styled.TouchableOpacity`
 `;
 
 const TaticsName = styled.TextInput`
-  height: 35px;
-  width: 120px;
-  border-width: 4px;
-  margin-left: 24px;
-  border-radius: 10px;
-  padding-left: 10px;
-  font-size: 17px;
-  font-weight: bold;
+height: 35px;
+width: 165px;
+border-width: 4px;
+margin-left: 24px;
+border-radius: 10px;
+padding-left: 10px;
+font-size: 17px;
+font-weight: bold;
+color: black;
 `;
 
 const DirectorName = styled.TextInput`
-  height: 35px;
-  width: 120px;
-  border-width: 4px;
-  margin-right: 24px;
-  border-radius: 10px;
-  padding-left: 10px;
-  font-size: 17px;
-  font-weight: bold;
+height: 35px;
+width: 100px;
+border-width: 4px;
+margin-right: 24px;
+border-radius: 10px;
+padding-left: 10px;
+font-size: 17px;
+font-weight: bold;
+color: black;
+text-align: left;  
 `;
 
 const TacticName = styled.TextInput`
@@ -639,10 +646,9 @@ const TacticsBackImage = styled.Image`
   z-index: -1;
 `;
 const TextForListPlayersTitle = styled.Text`
-  font-size: 28px;
-  font-weight: bold;
-  text-decoration-line: underline;
-  margin-left: 10px;
+font-size: 24px;
+font-weight: bold;
+margin-left: 10px;
 `;
 
 const InviteKaKao = async () => {
@@ -973,8 +979,8 @@ const UserPlusBanggusukTeam = ({ navigation }) => {
             alignItems: "center",
           }}
         >
-          <Text style={{ marginLeft: 25 }}>팀 이름</Text>
-          <Text style={{ marginRight: 85 }}>리더 이름</Text>
+          <Text style={{ marginLeft: 25, marginTop:5, marginBottom: -5 }}>팀명</Text>
+          <Text style={{ marginRight: 25, marginTop:5, marginBottom: -5 }}>리더명</Text>
         </View>
         <ViewForTextBar>
           <TaticsName
@@ -1865,9 +1871,6 @@ const UserPlusBanggusukTeam = ({ navigation }) => {
             justifyContent: "center",
           }}
         >
-          <RegisterButton onPress={() => navigation.navigate(BanggusukTeam)}>
-            <RegisterText>확인</RegisterText>
-          </RegisterButton>
         </View>
       </ScrollView>
     </Container>

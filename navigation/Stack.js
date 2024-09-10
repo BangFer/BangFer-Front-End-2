@@ -439,7 +439,7 @@ const StackNavigation = (navigation) => {
         <Stack.Screen
           name="ModifyBanggusukTeam"
           component={ModifyBanggusukTeam}
-          options={{ headerShown: false }}
+          options={{ headerShown: true, title: '방구석 팀 수정', headerTitleAlign: 'center' }}
         />
         <Stack.Screen
           name="MainPage"
@@ -617,6 +617,7 @@ const StackNavigation = (navigation) => {
           options={({ navigation }) => ({
             headerShown: true,
             title: '글 수정',
+            headerTitleAlign: 'center'
           })}
         />
 

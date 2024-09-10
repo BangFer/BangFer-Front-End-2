@@ -44,7 +44,7 @@ const ModalView = styled.View`
   height: 170px;
   margin: 30px;
   margin-bottom: 75px;
-  border-radius: 15px;
+  border-radius: 10px;
   background-color: white;
   border-width: 3px;
   border-color: black;
@@ -186,8 +186,8 @@ const ViewForSlideTactic = styled.View`
 `;
 
 const TacticBox = styled.View`
-  border-radius: 15px;
-  background-color: ${({ isMain }) => (isMain ? "tomato" : "blue")};
+  border-radius: 10px;
+  background-color: ${({ isMain }) => (isMain ? "#FF6262" : "#5182FF")};
   padding: 10px;
   height: 90%; /* 높이 조정 */
   width: ${Dimensions.get("window").width -
@@ -211,10 +211,10 @@ const Title = styled.Text`
 `;
 
 const RegisterButton = styled.TouchableOpacity`
-  border-radius: 8px;
+  border-radius: 5px;
   width: 60px;
   height: 40px;
-  background-color: #d9d9d9;
+  background-color: black;
   justify-content: center;
   align-items: center;
   margin-right: 25px;
@@ -222,8 +222,9 @@ const RegisterButton = styled.TouchableOpacity`
 
 const RegisterText = styled.Text`
   font-size: 20px;
-  font-weight: bold;
-  color: black;
+  color: white;
+  justify-content: center;
+
 `;
 
 const ToggleButton = styled.TouchableOpacity`
@@ -243,6 +244,7 @@ const ViewForListPlayersReal = styled.View`
   height: 370px;
   align-items: center;
   border-width: 4px;
+  border-radius : 10px;
 `;
 
 const ViewForFlatList = styled.View`
@@ -615,7 +617,7 @@ const TouchForPlusPlayer = styled.TouchableOpacity`
 
 const TaticsName = styled.TextInput`
   height: 35px;
-  width: 120px;
+  width: 165px;
   border-width: 4px;
   margin-left: 24px;
   border-radius: 10px;
@@ -626,13 +628,14 @@ const TaticsName = styled.TextInput`
 
 const DirectorName = styled.TextInput`
   height: 35px;
-  width: 120px;
+  width: 100px;
   border-width: 4px;
   margin-right: 24px;
   border-radius: 10px;
   padding-left: 10px;
   font-size: 17px;
   font-weight: bold;
+  text-align: left;  
 `;
 
 const TacticName = styled.TextInput`
@@ -653,10 +656,9 @@ const TacticsBackImage = styled.Image`
   z-index: -1;
 `;
 const TextForListPlayersTitle = styled.Text`
-  font-size: 28px;
-  font-weight: bold;
-  text-decoration-line: underline;
-  margin-left: 10px;
+font-size: 24px;
+font-weight: bold;
+margin-left: 10px;
 `;
 
 const InviteKaKao = async () => {
@@ -1163,8 +1165,8 @@ const ModifyBanggusukTeam = ({ navigation }) => {
             alignItems: "center",
           }}
         >
-          <Text style={{ marginLeft: 25 }}>팀 이름</Text>
-          <Text style={{ marginRight: 85 }}>리더 이름</Text>
+     <Text style={{ marginLeft: 25, marginTop:5, marginBottom: -5 }}>팀명</Text>
+          <Text style={{ marginRight: 25, marginTop:5, marginBottom: -5 }}>리더명</Text>
         </View>
         <ViewForTextBar>
           <TaticsName
@@ -1183,50 +1185,55 @@ const ModifyBanggusukTeam = ({ navigation }) => {
         </ViewForTextBar>
         <ViewForTacticBoard>
           <ViewForDropdown>
-            <Dropdown
-              style={{
-                backgroundColor: "#000", // 드롭다운 버튼 배경색
-                borderRadius: 5,
-                borderColor: "#fff",
-                borderWidth: 1,
-                marginBottom: 10,
-                height: 50,
-                width: "100%",
-              }}
-              placeholderStyle={{
-                color: "#fff", // 플레이스홀더 텍스트 색상
-                fontWeight: "bold",
-                paddingLeft: 15,
-              }}
-              selectedTextStyle={{
-                color: "#fff",
-                fontWeight: "bold",
-                paddingLeft: 15,
-              }}
-              itemContainerStyle={{
-                backgroundColor: "#000", // 목록 항목의 배경색을 검은색으로 변경
-                borderBottomWidth: 2, // 구분선 두께
-                borderBottomColor: "#fff", // 구분선 색상
-                fontWeight: "bold",
-              }}
-              itemTextStyle={{
-                color: "#fff",
-                // 목록 항목의 텍스트 색상
-                fontWeight: "bold",
-              }}
-              data={items}
-              labelField="label"
-              valueField="value"
-              placeholder="전술 선택"
-              value={value}
-              onChange={(item) => {
-                onChange(item.value);
-                // 선택된 항목에 따라 동작
-                setValue(item.value);
-              }}
-              onFocus={() => setOpen(true)}
-              onBlur={() => setOpen(false)}
-            />
+          <Dropdown
+  style={{
+    backgroundColor: "#1E1E1E",
+    borderRadius: 10,
+    borderColor: "#333333",
+    borderWidth: 1,
+    marginBottom: 16,
+    height: 48,
+    width: "100%",
+    elevation: 5,
+  }}
+  placeholderStyle={{
+    color: "#FFFFFF",
+    paddingLeft: 16,
+    marginLeft: -5,
+  }}
+  selectedTextStyle={{
+    color: "#FFFFFF",
+    fontSize: 16,
+    paddingLeft: 16,
+    marginLeft: -5,
+  }}
+  itemContainerStyle={{
+    backgroundColor: "#2C2C2C",
+    borderBottomWidth: 1,
+    borderBottomColor: "#333333",
+  }}
+  itemTextStyle={{
+    color: "#FFFFFF",
+    fontSize: 16,
+  }}
+  data={items}
+  labelField="label"
+  valueField="value"
+  placeholder="전술 선택"
+  value={value}
+  onChange={(item) => {
+    onChange(item.value);
+    setValue(item.value);
+  }}
+  onFocus={() => setOpen(true)}
+  onBlur={() => setOpen(false)}
+  iconStyle={{
+    width: 20,
+    height: 20,
+  }}
+  iconColor="#BBBBBB"
+  activeColor="#3A3A3A"
+/>
           </ViewForDropdown>
           <ViewForBoard>
             <TacticsBackImage source={TacticsBack} resizeMode={"stretch"} />
