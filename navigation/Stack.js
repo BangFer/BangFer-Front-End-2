@@ -32,7 +32,6 @@ import EnrollBanggusukTeam from '../screens/BanggusukTeamPackage/EnrollBanggusuk
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import MiddleSignUp from '../screens/LoginPackage/MiddleSignUp';
-import Web from '../screens/LoginPackage/Web';
 import KaKaoLoginRedirect from '../screens/LoginPackage/KaKaoLoginRedirect';
 import styled from 'styled-components';
 import EmailVerify from '../screens/LoginPackage/EmailVerify';
@@ -714,11 +713,6 @@ const StackNavigation = (navigation) => {
           name="MiddleSignUp"
           component={MiddleSignUp}
           options={{ headerShown: false, headerTitleAlign: 'center' }}
-        />
-        <Stack.Screen
-          name="Web"
-          component={Web}
-          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="KaKaoLoginRedirect"

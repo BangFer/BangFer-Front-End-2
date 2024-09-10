@@ -33,6 +33,7 @@
         <category android:name="android.intent.category.DEFAULT" />
         <category android:name="android.intent.category.BROWSABLE" />
         <data android:host="kakaolink" android:scheme="kakao94c1e60417cf6caaf69b2a5f71499235" />
+        <data android:host="oauth" android:scheme="kakao94c1e60417cf6caaf69b2a5f71499235" />
       </intent-filter>
     </activity>
     <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" android:exported="false"/>

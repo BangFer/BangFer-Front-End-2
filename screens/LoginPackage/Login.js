@@ -18,6 +18,13 @@ import {
   ToastAndroid,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  login,
+  logout,
+  getProfile as getKakaoProfile,
+  shippingAddresses as getKakaoShippingAddresses,
+  unlink,
+} from "@react-native-seoul/kakao-login";
 
 const showFailLogin = () => {
   ToastAndroid.show(
@@ -68,7 +75,100 @@ const showToken = async () => {
   }
 };
 
+const requestKaKaoLogin = async (accessToken) => {
+  try {
+    const headers = {
+      "Content-type": "application/json; charset=UTF-8",
+    };
+
+    const data = {
+      accessToken: accessToken,
+      fcmToken: "string",
+    };
+
+    console.log(data);
+
+    const response = await axios.post(
+      "http://13.125.14.94:8080/accounts/social/login/kakao",
+      data,
+      {
+        headers: headers,
+      }
+    );
+    console.log("로그인 " + JSON.stringify(response.data));
+    return response.data; // 반환할 데이터 형식에 맞게 수정
+  } catch (error) {
+    if (error.response) {
+      console.log(error.response);
+      // 서버가 2xx 범위를 벗어나는 상태 코드로 응답한 경우
+      console.error("상태 코드:", error.response.status);
+      console.error("응답 데이터:", error.response.data);
+      console.error("응답 헤더:", error.response.headers);
+
+      if (error.response.status === 400) {
+        console.error("잘못된 요청: 요청 데이터를 확인해주세요.");
+      } else if (error.response.status === 401) {
+        console.error("인증 실패: 액세스 토큰을 확인해주세요.");
+      } else if (error.response.status === 500) {
+        console.error("서버 오류: 잠시 후 다시 시도해주세요.");
+      }
+    } else if (error.request) {
+      // 요청이 전송되었지만 응답을 받지 못한 경우
+      console.error("응답 없음: 네트워크 연결을 확인해주세요.");
+    } else {
+      // 요청 설정 중 오류가 발생한 경우
+      console.error("요청 설정 오류:", error.message);
+    }
+
+    // 에러 객체 자체를 던집니다.
+    throw error;
+  }
+};
+
+const showSuccessLogin = () => {
+  ToastAndroid.show("✅ 카카오 로그인 성공", ToastAndroid.LONG);
+};
+
 const Login = ({ navigation }) => {
+  const [accessToken, setAccessToken] = useState("");
+
+  const signInWithKakao = async () => {
+    try {
+      const token = await login();
+      console.log("gg" + JSON.stringify(token));
+      console.log(token.accessToken);
+      return token.accessToken; // accessToken을 직접 반환
+    } catch (err) {
+      console.error("login err", err);
+      throw err; // 에러를 다시 던져서 호출자가 처리할 수 있게 함
+    }
+  };
+
+  const handleKaKaoLogin = async () => {
+    try {
+      const accessToken = await signInWithKakao(); // 반환된 accessToken을 사용
+      console.log("ggg" + accessToken);
+      const data = await requestKaKaoLogin(accessToken);
+      await AsyncStorage.setItem(
+        "Tokens",
+        JSON.stringify({
+          accessToken: data.result.accessToken,
+          refreshToken: data.result.refreshToken,
+          userId: data.result.userId,
+        })
+      );
+      showSuccessLogin();
+      navigation.navigate("MainPage");
+    } catch (error) {
+      console.error("로그인 중 오류 발생:", error);
+      ToastAndroid.show(
+        "❌ 회원가입이 되지않은 카카오 계정입니다.",
+        ToastAndroid.LONG
+      );
+      navigation.navigate("Login");
+    }
+  };
+
   const { mutate: Loginmutate } = useMutation(LoginRequest, {
     onSuccess: (data) => {
       console.log("성공", data);
@@ -145,7 +245,10 @@ const Login = ({ navigation }) => {
               >
                 <Text style={styles.loginButtonText}>Login</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.KaKaoLoginButton}>
+              <TouchableOpacity
+                style={styles.KaKaoLoginButton}
+                onPress={handleKaKaoLogin}
+              >
                 <Image
                   source={require("../../assets/Kakao.png")}
                   style={styles.KaKaoImage}
