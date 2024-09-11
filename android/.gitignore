@@ -10,6 +10,8 @@ build/
 local.properties
 *.iml
 *.hprof
+bangfer.keystore
+google-services.json
 
 # Bundle artifacts
 *.jsbundle
