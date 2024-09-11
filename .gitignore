@@ -15,6 +15,7 @@ web-build/
 *.p12
 *.key
 *.mobileprovision
+gradle.properties
 
 # Metro
 .metro-health-check*
@@ -33,3 +34,7 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+
+# firebase
+bangfer.keystore
+google-services.json
