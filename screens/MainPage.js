@@ -6,6 +6,7 @@ import FreeBoardButtonImage from "../assets/Button3.png";
 import MypageButtonImage from "../assets/Button4.png";
 import React, { useEffect } from "react";
 import styled from "styled-components";
+import { useFocusEffect } from "@react-navigation/native";
 
 import {
   Text,
@@ -121,26 +122,34 @@ const ButtonsImage = styled.Image`
 `;
 
 const MainPage = ({ navigation }) => {
-  useEffect(() => {
-    const backAction = () => {
-      Alert.alert("앱 종료", "앱을 종료하시겠습니까?", [
-        {
-          text: "취소",
-          onPress: () => null,
-          style: "cancel",
-        },
-        { text: "예", onPress: () => BackHandler.exitApp() },
-      ]);
-      return true; // 이벤트를 소비하여 기본 동작(뒤로가기)을 방지합니다.
-    };
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert(
+          "앱 종료",
+          "정말로 앱을 종료하시겠습니까?",
+          [
+            {
+              text: "취소",
+              onPress: () => null,
+              style: "cancel",
+            },
+            {
+              text: "예",
+              onPress: () => BackHandler.exitApp(),
+            },
+          ],
+          { cancelable: false }
+        );
+        return true;
+      };
 
-    const backHandler = BackHandler.addEventListener(
-      "hardwareBackPress",
-      backAction
-    );
+      BackHandler.addEventListener("hardwareBackPress", onBackPress);
 
-    return () => backHandler.remove(); // 컴포넌트가 언마운트될 때 이벤트 리스너를 제거합니다.
-  }, []);
+      return () =>
+        BackHandler.removeEventListener("hardwareBackPress", onBackPress);
+    }, [])
+  );
   return (
     <ImageBackground
       source={require("../assets/Back2.png")}
