@@ -219,7 +219,7 @@ const CreateProfile = ({ navigation }) => {
       // console.log("성공", data);
       // 성공 시 필요한 처리 추가
       showSuccessCreateProfile();
-      navigation.navigate("EnrollBanggusukTeam");
+      navigation.navigate("MainPage");
     },
     onError: (error) => {
       console.error("에러", error);

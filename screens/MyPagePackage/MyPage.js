@@ -386,6 +386,10 @@ const MyPage = ({ navigation }) => {
     setInviteData(transformedData);
   };
 
+  const handleEmailChange = () => {
+    navigation.navigate('EmailChange');
+  };
+
   const ClickInviteBox = () => {
     setIsModalVisible(true);
     fetchInviteData();
@@ -461,7 +465,7 @@ const MyPage = ({ navigation }) => {
         <TouchContent>
           <ContentText>프로필 이미지 변경</ContentText>
         </TouchContent>
-        <TouchContent>
+        <TouchContent onPress={handleEmailChange}>
           <ContentText>이메일 변경</ContentText>
         </TouchContent>
         <TouchContent>

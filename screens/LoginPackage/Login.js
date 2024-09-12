@@ -67,6 +67,25 @@ const LoginRequest = async ({ email, password, fcmToken }) => {
   }
 };
 
+const checkProfile = async (accessToken) => {
+  try {
+    const response = await axios.get(
+      "http://13.125.14.94:8080/accounts/profile/myProfile",
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+    return true; // 프로필이 존재함
+  } catch (error) {
+    if (error.response && error.response.data && error.response.data.code === "PROFILE403") {
+      return false; // 프로필이 존재하지 않음
+    }
+    throw error; // 다른 에러의 경우 그대로 던짐
+  }
+};
+
 const showToken = async () => {
   try {
     const value = await AsyncStorage.getItem("profileId");
@@ -174,7 +193,19 @@ const Login = ({ navigation }) => {
         })
       );
       showSuccessLogin();
-      navigation.navigate("MainPage");
+
+      try {
+        const hasProfile = await checkProfile(data.result.accessToken);
+        if (hasProfile) {
+          navigation.navigate("MainPage");
+        } else {
+          navigation.navigate("CreateProfile");
+        }
+      } catch (profileError) {
+        console.error("프로필 확인 중 오류 발생:", profileError);
+        // 프로필 확인 중 오류 발생 시 기본적으로 MainPage로 이동
+        navigation.navigate("MainPage");
+      }
     } catch (error) {
       console.error("로그인 중 오류 발생:", error);
       ToastAndroid.show(
@@ -186,9 +217,9 @@ const Login = ({ navigation }) => {
   };
 
   const { mutate: Loginmutate } = useMutation(LoginRequest, {
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       console.log("성공", data);
-      AsyncStorage.setItem(
+      await AsyncStorage.setItem(
         "Tokens",
         JSON.stringify({
           accessToken: data.result.accessToken,
@@ -196,7 +227,19 @@ const Login = ({ navigation }) => {
           userId: data.result.userId,
         })
       );
-      navigation.navigate("MainPage");
+      
+      try {
+        const hasProfile = await checkProfile(data.result.accessToken);
+        if (hasProfile) {
+          navigation.navigate("MainPage");
+        } else {
+          navigation.navigate("CreateProfile");
+        }
+      } catch (error) {
+        console.error("프로필 확인 중 에러 발생:", error);
+        // 에러 발생 시 기본적으로 MainPage로 이동
+        navigation.navigate("MainPage");
+      }
     },
     onError: (error) => {
       console.error("에러", error);

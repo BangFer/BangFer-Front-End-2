@@ -7,6 +7,7 @@ import {
   Dimensions,
   Alert,
   ToastAndroid,
+  ActivityIndicator
 } from "react-native";
 import { useMutation } from "react-query";
 import axios from "axios";
@@ -95,6 +96,23 @@ const RequestVerifyCodeText = styled.Text`
   font-weight: bold;
 `;
 
+const LoadingOverlay = styled.View`
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.5);
+`;
+
+const LoadingText = styled.Text`
+  color: white;
+  font-size: 16px;
+  margin-top: 10px;
+`;
+
 const RequestEmail = async (email) => {
   console.log(email);
   try {
@@ -153,29 +171,37 @@ const VerifyEmail = async ({ email, code }) => {
 const EmailVerify = ({ navigation }) => {
   const [idValue, setIdValue] = useState("");
   const [codeValue, setCodeValue] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
   const { mutate: requestEmailMutate } = useMutation(RequestEmail, {
+    onMutate: () => {
+      setIsLoading(true);
+      ToastAndroid.show(
+        "잠시만 기다려주세요... 인증번호가 전송중입니다...",
+        ToastAndroid.LONG
+      );
+    },
     onSuccess: (data) => {
       console.log("성공", data);
-      // 성공 시 필요한 처리 추가
       showEmailCode();
     },
     onError: (error) => {
       console.error("에러", error);
-      // 에러 시 필요한 처리 추가
       showFailVerifyEmail();
     },
+    onSettled: () => {
+      setIsLoading(false);
+    }
   });
 
   const { mutate: verifyEmailMutate } = useMutation(VerifyEmail, {
     onSuccess: (data) => {
       console.log("성공", data);
-      // 성공 시 필요한 처리 추가
       showSuccessVerify();
       navigation.navigate("SignUp", { idValue });
     },
     onError: (error) => {
       console.error("에러", error);
-      // 에러 시 필요한 처리 추가
       showFailVerifyCode();
     },
   });
@@ -222,6 +248,12 @@ const EmailVerify = ({ navigation }) => {
           </RequestVerifyCodeButton>
         </EmailVerifySecondView>
       </Container>
+      {isLoading && (
+        <LoadingOverlay>
+          <ActivityIndicator size="large" color="#ffffff" />
+          <LoadingText>잠시만 기다려주세요...</LoadingText>
+        </LoadingOverlay>
+      )}
     </ImageBackground>
   );
 };

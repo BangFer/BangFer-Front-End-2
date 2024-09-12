@@ -5,6 +5,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
 
 import MainPage from '../screens/MainPage';
+import EmailChangeComponent from '../screens/MyPagePackage/EmailChange';
 import FreeBoard from '../screens/FreeBoardPackage/FreeBoard';
 import FreeBoardDetail from '../screens/FreeBoardPackage/FreeBoardDetail';
 import FreeBoardWrite from '../screens/FreeBoardPackage/FreeBoardWrite';
@@ -454,6 +455,16 @@ const StackNavigation = (navigation) => {
           name="CreateProfile"
           component={CreateProfile}
           options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
+          name="EmailChange"
+          component={EmailChangeComponent}
+          options={{
+            headerShown: true,
+            title: '이메일 변경',
+            headerTitleAlign: 'center',
+          }}
         />
 
         <Stack.Screen
