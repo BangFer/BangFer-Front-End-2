@@ -16,7 +16,7 @@ export const getTokenFromLocal = async () => {
 };
 
 export const verifyTokens = async (navigation) => {
-  await AsyncStorage.clear();
+  // await AsyncStorage.clear();
   const Token = await getTokenFromLocal();
   console.log("토큰 확인 : ", Token);
   // 최초 접속
@@ -59,10 +59,10 @@ export const verifyTokens = async (navigation) => {
 // AsyncStorage에서 토큰을 제거
 export const removeTokenFromLocal = async () => {
   try {
-    await AsyncStorage.removeItem('Tokens');
-    console.log('Tokens removed successfully');
+    await AsyncStorage.removeItem("Tokens");
+    console.log("Tokens removed successfully");
   } catch (error) {
-    console.error('Error removing tokens:', error);
+    console.error("Error removing tokens:", error);
     throw error;
   }
 };
