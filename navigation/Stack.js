@@ -53,6 +53,7 @@ import {
   Button,
   Modal,
   ToastAndroid,
+  Alert,
 } from 'react-native';
 import axios from 'axios';
 import { getTokenFromLocal } from '../screens/LoginPackage/TokenUtils';
@@ -444,7 +445,24 @@ const StackNavigation = (navigation) => {
         <Stack.Screen
           name="ModifyBanggusukTeam"
           component={ModifyBanggusukTeam}
-          options={{ headerShown: true, title: '방구석 팀 수정', headerTitleAlign: 'center' }}
+          options={{
+            headerShown: true,
+            title: '방구석 팀 수정',
+            headerTitleAlign: 'center',
+            headerRight: () => (
+              <TouchCalander
+                style={{}}
+                onPress={() =>
+                  Alert.alert(
+                    '도움말',
+                    '1. 생성된 방구석 팀을 수정할 수 있는 페이지입니다. \n\n2. 팀명 및 전술을 수정할 수 있습니다. '
+                  )
+                }
+              >
+                <AntDesign name="questioncircleo" size={24} color="black" />
+              </TouchCalander>
+            ),
+          }}
         />
         <Stack.Screen
           name="MainPage"
@@ -475,7 +493,18 @@ const StackNavigation = (navigation) => {
             headerTitleAlign: 'center',
             title: '전술게시판',
             headerRight: () => (
-              <View>
+              <View style={{ flexDirection: 'row' }}>
+                <TouchCalander
+                  style={{ marginRight: 13 }}
+                  onPress={() =>
+                    Alert.alert(
+                      '도움말',
+                      '1. 전술 게시판 페이지입니다. \n\n2. 우측 상단에 돋보기 버튼을 클릭하여 전술을 검색할 수 있습니다. \n\n3. 우측 상단에 메뉴를 클릭하여 내 전술 확인 및 전술 생성이 가능합니다. \n\n4. 전술 게시판에서 공감순, 댓글순으로 정렬이 가능하며, 원하는 포메이션의 전술만 확인 할 수 있습니다.'
+                    )
+                  }
+                >
+                  <AntDesign name="questioncircleo" size={24} color="black" />
+                </TouchCalander>
                 <NavigationButtonView>
                   <SearchButton
                     onPress={() => navigation.navigate('TacticsSearch')}
@@ -520,7 +549,23 @@ const StackNavigation = (navigation) => {
         <Stack.Screen
           name="NewTactic"
           component={NewTactic}
-          options={{ headerShown: true, headerTitleAlign: 'center' }}
+          options={{
+            headerShown: true,
+            headerTitleAlign: 'center',
+            title: '새 전술',
+            headerRight: () => (
+              <TouchCalander
+                onPress={() =>
+                  Alert.alert(
+                    '도움말',
+                    '1. 전술 생성 페이지입니다. \n\n2. 전술 이름 및 익명성 여부를 확인해주세요. \n\n3. 자신이 원하는 포메이션을 선택할 수 있습니다.\n\n4. 각 포지션별로 세부 전술을 작성해주세요.\n\n5. 메인 전술 및 세부전술을 작성해주세요.'
+                  )
+                }
+              >
+                <AntDesign name="questioncircleo" size={24} color="black" />
+              </TouchCalander>
+            ),
+          }}
         />
         <Stack.Screen
           name="MyTactics"
@@ -555,9 +600,22 @@ const StackNavigation = (navigation) => {
             headerShown: true,
 
             headerRight: () => (
-              <TouchCalander onPress={() => showCallander()}>
-                <AntDesign name="calendar" size={32} color="black" />
-              </TouchCalander>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <TouchCalander
+                  style={{ marginRight: 23 }}
+                  onPress={() =>
+                    Alert.alert(
+                      '도움말',
+                      '1. 초대된 팀원의 입장에서 보이는 페이지입니다. \n\n2. 팀에 어떤 팀원들이 있는지 확인할 수 있습니다. \n\n3. 메인 전술 및 세부 전술 확인 가능합니다. \n\n4. 우측 상단에 캘린더 버튼 클릭 시 경기 일정을 확인 할 수 있습니다. '
+                    )
+                  }
+                >
+                  <AntDesign name="questioncircleo" size={24} color="black" />
+                </TouchCalander>
+                <TouchCalander onPress={() => showCallander()}>
+                  <AntDesign name="calendar" size={26} color="black" />
+                </TouchCalander>
+              </View>
             ),
           })}
         />
@@ -568,6 +626,18 @@ const StackNavigation = (navigation) => {
             title: '방구석 팀 등록',
             headerTitleAlign: 'center',
             headerShown: true,
+            headerRight: () => (
+              <TouchCalander
+                onPress={() =>
+                  Alert.alert(
+                    '도움말',
+                    '1. 방구석 팀 등록 하는 페이지입니다. \n\n2. 방구석 팀 등록 전 전술 생성은 필수입니다. \n\n3. 팀명 입력은 필수입니다.'
+                  )
+                }
+              >
+                <AntDesign name="questioncircleo" size={24} color="black" />
+              </TouchCalander>
+            ),
           })}
         />
         <Stack.Screen
@@ -578,9 +648,22 @@ const StackNavigation = (navigation) => {
             headerShown: true,
             headerTitleAlign: 'center',
             headerRight: () => (
-              <TouchableOpacity onPress={() => CheckProfile(navigation)}>
-                <Text style={{ fontSize: 25 }}>+</Text>
-              </TouchableOpacity>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <TouchableOpacity
+                  style={{ marginRight: 23 }}
+                  onPress={() =>
+                    Alert.alert(
+                      '도움말',
+                      '1. 방구석 팀 목록을 확인하는 페이지입니다. \n\n2. 원하는 포메이션의 방구석 팀만 따로 볼 수 있습니다. \n\n3. 자신이 생성한 방구석 팀만 수정 및 삭제가 가능합니다.'
+                    )
+                  }
+                >
+                  <AntDesign name="questioncircleo" size={24} color="black" />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => CheckProfile(navigation)}>
+                  <Text style={{ fontSize: 25 }}>+</Text>
+                </TouchableOpacity>
+              </View>
             ),
           })}
         />
@@ -593,7 +676,18 @@ const StackNavigation = (navigation) => {
             headerTitleAlign: 'center',
             title: '자유 게시판',
             headerRight: () => (
-              <View>
+              <View style={{ flexDirection: 'row' }}>
+                <TouchCalander
+                  style={{ marginRight: 13 }}
+                  onPress={() =>
+                    Alert.alert(
+                      '도움말',
+                      '1. 자유 게시판 페이지입니다. \n\n2. 우측 상단에 돋보기 버튼을 클릭하여 게시글을 검색할 수 있습니다. \n\n3. 우측 상단에 메뉴를 클릭하여 글 쓰기 및 내가 쓴 글을 확인 가능합니다. \n\n4. 자유 게시판에서 공감순, 댓글순으로 정렬이 가능합니다.'
+                    )
+                  }
+                >
+                  <AntDesign name="questioncircleo" size={24} color="black" />
+                </TouchCalander>
                 <NavigationButtonView>
                   <SearchButton
                     onPress={() => navigation.navigate('FreeBoardSearch')}
@@ -652,7 +746,7 @@ const StackNavigation = (navigation) => {
           options={({ navigation }) => ({
             headerShown: true,
             title: '글 수정',
-            headerTitleAlign: 'center'
+            headerTitleAlign: 'center',
           })}
         />
 
@@ -750,16 +844,44 @@ const StackNavigation = (navigation) => {
             headerShown: true,
 
             headerRight: () => (
-              <TouchCalander onPress={() => showCallander()}>
-                <AntDesign name="calendar" size={32} color="black" />
-              </TouchCalander>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <TouchCalander
+                  style={{ marginRight: 23 }}
+                  onPress={() =>
+                    Alert.alert(
+                      '도움말',
+                      '1. 팀을 생성한 사람만 보이는 페이지입니다. \n\n2. 팀원 추가 및 강퇴가 가능합니다. \n\n3. 추가된 팀원에게 포지션을 부여할 수 있습니다. \n\n4.메인 전술 및 세부 전술 확인 가능합니다. \n\n5. 우측 상단에 캘린더 버튼 클릭 시 경기 일정을 추가 및 삭제 할 수 있습니다. '
+                    )
+                  }
+                >
+                  <AntDesign name="questioncircleo" size={24} color="black" />
+                </TouchCalander>
+                <TouchCalander onPress={() => showCallander()}>
+                  <AntDesign name="calendar" size={26} color="black" />
+                </TouchCalander>
+              </View>
             ),
           })}
         />
         <Stack.Screen
           name="TacticsDetail"
           component={TacticsDetail}
-          options={{ headerShown: true, headerTitleAlign: 'center' }}
+          options={{
+            headerShown: true,
+            headerTitleAlign: 'center',
+            headerRight: () => (
+              <TouchCalander
+                onPress={() =>
+                  Alert.alert(
+                    '도움말',
+                    '1. 세부 전술 확인 페이지입니다. \n\n2. 포지션 별 세부 전술 확인 가능합니다. \n\n3. 메인 전술 및 세부 전술 확인 가능합니다.\n\n4. 공감 및 전술 가져오기를 할 수 있습니다.(가져온 전술은 내 전술에 등록됩니다)\n\n5. 댓글 및 대댓글을 이용하여 다른 유저들과 자유롭게 의견을 교환할 수 있습니다.'
+                  )
+                }
+              >
+                <AntDesign name="questioncircleo" size={24} color="black" />
+              </TouchCalander>
+            ),
+          }}
         />
       </Stack.Navigator>
       {isCallendarVisible && ( // isCallendarVisible 상태가 true일 때 모달이 보이도록 설정합니다.

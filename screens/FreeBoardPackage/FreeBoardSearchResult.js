@@ -1,15 +1,23 @@
 import React, { useState, useCallback, useMemo, useEffect } from "react";
-import { View, Text, Pressable, FlatList, StyleSheet, ActivityIndicator, Alert } from "react-native";
+import {
+  View,
+  Text,
+  Pressable,
+  FlatList,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+} from "react-native";
 import styled from "styled-components/native";
-import { FontAwesome5, FontAwesome6 } from '@expo/vector-icons';
+import { FontAwesome5, FontAwesome6 } from "@expo/vector-icons";
 import axios from "axios";
 import { getTokenFromLocal } from "../LoginPackage/TokenUtils";
-import { useInfiniteQuery } from 'react-query';
+import { useInfiniteQuery } from "react-query";
 
 const Container = styled.View`
   flex: 1;
   flex-direction: column;
-  background-color: #F5F5F5;
+  background-color: #f5f5f5;
 `;
 
 const FirstView = styled.View`
@@ -28,7 +36,7 @@ const IconAndButtonsInFirstView = styled.View`
 const RankIconInFirstView = styled.View`
   flex-direction: row;
   margin-top: 5px;
-  margin-right: 200px;
+  margin-right: 160px;
 `;
 
 const ButtonText = styled.Text`
@@ -68,16 +76,13 @@ const GetBoardData = async ({ page, size, sortBy, searchText }) => {
       title: searchText,
       page: page,
       size: size,
-      sortBy: sortBy
+      sortBy: sortBy,
     };
 
-    const response = await axios.get(
-      "http://13.125.14.94:8080/board/search",
-      {
-        headers: headers,
-        params: params
-      }
-    );
+    const response = await axios.get("http://13.125.14.94:8080/board/search", {
+      headers: headers,
+      params: params,
+    });
 
     return response.data.result;
   } catch (error) {
@@ -85,7 +90,6 @@ const GetBoardData = async ({ page, size, sortBy, searchText }) => {
     throw new Error("Failed to fetch board data");
   }
 };
-
 
 const BoardItem = ({ data, handlePress }) => {
   return (
@@ -116,11 +120,13 @@ const BoardItem = ({ data, handlePress }) => {
 const FreeBoardSearchResult = ({ navigation }) => {
   const [searchText, setSearchText] = useState("");
   const [size, setSize] = useState(10);
-  const [sortBy, setSortBy] = useState('id');
+  const [sortBy, setSortBy] = useState("id");
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      const params = navigation.getState().routes.find(route => route.name === 'FreeBoardSearchResult')?.params;
+    const unsubscribe = navigation.addListener("focus", () => {
+      const params = navigation
+        .getState()
+        .routes.find((route) => route.name === "FreeBoardSearchResult")?.params;
       if (params) {
         setSearchText(params.searchText);
         refetch();
@@ -137,13 +143,18 @@ const FreeBoardSearchResult = ({ navigation }) => {
     isLoading: queryLoading,
     isError,
     error,
-    refetch
+    refetch,
   } = useInfiniteQuery(
-    ['boards', sortBy, searchText],
-    ({ pageParam = 0 }) => GetBoardData({ page: pageParam, size, sortBy, searchText }),
+    ["boards", sortBy, searchText],
+    ({ pageParam = 0 }) =>
+      GetBoardData({ page: pageParam, size, sortBy, searchText }),
     {
       getNextPageParam: (lastPage, pages) => {
-        if (!lastPage || typeof lastPage.last !== 'boolean' || typeof lastPage.number !== 'number') {
+        if (
+          !lastPage ||
+          typeof lastPage.last !== "boolean" ||
+          typeof lastPage.number !== "number"
+        ) {
           return undefined;
         }
         if (lastPage.last) return undefined;
@@ -153,32 +164,41 @@ const FreeBoardSearchResult = ({ navigation }) => {
     }
   );
 
-  const handleSort = useCallback((type) => {
-    setSortBy(type);
-    refetch();
-  }, [refetch]);
+  const handleSort = useCallback(
+    (type) => {
+      setSortBy(type);
+      refetch();
+    },
+    [refetch]
+  );
 
   const sortedData = useMemo(() => {
     if (!data) return [];
-    return data.pages.flatMap(page => page.content || []);
+    return data.pages.flatMap((page) => page.content || []);
   }, [data]);
 
-  const handlePressGoDetail = useCallback((id) => {
-    navigation.navigate("FreeBoardDetail", { id });
-  }, [navigation]);
+  const handlePressGoDetail = useCallback(
+    (id) => {
+      navigation.navigate("FreeBoardDetail", { id });
+    },
+    [navigation]
+  );
 
-  const renderBoardItem = useCallback(({ item }) => (
-    <BoardItem
-      data={{
-        _id: item.id,
-        title: item.boardTitle,
-        comments: item.commentCount,
-        director: item.writerNickName,
-        likes: item.likeCount,
-      }}
-      handlePress={handlePressGoDetail}
-    />
-  ), [handlePressGoDetail]);
+  const renderBoardItem = useCallback(
+    ({ item }) => (
+      <BoardItem
+        data={{
+          _id: item.id,
+          title: item.boardTitle,
+          comments: item.commentCount,
+          director: item.writerNickName,
+          likes: item.likeCount,
+        }}
+        handlePress={handlePressGoDetail}
+      />
+    ),
+    [handlePressGoDetail]
+  );
 
   if (queryLoading) {
     return <ActivityIndicator size="large" color="tomato" />;
@@ -195,15 +215,15 @@ const FreeBoardSearchResult = ({ navigation }) => {
           <RankIconInFirstView>
             <FontAwesome6 name="ranking-star" size={24} color="tomato" />
           </RankIconInFirstView>
-          <ThumbsRankButton onPress={() => handleSort('likes')}>
+          <ThumbsRankButton onPress={() => handleSort("likes")}>
             <ButtonText>따봉순</ButtonText>
           </ThumbsRankButton>
-          <CommentsRankButton onPress={() => handleSort('comments')}>
+          <CommentsRankButton onPress={() => handleSort("comments")}>
             <ButtonText>댓글순</ButtonText>
           </CommentsRankButton>
         </IconAndButtonsInFirstView>
       </FirstView>
-      
+
       <FlatList
         style={styles.container}
         data={sortedData}
@@ -237,23 +257,23 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   infoContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     height: 20,
   },
   iconContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     width: 120,
   },
   commentContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     width: 50,
   },
   likeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     width: 60,
   },
   infoText: {
@@ -261,7 +281,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginLeft: 5,
     width: 30,
-    textAlign: 'left',
+    textAlign: "left",
   },
   directorText: {
     fontSize: 14,
