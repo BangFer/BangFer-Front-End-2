@@ -1,7 +1,8 @@
 import React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "react-query";
 import axios from "axios";
+import messaging from "@react-native-firebase/messaging";
 import {
   Alert,
   Keyboard,
@@ -32,7 +33,7 @@ const showFailLogin = () => {
     ToastAndroid.LONG
   );
 };
-const LoginRequest = async ({ email, password }) => {
+const LoginRequest = async ({ email, password, fcmToken }) => {
   const token = "string";
   try {
     const headers = {
@@ -42,7 +43,7 @@ const LoginRequest = async ({ email, password }) => {
     const data = {
       email: email,
       password: password,
-      fcmToken: token,
+      fcmToken: fcmToken,
     };
 
     console.log(email);
@@ -75,7 +76,7 @@ const showToken = async () => {
   }
 };
 
-const requestKaKaoLogin = async (accessToken) => {
+const requestKaKaoLogin = async ({ accessToken, fcmToken }) => {
   try {
     const headers = {
       "Content-type": "application/json; charset=UTF-8",
@@ -83,7 +84,7 @@ const requestKaKaoLogin = async (accessToken) => {
 
     const data = {
       accessToken: accessToken,
-      fcmToken: "string",
+      fcmToken: fcmToken,
     };
 
     console.log(data);
@@ -131,7 +132,20 @@ const showSuccessLogin = () => {
 
 const Login = ({ navigation }) => {
   const [accessToken, setAccessToken] = useState("");
+  const [fcmToken, setFcmToken] = useState("");
 
+  const getFcmToken = async () => {
+    const fcm = await messaging().getToken();
+    console.log("[+] FCM Token :: ", fcm);
+    setFcmToken(fcm);
+  };
+  useEffect(() => {
+    const fetchFcmToken = async () => {
+      await getFcmToken();
+    };
+
+    fetchFcmToken();
+  }, []);
   const signInWithKakao = async () => {
     try {
       const token = await login();
@@ -148,7 +162,9 @@ const Login = ({ navigation }) => {
     try {
       const accessToken = await signInWithKakao(); // 반환된 accessToken을 사용
       console.log("ggg" + accessToken);
-      const data = await requestKaKaoLogin(accessToken);
+      const fcmm = await messaging().getToken();
+      console.log("ff" + fcmm);
+      const data = await requestKaKaoLogin({ accessToken, fcmToken });
       await AsyncStorage.setItem(
         "Tokens",
         JSON.stringify({
@@ -203,7 +219,7 @@ const Login = ({ navigation }) => {
   };
 
   const handleLogin = () => {
-    Loginmutate({ email: idValue, password: pwValue });
+    Loginmutate({ email: idValue, password: pwValue, fcmToken: fcmToken });
   };
 
   return (
