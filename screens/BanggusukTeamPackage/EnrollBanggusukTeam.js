@@ -555,55 +555,57 @@ const EnrollBanggusukTeam = ({ navigation }) => {
       </ViewForTextBar>
       <ViewForTacticBoard>
         <ViewForDropdown>
-        <Dropdown
-  style={{
-    backgroundColor: "#1E1E1E",
-    borderRadius: 10,
-    borderColor: "#333333",
-    borderWidth: 1,
-    marginBottom: 16,
-    height: 48,
-    width: "100%",
-    elevation: 5,
-  }}
-  placeholderStyle={{
-    color: "#FFFFFF",
-    paddingLeft: 16,
-    marginLeft: -5,
-  }}
-  selectedTextStyle={{
-    color: "#FFFFFF",
-    fontSize: 16,
-    paddingLeft: 16,
-    marginLeft: -5,
-  }}
-  itemContainerStyle={{
-    backgroundColor: "#2C2C2C",
-    borderBottomWidth: 1,
-    borderBottomColor: "#333333",
-  }}
-  itemTextStyle={{
-    color: "#FFFFFF",
-    fontSize: 16,
-  }}
-  data={items}
-  labelField="label"
-  valueField="value"
-  placeholder="전술 선택"
-  value={value}
-  onChange={(item) => {
-    onChange(item.value);
-    setValue(item.value);
-  }}
-  onFocus={() => setOpen(true)}
-  onBlur={() => setOpen(false)}
-  iconStyle={{
-    width: 20,
-    height: 20,
-  }}
-  iconColor="#BBBBBB"
-  activeColor="#3A3A3A"
-/>
+          <Dropdown
+            style={{
+              backgroundColor: "#1E1E1E",
+              borderRadius: 10,
+              borderColor: "#333333",
+              borderWidth: 1,
+              marginBottom: 16,
+              height: 48,
+              width: "100%",
+              elevation: 5,
+            }}
+            placeholderStyle={{
+              color: "#FFFFFF",
+              paddingLeft: 16,
+              marginLeft: -5,
+            }}
+            selectedTextStyle={{
+              color: "#FFFFFF",
+              fontSize: 16,
+              paddingLeft: 16,
+              marginLeft: -5,
+            }}
+            itemContainerStyle={{
+              backgroundColor: "#2C2C2C",
+              borderBottomWidth: 1,
+              borderBottomColor: "#333333",
+            }}
+            itemTextStyle={{
+              color: "#FFFFFF",
+              fontSize: 16,
+            }}
+            data={items}
+            labelField="label"
+            valueField="value"
+            placeholder={
+              items.length === 0 ? "전술을 먼저 생성해주세요" : "전술 선택"
+            }
+            value={value}
+            onChange={(item) => {
+              onChange(item.value);
+              setValue(item.value);
+            }}
+            onFocus={() => setOpen(true)}
+            onBlur={() => setOpen(false)}
+            iconStyle={{
+              width: 20,
+              height: 20,
+            }}
+            iconColor="#BBBBBB"
+            activeColor="#3A3A3A"
+          />
         </ViewForDropdown>
         <ViewForBoard>
           <TacticsBackImage source={TacticsBack} resizeMode={"stretch"} />
