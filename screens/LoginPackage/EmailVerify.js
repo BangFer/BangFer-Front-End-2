@@ -7,7 +7,7 @@ import {
   Dimensions,
   Alert,
   ToastAndroid,
-  ActivityIndicator
+  ActivityIndicator,
 } from "react-native";
 import { useMutation } from "react-query";
 import axios from "axios";
@@ -113,6 +113,43 @@ const LoadingText = styled.Text`
   margin-top: 10px;
 `;
 
+const CheckEmail = async (IdValue) => {
+  const headers_config = {
+    "Content-Type": "application/json; charset=UTF-8",
+  };
+
+  console.log("아아" + IdValue);
+  const url = `http://13.125.14.94:8080/accounts/checkEmail?email=${encodeURIComponent(
+    IdValue
+  )}`;
+
+  try {
+    const res = await axios.get(url, {
+      headers: headers_config,
+    });
+    console.log("CheckEmail의 response는", JSON.stringify(res.data));
+    // JSON.stringify로 객체를 문자열로 변환
+    return res;
+  } catch (error) {
+    console.error("에러 발생:", error.message);
+    if (error.response) {
+      console.error("서버 응답 상태:", error.response.status);
+      console.error("서버 응답 헤더:", error.response.headers);
+      console.error("서버 응답 데이터:", error.response.data);
+
+      // USER417 에러 코드 확인
+      if (error.response.data && error.response.data.code === "USER417") {
+        throw new Error("USER417");
+      }
+    } else if (error.request) {
+      console.error("요청 정보:", error.request);
+    } else {
+      console.error("에러 설정:", error.config);
+    }
+    throw error;
+  }
+};
+
 const RequestEmail = async (email) => {
   console.log(email);
   try {
@@ -191,7 +228,7 @@ const EmailVerify = ({ navigation }) => {
     },
     onSettled: () => {
       setIsLoading(false);
-    }
+    },
   });
 
   const { mutate: verifyEmailMutate } = useMutation(VerifyEmail, {
@@ -210,8 +247,21 @@ const EmailVerify = ({ navigation }) => {
     verifyEmailMutate({ email: idValue, code: codeValue });
   };
 
-  const handleRequestVerifyCode = () => {
-    requestEmailMutate(idValue);
+  const handleRequestVerifyCode = async () => {
+    try {
+      await CheckEmail(idValue);
+      // CheckEmail이 성공적으로 완료되면 requestEmailMutate 실행
+      requestEmailMutate(idValue);
+    } catch (error) {
+      if (error.message === "USER417") {
+        console.log("USER417 에러 발생: 이미 존재하는 이메일입니다.");
+        ToastAndroid.show("❌ 이미 가입된 이메일입니다.", ToastAndroid.SHORT);
+        // 예: 사용자에게 알림을 표시하거나, UI를 업데이트하는 등
+      } else {
+        console.log("기타 에러 발생:", error);
+        // 다른 종류의 에러에 대한 처리
+      }
+    }
   };
 
   return (
