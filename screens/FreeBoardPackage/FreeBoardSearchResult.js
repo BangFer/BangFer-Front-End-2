@@ -40,7 +40,7 @@ const ButtonText = styled.Text`
 const ThumbsRankButton = styled.TouchableOpacity`
   padding: 5px 10px;
   border-radius: 5px;
-  background-color: tomato;
+  background-color: #6CD163;
   margin-left: 10px;
   align-items: center;
   justify-content: center;
@@ -49,7 +49,7 @@ const ThumbsRankButton = styled.TouchableOpacity`
 const CommentsRankButton = styled.TouchableOpacity`
   padding: 5px 10px;
   border-radius: 5px;
-  background-color: tomato;
+  background-color: #6CD163;
   margin-left: 10px;
   align-items: center;
   justify-content: center;
@@ -97,11 +97,11 @@ const BoardItem = ({ data, handlePress }) => {
       <View style={styles.infoContainer}>
         <View style={styles.iconContainer}>
           <View style={styles.commentContainer}>
-            <FontAwesome5 name="comment-dots" size={16} color="#fe6263" />
+            <FontAwesome5 name="comment-dots" size={16} color="#6CD163" />
             <Text style={styles.infoText}>{data.comments}</Text>
           </View>
           <View style={styles.likeContainer}>
-            <FontAwesome5 name="thumbs-up" size={16} color="#fe6263" />
+            <FontAwesome5 name="thumbs-up" size={16} color="#6CD163" />
             <Text style={styles.infoText}>{data.likes}</Text>
           </View>
         </View>
@@ -181,7 +181,7 @@ const FreeBoardSearchResult = ({ navigation }) => {
   ), [handlePressGoDetail]);
 
   if (queryLoading) {
-    return <ActivityIndicator size="large" color="tomato" />;
+    return <ActivityIndicator size="large" color="#6CD163" />;
   }
 
   if (isError) {
@@ -193,7 +193,7 @@ const FreeBoardSearchResult = ({ navigation }) => {
       <FirstView>
         <IconAndButtonsInFirstView>
           <RankIconInFirstView>
-            <FontAwesome6 name="ranking-star" size={24} color="tomato" />
+            <FontAwesome6 name="ranking-star" size={24} color="#6CD163" />
           </RankIconInFirstView>
           <ThumbsRankButton onPress={() => handleSort('likes')}>
             <ButtonText>따봉순</ButtonText>

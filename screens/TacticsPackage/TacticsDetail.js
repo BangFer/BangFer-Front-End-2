@@ -16,6 +16,8 @@ import {
   Dimensions,
   Keyboard,
   ActivityIndicator,
+  Alert,
+  Platform,
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
 import TacticsBack from "../../assets/TacticsBack.png";
@@ -35,6 +37,7 @@ import axios from "axios";
 import { verifyTokens, getTokenFromLocal } from "../LoginPackage/TokenUtils";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useActionSheet } from "@expo/react-native-action-sheet";
+
 
 const reportUser = async (reportedUserId, reportActivity) => {
   const token = await getTokenFromLocal();
@@ -80,12 +83,12 @@ const blockUser = async (isBlockedUserId) => {
   }
 };
 
-const createReply = async (taticId, parentCommentId, commentText) => {
+const createReply = async (tacticId, parentCommentId, commentText) => {
   const token = await getTokenFromLocal();
   try {
     const response = await axios.post(
       `http://13.125.14.94:8080/api/v1/tactics/${tacticId}/comment/${parentCommentId}`,
-      { commentText },
+      { comment: commentText },  // 여기를 수정
       {
         headers: {
           "Content-Type": "application/json; charset=UTF-8",
@@ -103,6 +106,7 @@ const createReply = async (taticId, parentCommentId, commentText) => {
 const deleteComment = async (commentId) => {
   const token = await getTokenFromLocal();
   try {
+    console.log(`Deleting comment with ID: ${commentId}`);
     const response = await axios.delete(
       `http://13.125.14.94:8080/api/v1/tactics/comment/${commentId}`,
       {
@@ -111,10 +115,20 @@ const deleteComment = async (commentId) => {
         },
       }
     );
+    console.log("Delete comment response:", response.data);
     return response.data;
   } catch (error) {
     console.error("Error deleting comment:", error);
-    throw error;
+    if (error.response) {
+      console.error("Error response:", error.response.data);
+      throw new Error(error.response.data.message || "댓글 삭제 중 오류가 발생했습니다.");
+    } else if (error.request) {
+      console.error("No response received:", error.request);
+      throw new Error("서버로부터 응답이 없습니다. 네트워크 연결을 확인해주세요.");
+    } else {
+      console.error("Error", error.message);
+      throw new Error("댓글 삭제 중 알 수 없는 오류가 발생했습니다.");
+    }
   }
 };
 
@@ -135,10 +149,21 @@ const UserInfo = ({ nickName }) => {
 };
 
 const toggleLike = async (tacticId, setData) => {
+  if (!tacticId) {
+    console.error("Invalid tacticId:", tacticId);
+    alert("유효하지 않은 전술 ID입니다.");
+    return;
+  }
+
   try {
     const token = await getTokenFromLocal();
+    const url = `http://13.125.14.94:8080/api/v1/tactics/${tacticId}/like`;
+    
+    console.log("Sending request to:", url);
+    console.log("With tacticId:", tacticId);
+
     const response = await axios.post(
-      `http://13.125.14.94:8080/api/v1/tactics/${tacticId}/like`,
+      url,
       {},
       {
         headers: {
@@ -147,23 +172,32 @@ const toggleLike = async (tacticId, setData) => {
         },
       }
     );
-    console.log(response.data.code);
-    console.log(response.data.message);
-    if (response.data.code == "OK") {
-      const updatedLikeInfo = await GetTatics(tacticId);
+
+    console.log("Response:", response.data);
+
+    if (response.data.code === "OK") {
+      const updatedLikeInfo = await GetTactics(tacticId);
       setData((prevData) => ({
         ...prevData,
-        isLiked: updatedLikeInfo.isLiked,
-        likeCount: updatedLikeInfo.likeCount,
+        isLiked: updatedLikeInfo.result.isLiked,
+        likeCnt: updatedLikeInfo.result.likeCnt,
       }));
+    } else {
+      console.error("Unexpected response:", response.data);
+      alert("좋아요 처리에 실패했습니다. 다시 시도해 주세요.");
     }
   } catch (error) {
     console.error("Error toggling like:", error);
     if (error.response) {
-      alert("좋아요 처리 실패: " + error.response.data.message);
+      console.error("Response data:", error.response.data);
+      console.error("Response status:", error.response.status);
+      console.error("Response headers:", error.response.headers);
+      alert("좋아요 처리 실패: " + (error.response.data.message || "알 수 없는 오류가 발생했습니다."));
     } else if (error.request) {
+      console.error("No response received:", error.request);
       alert("서버로부터 응답이 없습니다. 네트워크 연결을 확인해주세요.");
     } else {
+      console.error("Error details:", error.message);
       alert("좋아요 처리 중 오류가 발생했습니다.");
     }
   }
@@ -177,25 +211,36 @@ const CommentItem = ({
   isOwnComment,
   tacticId,
   showActionSheetWithOptions,
-  setReplyingTo,
   token,
 }) => {
-  const [showReplyInput, setShowReplyInput] = useState(false);
-  const [replyText, setReplyText] = useState("");
+  console.log("CommentItem data:", JSON.stringify(data, null, 2));
+
+  const getCommentId = () => {
+    return data.commentId || data.tacticCommentId || data.id;
+  };
 
   const handleReplyPress = () => {
-    Alert.alert("대댓글", "대댓글을 다시겠습니까?", [
-      {
-        text: "아니오",
-        style: "cancel",
-      },
-      {
-        text: "예",
-        onPress: () => {
-          setReplyingTo(data.commentId);
+    const commentId = getCommentId();
+    if (commentId === undefined) {
+      console.error("Comment ID is undefined. Full data:", JSON.stringify(data, null, 2));
+      return;
+    }
+    
+    Alert.alert(
+      "대댓글 작성",
+      "대댓글을 작성하시겠습니까?",
+      [
+        {
+          text: "아니오",
+          style: "cancel"
         },
-      },
-    ]);
+        { 
+          text: "예", 
+          onPress: () => onReply(commentId, data.nickName || data.nickname)
+        }
+      ],
+      { cancelable: false }
+    );
   };
 
   const handleSendReply = () => {
@@ -207,6 +252,12 @@ const CommentItem = ({
   };
 
   const handleMorePress = () => {
+    const commentId = getCommentId();
+    if (commentId === undefined) {
+      console.error("Comment ID is undefined. Cannot perform actions.");
+      return;
+    }
+
     const reportOptions = [
       "욕설/비하",
       "음란물/불건전한 만남 및 대화",
@@ -268,7 +319,8 @@ const CommentItem = ({
             break;
           case 2: // 삭제
             if (isOwnComment(data.userId)) {
-              onDelete(data.commentId);
+              console.log(`Calling onDelete with commentId: ${commentId}`);
+              onDelete(commentId);
             }
             break;
         }
@@ -279,7 +331,7 @@ const CommentItem = ({
   return (
     <View style={styles.commentBox}>
       <View style={styles.commentHeader}>
-        <UserInfo nickName={data.nickName} />
+        <UserInfo nickName={data.nickName || data.nickname} />
         <View style={styles.commentButtons}>
           <Pressable onPress={handleReplyPress} style={styles.replyButton}>
             <FontAwesome5 name="comment-dots" size={16} color="#fe6263" />
@@ -290,25 +342,12 @@ const CommentItem = ({
         </View>
       </View>
       <View style={{ marginTop: 8 }}>
-        <Text style={styles.contents}>{data.commentText}</Text>
+        <Text style={styles.contents}>{data.commentText || data.comment}</Text>
       </View>
-      {showReplyInput && (
-        <View style={styles.replyInputContainer}>
-          <TextInput
-            style={styles.replyInput}
-            value={replyText}
-            onChangeText={setReplyText}
-            placeholder="대댓글을 입력하세요"
-          />
-          <Pressable onPress={handleSendReply} style={styles.sendReplyButton}>
-            <Text>보내기</Text>
-          </Pressable>
-        </View>
-      )}
-      {data.replies &&
-        data.replies.map((reply) => (
+      {data.children &&
+        data.children.map((reply) => (
           <ReCommentItem
-            key={`reply-${reply.commentId}`}
+            key={`reply-${reply.commentId || reply.tacticCommentId}`}
             data={reply}
             onDelete={onDelete}
             isOwnComment={isOwnComment}
@@ -327,7 +366,18 @@ const ReCommentItem = ({
   showActionSheetWithOptions,
   token,
 }) => {
+  const getCommentId = () => {
+    return data.commentId || data.tacticCommentId || data.id;
+  };
+
   const handleMorePress = () => {
+
+    const commentId = getCommentId();
+    if (commentId === undefined) {
+      console.error("Comment ID is undefined. Cannot perform actions.");
+      return;
+    }
+
     const reportOptions = [
       "욕설/비하",
       "음란물/불건전한 만남 및 대화",
@@ -388,9 +438,10 @@ const ReCommentItem = ({
             }
             break;
           case 2: // 삭제
-            if (isOwnComment(data.userId)) {
-              onDelete(data.commentId);
-            }
+          if (isOwnComment(data.userId)) {
+            console.log(`Calling onDelete with commentId: ${commentId}`);
+            onDelete(commentId);
+          }
             break;
         }
       }
@@ -400,13 +451,13 @@ const ReCommentItem = ({
   return (
     <View style={[styles.commentBox, styles.reCommentBox]}>
       <View style={styles.commentHeader}>
-        <UserInfo nickName={data.nickName} />
+        <UserInfo nickName={data.nickName || data.nickname} />
         <Pressable onPress={handleMorePress} style={styles.replymoreButton}>
           <Entypo name="dots-three-vertical" size={16} color="black" />
         </Pressable>
       </View>
       <View style={{ marginTop: 8 }}>
-        <Text style={styles.contents}>{data.commentText}</Text>
+        <Text style={styles.contents}>{data.commentText || data.comment}</Text>
       </View>
     </View>
   );
@@ -427,7 +478,7 @@ const ModalView = styled.View`
   height: 170px;
   margin: 30px;
   margin-bottom: 75px;
-  border-radius: 15px;
+  border-radius: 10px;
   background-color: white;
   border-width: 3px;
   border-color: #ff6262;
@@ -501,11 +552,12 @@ const ViewForSlideTactic = styled.View`
   width: 100%;
   height: 150px;
   align-items: center;
+  margin-top: 5px;
 `;
 
 const TacticBox = styled.View`
-  border-radius: 15px;
-  background-color: ${({ isMain }) => (isMain ? "tomato" : "blue")};
+  border-radius: 10px;
+  background-color: ${({ isMain }) => (isMain ? "#FF6262" : "#5182FF")};
   padding: 10px;
   height: 90%; /* 높이 조정 */
   width: ${Dimensions.get("window").width -
@@ -522,7 +574,7 @@ const TextBox = styled.TextInput`
 `;
 
 const Title = styled.Text`
-  font-size: 24px;
+  font-size: 20px;
   font-weight: bold;
   margin-bottom: 5px;
   color: white;
@@ -889,7 +941,7 @@ const ItemTitle = styled.Text`
 const ThumbsUpNumber = styled.Text`
   font-size: 14px;
   margin-right: 10px;
-  color: tomato;
+  color: #FF6262;
   margin-right: 5px;
   margin-left: 5px;
 `;
@@ -1011,99 +1063,112 @@ const TacticName = styled.TextInput`
   padding-left: 10px;
 `;
 
-const GetTatics = async (taticsId) => {
+const GetTactics = async (tacticId) => {
   const Token = await getTokenFromLocal();
-
   const headers_config = {
     "Content-Type": "application/json; charset=UTF-8",
     "Authorization": "Bearer " + Token.accessToken,
   };
-  const url = "http://13.125.14.94:8080/api/v1/tactics/" + taticsId;
-  console.log("url :" + url);
+  const url = "http://13.125.14.94:8080/api/v1/tactics/" + tacticId;
 
   try {
-    const response = await axios.get(url, {
-      headers: headers_config,
-    });
-    console.log("GetTactics의 response는", JSON.stringify(response.data)); // JSON.stringify로 객체를 문자열로 변환
+    const response = await axios.get(url, { headers: headers_config });
+    console.log("GetTactics response:", JSON.stringify(response.data));
 
-    // 댓글과 대댓글 구조화
-    const structuredComments = response.data.result.comments
-      .filter((comment) => !comment.deleted)
-      .map((comment) => ({
-        ...comment,
-        replies: comment.children.filter((reply) => !reply.deleted),
-      }));
-
-    console.log(response.data.result);
-
-    return {
-      ...response.data.result,
-      comments: structuredComments,
-    };
+    if (response.data && response.data.result) {
+      const structuredComments = (response.data.result.comments || [])
+        .map(comment => ({
+          ...comment,
+          replies: (comment.children || []),
+        }));
+    
+      return {
+        ...response.data,
+        result: {
+          ...response.data.result,
+          comments: structuredComments,
+        },
+      };
+    } else {
+      console.error("Invalid data structure in GetTactics response");
+      return null;
+    }
   } catch (error) {
     console.error("Error fetching tactic detail:", error);
-    if (error.response) {
-      console.error("Response data:", error.response.data);
-      console.error("Response status:", error.response.status);
-      console.error("Response headers:", error.response.headers);
-    }
     throw error;
   }
 };
 
 const handleTacticCall = async (selectedTacticId, setters) => {
   try {
-    const data = await GetTatics(selectedTacticId);
-    console.log(JSON.stringify(data));
-    setters.setData(data);
-    setters.setMainText(data.result.subTactic);
-    setters.setSubText(data.result.tacticDetails);
+    const response = await GetTactics(selectedTacticId);
+    console.log("Fetched tactic data:", response);
 
-    setters.setSlectedFormation(data.result.mainFormation);
-    setters.setTacticName(data.result.tacticName);
-    setters.setannonymous(data.result.anonymous);
-    console.log(anonymous);
-    setters.setOnePositionValue(
-      data.result.positionDetail[0].positionDescription
-    );
-    setters.setTwoPositionValue(
-      data.result.positionDetail[1].positionDescription
-    );
-    setters.setThreePositionValue(
-      data.result.positionDetail[2].positionDescription
-    );
-    setters.setFourPositionValue(
-      data.result.positionDetail[3].positionDescription
-    );
-    setters.setFivePositionValue(
-      data.result.positionDetail[4].positionDescription
-    );
-    setters.setSixPositionValue(
-      data.result.positionDetail[5].positionDescription
-    );
-    setters.setSevenPositionValue(
-      data.result.positionDetail[6].positionDescription
-    );
-    setters.setEightPositionValue(
-      data.result.positionDetail[7].positionDescription
-    );
-    setters.setNinePositionValue(
-      data.result.positionDetail[8].positionDescription
-    );
-    setters.setTenPositionValue(
-      data.result.positionDetail[9].positionDescription
-    );
-    setters.setElevenPositionValue(
-      data.result.positionDetail[10].positionDescription
-    );
+    if (response.code !== "OK" || !response.result) {
+      console.error("Invalid response:", response);
+      throw new Error("서버에서 유효한 응답을 받지 못했습니다.");
+    }
+
+    const tacticData = response.result;
+
+    if (!tacticData || !tacticData.tacticId) {
+      console.error("Invalid tactic data received:", tacticData);
+      throw new Error("유효하지 않은 전술 데이터입니다.");
+    }
+
+    // 댓글 데이터 구조 일관성 유지
+    const formattedComments = (tacticData.comments || []).map(comment => ({
+      ...comment,
+      nickName: comment.nickName || comment.nickname,
+      commentText: comment.commentText || comment.comment,
+      replies: (comment.replies || comment.children || []).map(reply => ({
+        ...reply,
+        nickName: reply.nickName || reply.nickname,
+        commentText: reply.commentText || reply.comment,
+      }))
+    }));
+
+    const formattedTacticData = {
+      ...tacticData,
+      comments: formattedComments,
+      isLiked: tacticData.isLiked || false,
+      likeCnt: tacticData.likeCnt || 0,
+      commentCnt: tacticData.commentCnt || formattedComments.length,
+    };
+
+    setters.setData(formattedTacticData);
+    setters.setMainText(tacticData.subTactic || '');
+    setters.setSubText(tacticData.tacticDetails || '');
+    setters.setSlectedFormation(tacticData.mainFormation || '');
+    setters.setTacticName(tacticData.tacticName || '');
+    setters.setannonymous(tacticData.anonymous || false);
+
+    if (tacticData.positionDetail && Array.isArray(tacticData.positionDetail)) {
+      tacticData.positionDetail.forEach((detail, index) => {
+        if (detail && detail.positionDescription) {
+          const setter = setters[`set${index + 1}PositionValue`];
+          if (setter) {
+            setter(detail.positionDescription);
+          }
+        }
+      });
+    }
+
+    console.log("Formatted tactic data:", formattedTacticData);
+    return formattedTacticData;
   } catch (error) {
-    console.error("error fetching tactic data:", error);
+    console.error("Error in handleTacticCall:", error);
+    throw error;
   }
 };
 
 const TacticsDetail = ({ navigation, route }) => {
-  const [data, setData] = useState();
+  const [data, setData] = useState({
+    comments: [],
+    commentCnt: 0,
+    likeCnt: 0,
+    isLiked: false
+  });
   const [loading, setLoading] = useState(true);
   const [commentText, setCommentText] = useState("");
   const [modalVisible, setModalVisible] = useState(false); // 모달 상태 추가
@@ -1258,7 +1323,6 @@ const TacticsDetail = ({ navigation, route }) => {
       isOwnComment={isOwnComment}
       tacticId={route.params.tacticId}
       showActionSheetWithOptions={showActionSheetWithOptions}
-      setReplyingTo={setReplyingTo}
       token={token}
     />
   );
@@ -1268,68 +1332,66 @@ const TacticsDetail = ({ navigation, route }) => {
       alert("댓글을 입력해주세요.");
       return;
     }
-
+  
     try {
       const token = await getTokenFromLocal();
-      let response;
-
-      if (replyingTo) {
-        // 대댓글 작성
-        response = await axios.post(
-          `http://13.125.14.94:8080/api/v1/tactics/${route.params.tacticId}/comment/${replyingTo}`,
-          { commentText: commentText.trim() },
-          {
-            headers: {
-              "Content-Type": "application/json; charset=UTF-8",
-              "Authorization": "Bearer " + token.accessToken,
-            },
-          }
-        );
+      let url;
+      let requestData;
+  
+      console.log("Current replyingTo state:", replyingTo);
+  
+      if (replyingTo && replyingTo.id !== undefined) {
+        url = `http://13.125.14.94:8080/api/v1/tactics/${route.params.tacticId}/comment/${replyingTo.id}`;
+        requestData = { comment: commentText.trim().replace(`@${replyingTo.nickName} `, '') };
+        console.log("Replying to comment:", replyingTo.id);
       } else {
-        // 일반 댓글 작성
-        response = await axios.post(
-          `http://13.125.14.94:8080/api/v1/tactics/${route.params.tacticId}/comment`,
-          { commentText: commentText.trim() },
-          {
-            headers: {
-              "Content-Type": "application/json; charset=UTF-8",
-              "Authorization": "Bearer " + token.accessToken,
-            },
-          }
-        );
+        url = `http://13.125.14.94:8080/api/v1/tactics/${route.params.tacticId}/comment`;
+        requestData = { comment: commentText.trim() };
+        console.log("Posting new comment");
       }
-
+  
+      console.log("Sending request to URL:", url);
+      console.log("Request data:", requestData);
+  
+      const response = await axios.post(url, requestData, {
+        headers: {
+          "Content-Type": "application/json; charset=UTF-8",
+          "Authorization": "Bearer " + token.accessToken,
+        },
+      });
+  
+      console.log("Response:", response.data);
+  
       if (response.data.code === "OK") {
-        const newComment = response.data.result;
+        const newComment = {
+          ...response.data.result,
+          nickname: response.data.result.nickname || token.nickname,
+          comment: requestData.comment,
+          children: [],
+        };
+  
         setData((prevData) => {
-          let updatedCommentList;
-          if (replyingTo) {
-            // 대댓글 추가
-            updatedCommentList = prevData.comments.map((comment) =>
-              comment.commentId === replyingTo
-                ? {
-                    ...comment,
-                    replies: [
-                      ...(comment.replies || []),
-                      { ...newComment, parentCommentId: replyingTo },
-                    ],
-                  }
-                : comment
-            );
+          let updatedComments = prevData.comments ? [...prevData.comments] : [];
+          if (replyingTo && replyingTo.id !== undefined) {
+            updatedComments = updatedComments.map((comment) => {
+              if (comment.commentId === replyingTo.id || comment.tacticCommentId === replyingTo.id) {
+                return {
+                  ...comment,
+                  children: [...(comment.children || []), newComment],
+                };
+              }
+              return comment;
+            });
           } else {
-            // 일반 댓글 추가
-            updatedCommentList = [
-              ...prevData.comments,
-              { ...newComment, replies: [] },
-            ];
+            updatedComments.push(newComment);
           }
           return {
             ...prevData,
-            comments: updatedCommentList,
-            commentCnt: prevData.commentCnt + 1,
+            comments: updatedComments,
+            commentCnt: (prevData.commentCnt || 0) + 1,
           };
         });
-
+  
         setCommentText("");
         setReplyingTo(null);
         Keyboard.dismiss();
@@ -1338,52 +1400,59 @@ const TacticsDetail = ({ navigation, route }) => {
       }
     } catch (error) {
       console.error("Error posting comment:", error);
-      // 에러 처리 로직...
+      if (error.response) {
+        console.error("Response data:", error.response.data);
+        console.error("Response status:", error.response.status);
+        console.error("Response headers:", error.response.headers);
+        alert("댓글 등록 실패: " + (error.response.data.message || "알 수 없는 오류가 발생했습니다."));
+      } else if (error.request) {
+        console.error("No response received:", error.request);
+        alert("서버로부터 응답이 없습니다. 네트워크 연결을 확인해주세요.");
+      } else {
+        console.error("Error details:", error.message);
+        alert("댓글 등록 중 오류가 발생했습니다.");
+      }
     }
   };
-
+  
   const handleDeleteComment = async (commentId) => {
-    try {
-      await deleteComment(commentId);
-      setData((prevData) => {
-        const updatedComments = prevData.comments.map((comment) => {
-          if (comment.commentId === commentId) {
-            return {
-              ...comment,
-              deleted: true,
-              commentText: "삭제된 댓글입니다.",
-            };
-          }
-          if (comment.replies) {
-            const updatedReplies = comment.replies.map((reply) => {
-              if (reply.commentId === commentId) {
-                return {
-                  ...reply,
-                  deleted: true,
-                  commentText: "삭제된 댓글입니다.",
-                };
-              }
-              return reply;
-            });
-            return { ...comment, replies: updatedReplies };
-          }
-          return comment;
-        });
-        return {
-          ...prevData,
-          comments: updatedComments,
-        };
-      });
-      alert("댓글이 삭제되었습니다.");
-    } catch (error) {
-      alert("댓글 삭제에 실패했습니다.");
+    console.log(`handleDeleteComment called with commentId: ${commentId}`);
+    if (!commentId) {
+      console.error("Invalid comment ID:", commentId);
+      Alert.alert("오류", "유효하지 않은 댓글 ID입니다.");
+      return;
     }
-  };
 
-  // 이미지 클릭 핸들러 추가
-  const handleImagePress = (imageUrl) => {
-    setSelectedImage(imageUrl);
-    setModalVisible(true);
+    Alert.alert(
+      "댓글 삭제",
+      "정말로 이 댓글을 삭제하시겠습니까?",
+      [
+        {
+          text: "취소",
+          style: "cancel"
+        },
+        {
+          text: "삭제",
+          onPress: async () => {
+            try {
+              const response = await deleteComment(commentId);
+              if (response.code === "OK") {
+                // 서버에서 업데이트된 댓글 목록을 가져옵니다.
+                const updatedData = await GetTactics(route.params.tacticId);
+                setData(updatedData.result);
+                Alert.alert("성공", "댓글이 삭제되었습니다.");
+              } else {
+                throw new Error(response.message || "댓글 삭제에 실패했습니다.");
+              }
+            } catch (error) {
+              console.error("Error in handleDeleteComment:", error);
+              Alert.alert("오류", error.message || "댓글 삭제에 실패했습니다.");
+            }
+          }
+        }
+      ],
+      { cancelable: false }
+    );
   };
 
   useEffect(() => {
@@ -1396,35 +1465,26 @@ const TacticsDetail = ({ navigation, route }) => {
     });
   }, [data, onPress]);
 
-  const handleReplyPress = (commentId) => {
-    Alert.alert("대댓글", "대댓글을 다시겠습니까?", [
-      {
-        text: "아니오",
-        style: "cancel",
-      },
-      {
-        text: "예",
-        onPress: () => {
-          setReplyingTo(commentId);
-          setCommentText(`@${data.nickName} `);
-        },
-      },
-    ]);
+  const handleReplyPress = (commentId, commentNickName) => {
+    setReplyingTo({ id: commentId, nickName: commentNickName });
+    setCommentText(`@${commentNickName} `);
   };
 
-  // if (loading) {
-  //   return (
-  //     <View style={styles.loadingContainer}>
-  //       <ActivityIndicator size="large" color="tomato" />
-  //     </View>
-  //   );
-  // }
+  const cancelReply = () => {
+    setReplyingTo(null);
+    setCommentText("");
+  };
 
-  // if (!data) return <Text>데이터를 불러오는데 실패했습니다.</Text>;
 
   const handleToggleLike = () => {
-    toggleLike(data.id, setData);
+    if (!data || !data.tacticId) {
+      console.error("Invalid data or data.tacticId:", data);
+      alert("전술 정보가 유효하지 않습니다.");
+      return;
+    }
+    toggleLike(data.tacticId, setData);
   };
+
   const handleAttackerPositionPress = (DetailText, PositionText) => {
     setDetailTacticsplaceholder(DetailText);
     setDetailPositionplaceholder(PositionText);
@@ -1501,9 +1561,73 @@ const TacticsDetail = ({ navigation, route }) => {
   useEffect(() => {
     const fetchTacticDetail = async () => {
       try {
+        setLoading(true);
+        console.log("Fetching tactic detail for ID:", route.params.tacticId);
+        
+        const tacticData = await handleTacticCall(route.params.tacticId, {
+          setData,
+          setMainText,
+          setSubText,
+          setSlectedFormation,
+          setTacticName,
+          setannonymous,
+          setOnePositionValue,
+          setTwoPositionValue,
+          setThreePositionValue,
+          setFourPositionValue,
+          setFivePositionValue,
+          setSixPositionValue,
+          setSevenPositionValue,
+          setEightPositionValue,
+          setNinePositionValue,
+          setTenPositionValue,
+          setElevenPositionValue,
+        });
+        
+        console.log("Fetched tactic data:", JSON.stringify(tacticData, null, 2));
+        
+        // 댓글 데이터 구조 확인
+        if (tacticData.comments && tacticData.comments.length > 0) {
+          console.log("First comment data:", JSON.stringify(tacticData.comments[0], null, 2));
+        }
+        
+      } catch (error) {
+        console.error("Error fetching tactic detail:", error);
+        alert("전술 데이터를 불러오는 데 실패했습니다: " + error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    fetchTacticDetail();
+  }, [route.params.tacticId]);
+
+  const handleReply = (commentId, nickName) => {
+    console.log(`Setting up reply to comment ${commentId} by ${nickName}`);
+    if (commentId === undefined) {
+      console.error("Comment ID is undefined");
+      return;
+    }
+    setReplyingTo({ id: commentId, nickName: nickName });
+    setCommentText("");
+  };
+
+  const [searchText, setSearchText] = useState("");
+
+  const handleSearch = () => {
+    // 추후 검색 기능 구현
+    console.log("검색어:", searchText);
+  };
+
+  const [tacticData, setTacticData] = useState(null);
+  const [commentData, setCommentData] = useState({ comments: [], commentCnt: 0 });
+  
+  useEffect(() => {
+    const fetchTacticDetail = async () => {
+      try {
         console.log("Fetching tactic detail for ID:", route.params.tacticId);
         await handleTacticCall(route.params.tacticId, {
-          setData,
+          setData: setTacticData,
           setMainText,
           setSubText,
           setSlectedFormation,
@@ -1527,158 +1651,65 @@ const TacticsDetail = ({ navigation, route }) => {
         setLoading(false);
       }
     };
-
+  
     fetchTacticDetail();
   }, [route.params.tacticId]);
-
-  const handleReply = async (parentCommentId, replyText) => {
-    try {
-      const newReply = await createReply(
-        route.params.tacticId,
-        parentCommentId,
-        replyText
-      );
-      setData((prevData) => {
-        const updatedComments = prevData.comments.map((comment) => {
-          if (comment.commentId === parentCommentId) {
-            return {
-              ...comment,
-              replies: [...(comment.replies || []), newReply],
-            };
-          }
-          return comment;
-        });
-        return {
-          ...prevData,
-          comments: updatedComments,
-          commentCnt: prevData.commentCnt + 1,
-        };
+  
+  useEffect(() => {
+    if (tacticData) {
+      setCommentData({
+        comments: tacticData.comments || [],
+        commentCnt: tacticData.commentCnt || 0,
       });
-    } catch (error) {
-      alert("대댓글 작성에 실패했습니다.");
     }
-  };
-  const CommentItem = ({ username, description, number }) => (
-    <ItemContainer>
-      <ItemContent>
-        <FirstLineView>
-          <ImageContainer>
-            <StyledImage source={ProfileImg} />
-          </ImageContainer>
+  }, [tacticData]);
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#FF6262" />
+      </View>
+    );
+  }
 
-          <OtherElements>
-            <ItemTitle>{username}</ItemTitle>
-            <ButtonContainer>
-              <IconButton onPress={() => console.log("Chatbubble pressed")}>
-                <FontAwesome5 name="comment-dots" size={14} color="blue" />
-              </IconButton>
-              <Divider />
-              <IconButton onPress={() => console.log("Thumbs-up pressed")}>
-                <FontAwesome5 name="thumbs-up" size={14} color="tomato" />
-              </IconButton>
-            </ButtonContainer>
-          </OtherElements>
-        </FirstLineView>
-
-        <SecondLineView>
-          <ItemText>{description}</ItemText>
-        </SecondLineView>
-        <ThirdLineView>
-          <FontAwesome5 name="thumbs-up" size={14} color="tomato" />
-          <ThumbsUpNumber>{number}</ThumbsUpNumber>
-        </ThirdLineView>
-        <LineForList />
-      </ItemContent>
-    </ItemContainer>
-  );
-
-  const ReCommentItem = ({ username, description, number }) => (
-    <ReCommentContainer>
-      <ReCommentContent>
-        <ReCommentFirstLineView>
-          <MaterialCommunityIcons
-            name="arrow-right-bottom"
-            size={20}
-            color="black"
-          />
-          <ImageContainer>
-            <StyledImage source={ProfileImg} />
-          </ImageContainer>
-
-          <OtherElements>
-            <ItemTitle>{username}</ItemTitle>
-            <ReCommentButtonContainer>
-              <IconButton onPress={() => console.log("Thumbs-up pressed")}>
-                <FontAwesome5 name="thumbs-up" size={14} color="tomato" />
-              </IconButton>
-            </ReCommentButtonContainer>
-          </OtherElements>
-        </ReCommentFirstLineView>
-
-        <SecondLineView>
-          <ItemText>{description}</ItemText>
-        </SecondLineView>
-        <ThirdLineView>
-          <FontAwesome5 name="thumbs-up" size={14} color="tomato" />
-          <ThumbsUpNumber>{number}</ThumbsUpNumber>
-        </ThirdLineView>
-      </ReCommentContent>
-      <LineForList />
-    </ReCommentContainer>
-  );
-
-  const [searchText, setSearchText] = useState("");
-
-  const handleSearch = () => {
-    // 추후 검색 기능 구현
-    console.log("검색어:", searchText);
-  };
-
-  // useEffect(() => {
-  //   const fetchTactics = async () => {
-  //     handleTacticCall(tacticId);
-  //   };
-
-  //   fetchTactics();
-  // }, []);
+  if (!data) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#FF6262" />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: "#fff" }}
       edges={["bottom", "right", "left"]}
     >
-      <ViewForTextBar>
-        <TaticsName
-          value={tacticName}
-          editable={false} // TextInput을 수정 불가능하게 설정
-          pointerEvents="none" // 모든 터치 이벤트 차단
-        />
-        <BouncyCheckbox
-          size={20}
-          fillColor="black"
-          unfillColor="#FFFFFF"
-          text="익명"
-          iconStyle={{ borderColor: "black" }}
-          textStyle={{
-            fontFamily: "JosefinSans-Regular",
-            textDecorationLine: "none",
-          }}
-          style={{ marginLeft: 125 }}
-          isChecked={anonymous} // 체크박스가 anonymous 값에 따라 체크됨
-          onPress={() => {}} // 빈 함수를 전달하여 터치 이벤트 무시
-          disableBuiltInState={true} // 내장된 상태 변경 비활성화
-          disabled={true} // 체크박스를 비활성화 상태로 만듦
-        />
-      </ViewForTextBar>
-      <ViewForTacticBoard>
-        <ViewForDropdown>
-          <TacticName
-            value={selectedFormation}
-            editable={false} // TextInput을 수정 불가능하게 설정
-            pointerEvents="none"
-          ></TacticName>
-        </ViewForDropdown>
-        <ViewForBoard>
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#FF6262" />
+        </View>
+      ) : (
+        <FlatList
+          style={{ flex: 1 }}
+          ListHeaderComponent={
+          <>
+            <ViewForTextBar>
+              <TaticsName
+                value={tacticName}
+                editable={false}
+                pointerEvents="none"
+                color="black"
+              />
+            </ViewForTextBar>
+            <ViewForTacticBoard>
+              <ViewForDropdown>
+                <TacticName
+                  value={selectedFormation}
+                  editable={false}
+                  pointerEvents="none"
+                />
+              </ViewForDropdown>
+              <ViewForBoard>
           <TacticsBackImage source={TacticsBack} resizeMode={"stretch"} />
           <Modal // 공격수 모달
             animationType="slide"
@@ -2432,98 +2463,119 @@ const TacticsDetail = ({ navigation, route }) => {
             </TestView>
           )}
         </ViewForBoard>
-      </ViewForTacticBoard>
-      <ViewForSlideTactic>
-        <TacticBox isMain={isMainTactic}>
-          <Title>{isMainTactic ? "메인전술" : "세부전술"}</Title>
-          <TextBox
-            multiline={true}
-            onChangeText={
-              isMainTactic ? handleChangeMainText : handleChangeSubText
-            }
-            value={isMainTactic ? mainText : subText}
-            placeholder="내용을 입력하세요..."
-            textAlignVertical="top"
-            style={{ paddingTop: 10 }}
-            placeholderTextColor="white"
-            editable={false} // TextInput을 수정 불가능하게 설정
-            pointerEvents="none" // 모든 터치 이벤트 차단
-          />
-          <ToggleButton onPress={handleToggleTactic}>
-            <FontAwesome5 name="exchange-alt" size={20} color="white" />
-          </ToggleButton>
-        </TacticBox>
-      </ViewForSlideTactic>
-      <View style={[styles.bar, { marginTop: 20 }]} />
-      <View style={styles.buttonBox}>
-        <FontAwesome5
-          name="comment-dots"
-          size={16}
-          color="#fe6263"
-          marginRight={5}
-        />
-        <Text style={{ color: "#666", fontSize: 14 }}>{data.commentCnt}</Text>
-        <View style={styles.button}>
-          <FontAwesome5
-            name="thumbs-up"
-            size={16}
-            color="#fe6263"
-            marginLeft={15}
-          />
-          <Text style={{ color: "#666", fontSize: 14 }}>{data.likeCount}</Text>
-        </View>
-        <Pressable
-          style={[styles.button, styles.likeButton]}
-          onPress={handleToggleLike}
-        >
-          <AntDesign
-            name={data.isLiked ? "heart" : "hearto"}
-            size={16}
-            color={data.isLiked ? "#fe6263" : "#666"}
-            marginLeft={235}
-          />
-          <Text style={{ color: "#666", fontSize: 12, marginLeft: 0 }}>
-            좋아요
-          </Text>
-        </Pressable>
-      </View>
-      data={data.comments}
-      ListEmptyComponent=
-      {
-        <View style={{ padding: 20, alignItems: "center" }}>
-          <Text>댓글이 없습니다.</Text>
-        </View>
-      }
-      renderItem={renderCommentItem}
-      keyExtractor={(item) => `comment-${item.commentId}`}
-      <View style={styles.commentInputContainer}>
-        <TextInput
-          placeholder={
-            replyingTo ? "대댓글을 입력하세요." : "댓글을 입력하세요."
+        </ViewForTacticBoard>
+        <ViewForSlideTactic>
+              <TacticBox isMain={isMainTactic}>
+                <Title>{isMainTactic ? "메인전술" : "세부전술"}</Title>
+                <TextBox
+                  multiline={true}
+                  onChangeText={
+                    isMainTactic ? handleChangeMainText : handleChangeSubText
+                  }
+                  value={isMainTactic ? mainText : subText}
+                  placeholder="내용을 입력하세요..."
+                  textAlignVertical="top"
+                  style={{ paddingTop: 10 }}
+                  placeholderTextColor="white"
+                  editable={false}
+                  pointerEvents="none"
+                />
+                <ToggleButton onPress={handleToggleTactic}>
+                  <FontAwesome5 name="exchange-alt" size={20} color="white" />
+                </ToggleButton>
+              </TacticBox>
+            </ViewForSlideTactic>
+            <View style={styles.barContainer}>
+              <View style={[styles.bar, { marginTop: 5, width: "85%" }]} />
+            </View>
+            <View style={[styles.buttonBox, {marginLeft: 30}]}>
+              <FontAwesome5
+                name="comment-dots"
+                size={16}
+                color="#fe6263"
+                marginRight={5}
+              />
+              <Text style={{ color: "#666", fontSize: 14 }}>
+                {data?.commentCnt ?? 0}
+              </Text>
+              <View style={styles.button}>
+                <FontAwesome5
+                  name="thumbs-up"
+                  size={16}
+                  color="#fe6263"
+                  marginLeft={15}
+                />
+                <Text style={{ color: "#666", fontSize: 14 }}>
+                  {data?.likeCnt ?? 0}
+                </Text>
+              </View>
+              <Pressable
+                style={[styles.button, styles.likeButton, {marginLeft: -10}]}
+                onPress={handleToggleLike}
+              >
+                <AntDesign
+                  name={data?.isLiked ? "heart" : "hearto"}
+                  size={16}
+                  color={data?.isLiked ? "#fe6263" : "#666"}
+                  marginLeft={235}
+                />
+                <Text style={{ color: "#666", fontSize: 12, marginLeft: 0 }}>
+                  좋아요
+                </Text>
+              </Pressable>
+            </View>
+            <View style={styles.barContainer}>
+              <View style={[styles.bar, { marginTop: 15, width: "100%" }]} />
+            </View>
+          </>
+        }
+        data={data?.comments ?? []}
+        ListEmptyComponent={
+          <View style={{ padding: 20, alignItems: "center" }}>
+            <Text>댓글이 없습니다.</Text>
+          </View>
+        }
+        renderItem={renderCommentItem}
+        keyExtractor={(item, index) => {
+          if (item.commentId) {
+            return `comment-${item.commentId}`;
           }
-          style={styles.commentInput}
-          value={commentText}
-          onChangeText={setCommentText}
-        />
-        <Pressable style={styles.sendButton} onPress={handlePressSendComment}>
-          <Entypo name="triangle-right" size={24} color="tomato" />
-        </Pressable>
-        {replyingTo && (
-          <Pressable
-            style={styles.cancelReplyButton}
-            onPress={() => {
-              setReplyingTo(null);
-              setCommentText("");
-            }}
-          >
-            <Text style={styles.cancelReplyText}>취소</Text>
-          </Pressable>
-        )}
-      </View>
-    </SafeAreaView>
-  );
-};
-
+          return `comment-index-${index}`;
+        }}
+      />
+    )}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
+    >
+    <View style={styles.commentInputContainer}>
+  <TextInput
+    placeholder={
+      replyingTo
+        ? `대댓글을 입력하세요`
+        : "댓글을 입력하세요"
+    }
+    style={styles.commentInput}
+    value={commentText}
+    onChangeText={setCommentText}
+  />
+  {replyingTo && (
+    <Pressable style={styles.cancelReplyButton} onPress={() => {
+      setReplyingTo(null);
+      setCommentText("");
+    }}>
+      <Text style={styles.cancelReplyText}>취소</Text>
+    </Pressable>
+  )}
+  <Pressable style={styles.sendButton} onPress={handlePressSendComment}>
+    <Entypo name="triangle-right" size={24} color="#FF6262" />
+  </Pressable>
+</View>
+    </KeyboardAvoidingView>
+  </SafeAreaView>
+);
+        };
+        
 const styles = StyleSheet.create({
   input: {
     fontSize: 17,
@@ -2626,9 +2678,13 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   bar: {
-    width: "100%",
     height: 1,
     backgroundColor: "#ddd",
+  },
+  barContainer: {
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   button: {
     flexDirection: "row",
@@ -2684,9 +2740,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "flex-start",
+    justifyContent: "space-between",
     borderTopColor: "#ddd",
     borderTopWidth: 1,
+    paddingHorizontal: 10,
   },
   sendButton: {
     padding: 20,
@@ -2704,8 +2761,8 @@ const styles = StyleSheet.create({
   modalCloseButton: {
     marginTop: 20,
     padding: 10,
-    backgroundColor: "tomato",
-    borderRadius: 8,
+    backgroundColor: "#FF6262",
+    borderRadius: 5,
   },
   modalCloseText: {
     color: "#fff",
@@ -2716,7 +2773,31 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   cancelReplyText: {
-    color: "tomato",
+    color: "#FF6262",
+  },
+  commentInputContainer: {
+    backgroundColor: "#fff",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderTopColor: "#ddd",
+    borderTopWidth: 1,
+    paddingHorizontal: 10,
+  },
+  commentInput: {
+    flex: 1,
+    backgroundColor: "#fff",
+    padding: 10,
+    fontSize: 14,
+  },
+  sendButton: {
+    padding: 10,
+  },
+  cancelReplyButton: {
+    padding: 10,
+  },
+  cancelReplyText: {
+    color: "#FF6262",
   },
 });
 

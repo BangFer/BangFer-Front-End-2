@@ -44,7 +44,7 @@ const RankIconInFirstView = styled.View`
 const ButtonText = styled.Text`
   font-size: 16px;
   font-weight: 500;
-  color: black;
+  color: white;
 `;
 
 
@@ -52,7 +52,7 @@ const ButtonText = styled.Text`
 const ThumbsRankButton = styled.TouchableOpacity`
   padding: 5px 10px;
   border-radius: 5px;
-  background-color: tomato;
+  background-color: #FF6262;
   margin-left: 10px;
   
   align-items: center;
@@ -62,7 +62,7 @@ const ThumbsRankButton = styled.TouchableOpacity`
 const CommentsRankButton = styled.TouchableOpacity`
   padding: 5px 10px;
   border-radius: 5px;
-  background-color: tomato;
+  background-color: #FF6262;
   margin-left: 10px;
   
   align-items: center;
@@ -72,7 +72,7 @@ const CommentsRankButton = styled.TouchableOpacity`
 const FormationButton = styled.View`
   padding: 5px 5px;
   border-radius: 5px;
-  background-color: tomato;
+  background-color: #FF6262;
   margin-left: 10px;
 `;
 
@@ -142,15 +142,15 @@ const BoardItem = ({ data, handlePress }) => {
       <View style={styles.infoContainer}>
         <View style={styles.iconContainer}>
            <View style={styles.commentContainer}>
-            <FontAwesome5 name="comment-dots" size={16} color="#fe6263" />
+            <FontAwesome5 name="comment-dots" size={16} color="#FF6262" />
             <Text style={styles.infoText}>{data.commentCnt}</Text>
           </View>
          <View style={styles.likeContainer}>
-            <FontAwesome5 name="thumbs-up" size={16} color="#fe6263" />
+            <FontAwesome5 name="thumbs-up" size={16} color="#FF6262" />
             <Text style={styles.infoText}>{data.likeCnt}</Text>
           </View>
           <View style={styles.formationContainer}>
-            <FontAwesome5 name="futbol" size={16} color="#fe6263" />
+            <FontAwesome5 name="futbol" size={16} color="#FF6262" />
             <Text style={styles.infoText}>{data.mainFormation}</Text>
           </View>
         </View>
@@ -247,7 +247,7 @@ const Tactics = ({ navigation }) => {
   if (queryLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#fe6263" />
+        <ActivityIndicator size="large" color="#FF6262" />
       </View>
     );
   }
@@ -267,7 +267,7 @@ const Tactics = ({ navigation }) => {
     <Container>
 <FirstView>
   <RankIconInFirstView>
-    <FontAwesome6 name="ranking-star" size={24} color="tomato" />
+    <FontAwesome6 name="ranking-star" size={24} color="#FF6262" />
   </RankIconInFirstView>
   <IconAndButtonsInFirstView>
     <ThumbsRankButton onPress={() => handleSort('likes')} disabled={isLoading}>
@@ -402,7 +402,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   retryButton: {
-    backgroundColor: '#fe6263',
+    backgroundColor: '#FF6262',
     padding: 10,
     borderRadius: 5,
   },

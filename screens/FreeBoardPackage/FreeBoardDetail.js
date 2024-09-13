@@ -161,11 +161,10 @@ const GetBoardDetail = async (boardId) => {
 
     // 댓글과 대댓글 구조화
     const structuredComments = response.data.result.commentList
-      .filter((comment) => !comment.deleted)
-      .map((comment) => ({
-        ...comment,
-        replies: comment.children.filter((reply) => !reply.deleted),
-      }));
+    .map((comment) => ({
+      ...comment,
+      replies: comment.children,
+    }));
 
     return {
       ...response.data.result,
@@ -357,7 +356,7 @@ const CommentItem = ({
         <UserInfo nickName={data.nickName} />
         <View style={styles.commentButtons}>
           <Pressable onPress={handleReplyPress} style={styles.replyButton}>
-            <FontAwesome5 name="comment-dots" size={16} color="#fe6263" />
+            <FontAwesome5 name="comment-dots" size={16} color="#6CD163" />
           </Pressable>
           <Pressable onPress={handleMorePress} style={styles.moreButton}>
             <Entypo name="dots-three-vertical" size={16} color="black" />
@@ -803,7 +802,7 @@ const FreeBoardDetail = ({ navigation, route }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="tomato" />
+        <ActivityIndicator size="large" color="#6CD163" />
       </View>
     );
   }
@@ -849,7 +848,7 @@ const FreeBoardDetail = ({ navigation, route }) => {
                 <FontAwesome5
                   name="comment-dots"
                   size={16}
-                  color="#fe6263"
+                  color="#6CD163"
                   marginRight={5}
                 />
                 <Text style={{ color: "#666", fontSize: 14 }}>
@@ -859,7 +858,7 @@ const FreeBoardDetail = ({ navigation, route }) => {
                   <FontAwesome5
                     name="thumbs-up"
                     size={16}
-                    color="#fe6263"
+                    color="#6CD163"
                     marginLeft={15}
                   />
                   <Text style={{ color: "#666", fontSize: 14 }}>
@@ -873,7 +872,7 @@ const FreeBoardDetail = ({ navigation, route }) => {
                   <AntDesign
                     name={data.isLiked ? "heart" : "hearto"}
                     size={16}
-                    color={data.isLiked ? "#fe6263" : "#666"}
+                    color={data.isLiked ? "#6CD163" : "#666"}
                     marginLeft={235}
                   />
                   <Text style={{ color: "#666", fontSize: 12, marginLeft: 0 }}>
@@ -903,7 +902,7 @@ const FreeBoardDetail = ({ navigation, route }) => {
           onChangeText={setCommentText}
         />
         <Pressable style={styles.sendButton} onPress={handlePressSendComment}>
-          <Entypo name="triangle-right" size={24} color="tomato" />
+          <Entypo name="triangle-right" size={24} color="#6CD163" />
         </Pressable>
         {replyingTo && (
           <Pressable
@@ -1115,7 +1114,7 @@ const styles = StyleSheet.create({
   modalCloseButton: {
     marginTop: 20,
     padding: 10,
-    backgroundColor: "tomato",
+    backgroundColor: "#6CD163",
     borderRadius: 8,
   },
   modalCloseText: {
@@ -1127,7 +1126,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   cancelReplyText: {
-    color: "tomato",
+    color: "#6CD163",
   },
 });
 

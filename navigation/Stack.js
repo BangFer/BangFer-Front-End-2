@@ -616,7 +616,7 @@ const StackNavigation = (navigation) => {
                       <MenuOption
                         onSelect={() => navigateToMyFreeBoard(navigation)}
                       >
-                        <Text style={{ color: 'red' }}>내가 쓴 글</Text>
+                        <Text style={{ color: 'black' }}>내가 쓴 글</Text>
                       </MenuOption>
                     </MenuOptions>
                   </Menu>
