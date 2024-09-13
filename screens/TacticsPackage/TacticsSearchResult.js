@@ -25,26 +25,29 @@ const Container = styled.View`
 const FirstView = styled.View`
   padding: 1px;
   margin-bottom: 10px;
+  flex-direction: row;
+  align-items: center;
 `;
 
 const IconAndButtonsInFirstView = styled.View`
+  flex: 1;
   flex-direction: row;
   align-items: center;
   justify-content: flex-end;
-  margin-top: px;
+  margin-top: 10px;
   margin-right: 10px;
 `;
 
 const RankIconInFirstView = styled.View`
-  flex-direction: row;
-  margin-top: 5px;
-  margin-right: 120px;
+  position: absolute;
+  left: 20px;
+  top: 50%;
 `;
 
 const ButtonText = styled.Text`
   font-size: 16px;
   font-weight: 500;
-  color: black;
+  color: white;
 `;
 
 
@@ -236,7 +239,7 @@ const TacticsSearchResult = ({ route, navigation }) => {
 
   return (
     <Container>
-      <SearchView>
+      {/* <SearchView>
         <SearchIcon name="search" size={24} color="black" />
         <SearchInput
           placeholder="전술명"
@@ -246,13 +249,13 @@ const TacticsSearchResult = ({ route, navigation }) => {
         <SearchButton onPress={handleSearch}>
           <Text>검색</Text>
         </SearchButton>
-      </SearchView>
+      </SearchView> */}
 
       <FirstView>
-        <IconAndButtonsInFirstView>
           <RankIconInFirstView>
             <FontAwesome6 name="ranking-star" size={24} color="tomato" />
           </RankIconInFirstView>
+          <IconAndButtonsInFirstView>
           <ThumbsRankButton onPress={() => handleSort('likes')} disabled={isLoading}>
             <ButtonText>공감순</ButtonText>
           </ThumbsRankButton>
@@ -290,9 +293,9 @@ const TacticsSearchResult = ({ route, navigation }) => {
           data={sortedData}
           renderItem={renderBoardItem}
           keyExtractor={(item) => item.tacticId?.toString() || Math.random().toString()}
-          ListHeaderComponent={
-            <Text style={styles.resultCountText}>검색 결과: {sortedData.length}개</Text>
-          }
+          // ListHeaderComponent={
+          //   <Text style={styles.resultCountText}>검색 결과: {sortedData.length}개</Text>
+          // }
         />
       ) : (
         <View style={styles.noResultContainer}>

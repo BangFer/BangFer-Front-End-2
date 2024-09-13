@@ -44,7 +44,7 @@ const RankIconInFirstView = styled.View`
 const ButtonText = styled.Text`
   font-size: 16px;
   font-weight: 500;
-  color: black;
+  color: white;
 `;
 
 
@@ -143,7 +143,7 @@ const BoardItem = ({ data, handlePress }) => {
         <View style={styles.iconContainer}>
 
           <View style={styles.formationContainer}>
-            <FontAwesome5 name="futbol" size={16} color="#fe6263" />
+            <FontAwesome5 name="futbol" size={16} color="#FF6262" />
             <Text style={styles.infoText}>{data.mainFormation}</Text>
           </View>
         </View>
@@ -240,7 +240,7 @@ const MyTactics = ({ navigation }) => {
   if (queryLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#fe6263" />
+        <ActivityIndicator size="large" color="#FF6262" />
       </View>
     );
   }
@@ -383,7 +383,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   retryButton: {
-    backgroundColor: '#fe6263',
+    backgroundColor: '#FF6262',
     padding: 10,
     borderRadius: 5,
   },
