@@ -128,7 +128,7 @@ const ViewForSlideTactic = styled.View`
 
 const TacticBox = styled.View`
   border-radius: 15px;
-  background-color: ${({ isMain }) => (isMain ? "tomato" : "blue")};
+  background-color: ${({ isMain }) => (isMain ? "#ff6262" : "#5182FF")};
   padding: 10px;
   height: 90%; /* 높이 조정 */
   width: ${Dimensions.get("window").width -
@@ -271,7 +271,7 @@ const RegisterButton = styled.TouchableOpacity`
   border-radius: 8px;
   width: 60px;
   height: 40px;
-  background-color: #d9d9d9;
+  background-color: black;
   justify-content: center;
   align-items: center;
   margin-right: 25px;
@@ -280,8 +280,8 @@ const RegisterButton = styled.TouchableOpacity`
 
 const RegisterText = styled.Text`
   font-size: 20px;
-  font-weight: bold;
-  color: black;
+
+  color: white;
 `;
 
 const showEmptyRegisterTactic = () => {
@@ -576,7 +576,7 @@ const NewTactic = ({ navigation }) => {
             fontFamily: "JosefinSans-Regular",
             textDecorationLine: "none",
           }}
-          style={{ marginLeft: 125 }}
+          style={{ marginLeft: 170 }}
           onPress={(isChecked) => setAnnonymous(isChecked)}
         />
       </ViewForTextBar>

@@ -46,7 +46,7 @@ const CenterView = styled.View`
 
 const BigIcon = styled(Ionicons)`
   font-size: 72px;
-  color: gray;
+  color: #FF6262;
 `;
 
 const SearchText = styled.Text`

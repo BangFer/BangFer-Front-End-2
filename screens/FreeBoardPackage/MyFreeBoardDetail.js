@@ -337,7 +337,7 @@ const CommentItem = ({ data, onReply, onDelete, isOwnComment, boardId, showActio
         <UserInfo nickName={data.nickName} />
         <View style={styles.commentButtons}>
           <Pressable onPress={handleReplyPress} style={styles.replyButton}>
-            <FontAwesome5 name="comment-dots" size={16} color="#fe6263" />
+            <FontAwesome5 name="comment-dots" size={16} color="#6CD163" />
           </Pressable>
           <Pressable onPress={handleMorePress} style={styles.moreButton}>
             <Entypo name="dots-three-vertical" size={16} color="black" />
@@ -743,7 +743,7 @@ const MyFreeBoardDetail = ({ navigation, route }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="tomato" />
+        <ActivityIndicator size="large" color="#6CD163" />
       </View>
     );
   }
@@ -783,12 +783,12 @@ const MyFreeBoardDetail = ({ navigation, route }) => {
 
               <View style={[styles.bar, { marginTop: 20 }]} />
               <View style={styles.buttonBox}>
-                  <FontAwesome5 name="comment-dots" size={16} color="#fe6263" marginRight={5}/>
+                  <FontAwesome5 name="comment-dots" size={16} color="#6CD163" marginRight={5}/>
                   <Text style={{ color: "#666", fontSize: 14 }}>
                     {data.commentCount}
                   </Text>
                 <View style={styles.button}>
-                  <FontAwesome5 name="thumbs-up" size={16} color="#fe6263" marginLeft={15} />
+                  <FontAwesome5 name="thumbs-up" size={16} color="#6CD163" marginLeft={15} />
                   <Text style={{ color: "#666", fontSize: 14 }}>
                     {data.likeCount}
                   </Text>
@@ -828,7 +828,7 @@ const MyFreeBoardDetail = ({ navigation, route }) => {
     onChangeText={setCommentText}
   />
   <Pressable style={styles.sendButton} onPress={handlePressSendComment}>
-    <Entypo name="triangle-right" size={24} color="tomato" />
+    <Entypo name="triangle-right" size={24} color="#6CD163" />
   </Pressable>
   {replyingTo && (
     <Pressable style={styles.cancelReplyButton} onPress={() => {
@@ -1037,7 +1037,7 @@ const styles = StyleSheet.create({
   modalCloseButton: {
     marginTop: 20,
     padding: 10,
-    backgroundColor: "tomato",
+    backgroundColor: "#6CD163",
     borderRadius: 8,
   },
   modalCloseText: {
@@ -1049,7 +1049,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   cancelReplyText: {
-    color: 'tomato',
+    color: '#6CD163',
   },
 });
 
