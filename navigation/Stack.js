@@ -21,6 +21,8 @@ import Tactics from '../screens/TacticsPackage/Tactics';
 import TacticsSearch from '../screens/TacticsPackage/TacticsSearch';
 import NewTactic from '../screens/TacticsPackage/NewTactic';
 import MyTactics from '../screens/TacticsPackage/MyTactics';
+import MyTacticsDetail from '../screens/TacticsPackage/MyTacticsDetail';
+import TacticEdit from '../screens/TacticsPackage/TacticEdit';
 import TacticExample from '../screens/TacticsPackage/TacticExample';
 import TacticsSearchResult from '../screens/TacticsPackage/TacticsSearchResult';
 import MyPosts from '../screens/MyPosts';
@@ -531,6 +533,24 @@ const StackNavigation = (navigation) => {
             title: '내 전술',
           }}
         />
+          <Stack.Screen
+          name="MyTacticsDetail"
+          component={MyTacticsDetail}
+          options={{
+            headerShown: true,
+            headerTitleAlign: 'center',
+            title: '내 전술',
+          }}
+        />
+        <Stack.Screen
+          name="TacticEdit"
+          component={TacticEdit}
+          options={{
+            headerShown: true,
+            headerTitleAlign: 'center',
+            title: '전술 수정',
+          }}
+        />
         <Stack.Screen
           name="TacticsSearchResult"
           component={TacticsSearchResult}
@@ -759,7 +779,7 @@ const StackNavigation = (navigation) => {
         <Stack.Screen
           name="TacticsDetail"
           component={TacticsDetail}
-          options={{ headerShown: true, headerTitleAlign: 'center' }}
+          options={{ headerShown: true, headerTitleAlign: 'center' ,title: '전술게시판',}}
         />
       </Stack.Navigator>
       {isCallendarVisible && ( // isCallendarVisible 상태가 true일 때 모달이 보이도록 설정합니다.

@@ -227,7 +227,7 @@ const MyTactics = ({ navigation }) => {
 
 
   const handlePressGoDetail = useCallback((tacticId) => {
-    navigation.navigate("TacticsDetail", { tacticId });
+    navigation.navigate("MyTacticsDetail", { tacticId });
   }, [navigation]);
 
   const renderBoardItem = useCallback(({ item }) => (
