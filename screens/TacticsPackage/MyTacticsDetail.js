@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,  useCallback } from "react";
 import { StatusBar } from "expo-status-bar";
 import styled from "styled-components";
 import {
@@ -1193,7 +1193,7 @@ const handleTacticCall = async (selectedTacticId, setters) => {
   }
 };
 
-const TacticsDetail = ({ navigation, route }) => {
+const MyTacticsDetail = ({ navigation, route }) => {
   const [data, setData] = useState({
     comments: [],
     commentCnt: 0,
@@ -1251,78 +1251,82 @@ const TacticsDetail = ({ navigation, route }) => {
     }
   };
 
-  const onPress = () => {
-    const reportOptions = [
-      "욕설/비하",
-      "음란물/불건전한 만남 및 대화",
-      "정치적 발언",
-      "사칭",
-      "상업적 광고 및 판매",
-    ];
-
-    const reportActivities = [
-      "CURSING",
-      "OBSCENE",
-      "POLITICAL",
-      "IMPOSTOR",
-      "COMMERCIAL",
-    ];
-
-    const options = ["신고", "차단", "취소"];
+  const onPress = useCallback(() => {
+    const options = ["수정", "삭제", "취소"];
+    const destructiveButtonIndex = 1;
     const cancelButtonIndex = 2;
-
+  
     showActionSheetWithOptions(
       {
         options,
         cancelButtonIndex,
-        destructiveButtonIndex: -1,
+        destructiveButtonIndex,
       },
       (selectedIndex) => {
         switch (selectedIndex) {
-          case 0: // 신고
-            showActionSheetWithOptions(
-              {
-                options: [...reportOptions, "취소"],
-                cancelButtonIndex: reportOptions.length,
-              },
-              async (reportIndex) => {
-                if (reportIndex !== reportOptions.length) {
-                  try {
-                    const selectedReportActivity =
-                      reportActivities[reportIndex];
-                    console.log(
-                      `Selected report option: ${reportOptions[reportIndex]}`
-                    );
-                    console.log(
-                      `Corresponding report activity: ${selectedReportActivity}`
-                    );
-                    const result = await reportUser(
-                      data.userId,
-                      selectedReportActivity
-                    );
-                    console.log("Report result:", result);
-                    alert("신고가 접수되었습니다.");
-                  } catch (error) {
-                    console.error("Error in report process:", error);
-                    alert(
-                      "신고 처리 중 오류가 발생했습니다. 다시 시도해 주세요."
-                    );
-                  }
-                }
-              }
-            );
+          case 0:
+            handleEdit(data.tacticId);
             break;
-
-          case 1: // 차단
-            handleBlock();
+          case destructiveButtonIndex:
+            handleDelete(data.tacticId);
             break;
           case cancelButtonIndex:
-            console.log("취소됨");
+            // Canceled
             break;
         }
       }
     );
-  };
+  }, [data, handleEdit, handleDelete, showActionSheetWithOptions]);
+
+  const handleEdit = useCallback((tacticId) => {
+    navigation.navigate("TacticEdit", { id: tacticId });
+  }, [navigation]);
+
+  const handleDelete = useCallback(async (tacticId) => {
+    try {
+      const token = await getTokenFromLocal();
+      const response = await axios.delete(
+        `http://13.125.14.94:8080/api/v1/tactics/${tacticId}`,
+        {
+          headers: {
+            "Content-Type": "application/json; charset=UTF-8",
+            "Authorization": "Bearer " + token.accessToken,
+          },
+        }
+      );
+  
+      console.log("Delete response:", response);  // 전체 응답 로깅
+  
+      // 응답 구조 확인
+      if (response && response.status === 204) {
+        // 많은 API에서 삭제 성공 시 204 No Content를 반환합니다
+        alert("게시글이 삭제되었습니다.");
+        navigation.navigate("MyFreeBoard");
+      } else if (response && response.data) {
+        if (response.data.code === "No Content" || response.data.code === "OK") {
+          alert("게시글이 삭제되었습니다.");
+          navigation.navigate("MyFreeBoard");
+        } else {
+          alert("게시글 삭제에 실패했습니다: " + (response.data.message || "알 수 없는 오류"));
+        }
+      } else {
+        throw new Error("Invalid response structure");
+      }
+    } catch (error) {
+      console.error("Error deleting board:", error);
+      if (error.response) {
+        console.error("Error response:", error.response);
+        alert("게시글 삭제 중 오류가 발생했습니다: " + (error.response.data ? error.response.data.message : error.message));
+      } else if (error.request) {
+        console.error("Error request:", error.request);
+        alert("서버에서 응답이 없습니다. 네트워크 연결을 확인해주세요.");
+      } else {
+        console.error("Error message:", error.message);
+        alert("게시글 삭제 중 오류가 발생했습니다: " + error.message);
+      }
+    }
+  }, [navigation]);
+
 
   useEffect(() => {
     navigation.setOptions({
@@ -1332,7 +1336,7 @@ const TacticsDetail = ({ navigation, route }) => {
         </Pressable>
       ),
     });
-  }, [data, onPress]);
+  }, [navigation, onPress]);
 
   useEffect(() => {
     const fetchToken = async () => {
@@ -2832,4 +2836,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default TacticsDetail;
+export default MyTacticsDetail;
