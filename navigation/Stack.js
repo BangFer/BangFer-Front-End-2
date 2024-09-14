@@ -5,7 +5,11 @@ import { FontAwesome } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
 
 import MainPage from '../screens/MainPage';
+import MemberOut from '../screens/MyPagePackage/MemberOut';
 import EmailChangeComponent from '../screens/MyPagePackage/EmailChange';
+import PasswordChangeComponent from '../screens/MyPagePackage/PasswordChange';
+import ProfileImageChange from '../screens/MyPagePackage/ProfileImageChange';
+import NicknameChange from '../screens/MyPagePackage/NicknameChange';
 import FreeBoard from '../screens/FreeBoardPackage/FreeBoard';
 import FreeBoardDetail from '../screens/FreeBoardPackage/FreeBoardDetail';
 import FreeBoardWrite from '../screens/FreeBoardPackage/FreeBoardWrite';
@@ -21,6 +25,8 @@ import Tactics from '../screens/TacticsPackage/Tactics';
 import TacticsSearch from '../screens/TacticsPackage/TacticsSearch';
 import NewTactic from '../screens/TacticsPackage/NewTactic';
 import MyTactics from '../screens/TacticsPackage/MyTactics';
+import MyTacticsDetail from '../screens/TacticsPackage/MyTacticsDetail';
+import TacticEdit from '../screens/TacticsPackage/TacticEdit';
 import TacticExample from '../screens/TacticsPackage/TacticExample';
 import TacticsSearchResult from '../screens/TacticsPackage/TacticsSearchResult';
 import MyPosts from '../screens/MyPosts';
@@ -434,6 +440,10 @@ const StackNavigation = (navigation) => {
           component={Loading}
           options={{ headerShown: false }}
         />
+        <Stack.Screen name="MemberOut" component={MemberOut} />
+        <Stack.Screen name="PasswordChange" component={PasswordChangeComponent} />
+        <Stack.Screen name="ProfileImageChange" component={ProfileImageChange} />
+        <Stack.Screen name="NicknameChange" component={NicknameChange} />
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="SignUp" component={SignUp} />
         <Stack.Screen name="FindPwEmail" component={FindPwEmail} />
@@ -574,6 +584,24 @@ const StackNavigation = (navigation) => {
             headerShown: true,
             headerTitleAlign: 'center',
             title: '내 전술',
+          }}
+        />
+          <Stack.Screen
+          name="MyTacticsDetail"
+          component={MyTacticsDetail}
+          options={{
+            headerShown: true,
+            headerTitleAlign: 'center',
+            title: '내 전술',
+          }}
+        />
+        <Stack.Screen
+          name="TacticEdit"
+          component={TacticEdit}
+          options={{
+            headerShown: true,
+            headerTitleAlign: 'center',
+            title: '전술 수정',
           }}
         />
         <Stack.Screen
