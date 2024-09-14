@@ -232,23 +232,13 @@ const FreeBoard = ({ navigation }) => {
           </RankIconInFirstView>
           <ThumbsRankButton onPress={() => handleSort('likes')} disabled={isLoading}>
             {isLoading && sortBy === 'likes' ? (
-          <ThumbsRankButton
-            onPress={() => handleSort("likes")}
-            disabled={isLoading}
-          >
-            {isLoading && sortBy === "likes" ? (
               <ActivityIndicator color="#6CD163" size="small" />
             ) : (
               <ButtonText>공감순</ButtonText>
             )}
           </ThumbsRankButton>
-<CommentsRankButton onPress={() => handleSort('comments')} disabled={isLoading}>
+          <CommentsRankButton onPress={() => handleSort('comments')} disabled={isLoading}>
             {isLoading && sortBy === 'comments' ? (
-          <CommentsRankButton
-            onPress={() => handleSort("comments")}
-            disabled={isLoading}
-          >
-            {isLoading && sortBy === "comments" ? (
               <ActivityIndicator color="#6CD163" size="small" />
             ) : (
               <ButtonText>댓글순</ButtonText>
@@ -261,9 +251,7 @@ const FreeBoard = ({ navigation }) => {
         style={styles.container}
         data={sortedData}
         renderItem={renderBoardItem}
-        keyExtractor={(item) =>
-          item.id?.toString() ?? `fallback-${Math.random()}`
-        }
+        keyExtractor={(item) => item.id?.toString() ?? `fallback-${Math.random()}`}
         onEndReached={() => {
           if (hasNextPage) {
             fetchNextPage();
@@ -304,24 +292,24 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     flexDirection: "row",
-    width: 120, // 고정 너비 설정
+    width: 120,
   },
   commentContainer: {
     flexDirection: "row",
     alignItems: "center",
-    width: 50, // 고정 너비 설정
+    width: 50,
   },
   likeContainer: {
     flexDirection: "row",
     alignItems: "center",
-    width: 60, // 고정 너비 설정
+    width: 60,
   },
   infoText: {
     color: "black",
     fontSize: 12,
     marginLeft: 5,
-    width: 30, // 고정 너비 설정
-    textAlign: "left", // 왼쪽 정렬
+    width: 30,
+    textAlign: "left",
   },
   directorText: {
     fontSize: 14,
