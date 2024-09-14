@@ -4,13 +4,14 @@ import PrivacyButtonImage from "../../assets/Button5.png";
 import SettingButtonImage from "../../assets/Button6.png";
 import FriendButtonImage from "../../assets/Button7.png";
 import HelpButtonImage from "../../assets/Button8.png";
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from 'react';
 import styled from "styled-components";
 import Feather from "@expo/vector-icons/Feather";
 import axios from "axios";
 import { verifyTokens, getTokenFromLocal, removeTokenFromLocal } from "../LoginPackage/TokenUtils";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useMutation } from "react-query";
+import { useFocusEffect } from '@react-navigation/native';
 
 import {
   Text,
@@ -225,7 +226,7 @@ const InviteReject = async ({ inviteId }) => {
       }
     );
 
-    return response.data; // 반환할 데이터 형식에 맞게 수정
+    return response.data;
   } catch (error) {
     console.error(error.response);
     throw error.response;
@@ -250,7 +251,7 @@ const InviteAccept = async ({ inviteId }) => {
       }
     );
 
-    return response.data; // 반환할 데이터 형식에 맞게 수정
+    return response.data;
   } catch (error) {
     console.error(error.response);
     throw error.response;
@@ -269,28 +270,10 @@ const GetMyInvitation = async () => {
     const res = await axios.get("http://13.125.14.94:8080/myinvitation", {
       headers: headers_config,
     });
-    console.log("GetMyInvitation의 response는", JSON.stringify(res.data)); // JSON.stringify로 객체를 문자열로 변환
+    console.log("GetMyInvitation의 response는", JSON.stringify(res.data));
     return res.data.result;
   } catch (error) {
-    if (error.response) {
-      // 서버가 응답했지만 상태 코드가 2xx가 아닌 경우
-      console.error(
-        "GetMyInvitation의 error 응답 데이터:",
-        error.response.data
-      );
-      console.error(
-        "GetMyInvitation의 error 상태 코드:",
-        error.response.status
-      );
-      console.error("GetMyInvitation의 error 헤더:", error.response.headers);
-    } else if (error.request) {
-      // 요청이 이루어졌지만 응답을 받지 못한 경우
-      console.error("GetMyInvitation의 error 요청:", error.request);
-    } else {
-      // 요청을 설정하는 도중에 발생한 에러
-      console.error("GetMyInvitation의 error 메시지:", error.message);
-    }
-    console.error("GetMyInvitation의 error config:", error.config);
+    console.error("GetMyInvitation error:", error);
   }
 };
 
@@ -313,17 +296,35 @@ const Item = ({ nickName, inviteId, onAccept, onReject }) => {
 };
 
 const MyPage = ({ navigation }) => {
-  const { mutate: InviteAcceptMutate } = useMutation(InviteAccept, {
-    onSuccess: (data) => {
-      // 성공 시 필요한 처리 추가
-      showSuccessAccept();
-      setIsModalVisible(false);
-    },
-    onError: (error) => {
-      console.error("에러", error);
-      // 에러 시 필요한 처리 추가
-    },
-  });
+  const [profileData, setProfileData] = useState(null);
+  const [inviteData, setInviteData] = useState([]);
+  const [isInformEnabled, setIsInformEnabled] = useState(false);
+  const [isDarkEnabled, setIsDarkEnabled] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+
+  const fetchProfileData = useCallback(async () => {
+    try {
+      const Token = await getTokenFromLocal();
+      const response = await axios.get('http://13.125.14.94:8080/accounts/profile/myProfile', {
+        headers: {
+          'Authorization': `Bearer ${Token.accessToken}`,
+        },
+      });
+      setProfileData(response.data.result);
+    } catch (error) {
+      console.error('Error fetching profile data:', error);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchProfileData();
+    }, [fetchProfileData])
+  );
+
+  const handleImageChange = () => {
+    navigation.navigate('ProfileImageChange', { profileData });
+  };
 
   const handleLogout = async () => {
     Alert.alert(
@@ -338,19 +339,11 @@ const MyPage = ({ navigation }) => {
           text: "확인",
           onPress: async () => {
             try {
-              // 1. 로컬 저장소에서 토큰 삭제
               await removeTokenFromLocal();
-              
-              // 2. 전역 상태 초기화 (React Context나 Redux를 사용중이라면 여기서 처리)
-              // 예: dispatch({ type: 'RESET_USER_STATE' });
-
-              // 3. 로그인 화면으로 네비게이션
               navigation.reset({
                 index: 0,
                 routes: [{ name: 'Login' }],
               });
-
-              // 로그아웃 성공 메시지 표시
               ToastAndroid.show("로그아웃 되었습니다.", ToastAndroid.SHORT);
             } catch (error) {
               console.error("로그아웃 중 오류 발생:", error);
@@ -362,18 +355,25 @@ const MyPage = ({ navigation }) => {
     );
   };
 
+  const { mutate: InviteAcceptMutate } = useMutation(InviteAccept, {
+    onSuccess: (data) => {
+      showSuccessAccept();
+      setIsModalVisible(false);
+    },
+    onError: (error) => {
+      console.error("에러", error);
+    },
+  });
+
   const { mutate: InviteRejectMutate } = useMutation(InviteReject, {
     onSuccess: (data) => {
-      // 성공 시 필요한 처리 추가
       showSuccessReject();
       setIsModalVisible(false);
     },
     onError: (error) => {
       console.error("에러", error);
-      // 에러 시 필요한 처리 추가
     },
   });
-  const [inviteData, setInviteData] = useState([]);
 
   const fetchInviteData = async () => {
     const data = await GetMyInvitation();
@@ -390,22 +390,28 @@ const MyPage = ({ navigation }) => {
     navigation.navigate('EmailChange');
   };
 
+  const handlePasswordChange = () => {
+    navigation.navigate('PasswordChange');
+  };
+
+  const handleMemberOut = () => {
+    navigation.navigate('MemberOut');
+  };
+
   const ClickInviteBox = () => {
     setIsModalVisible(true);
     fetchInviteData();
   };
-  const [isInformEnabled, setIsInformEnabled] = useState(false);
+
   const InformtoggleSwitch = () =>
     setIsInformEnabled((previousState) => !previousState);
 
-  const [isModalVisible, setIsModalVisible] = useState(false);
-
-  const [isDarkEnabled, setIsDarkEnabled] = useState(false);
   const DarktoggleSwitch = () =>
     setIsDarkEnabled((previousState) => !previousState);
+
   return (
     <Container>
-      <Modal // 친구 초대 모달
+      <Modal
         animationType="slide"
         visible={isModalVisible}
         transparent={true}
@@ -442,12 +448,19 @@ const MyPage = ({ navigation }) => {
       </Modal>
       <FirstView>
         <FirstProfileView>
-          <ProfileImage></ProfileImage>
+          <ProfileImage onPress={handleImageChange}>
+            {profileData && profileData.ProfileImageUrl && (
+              <Image 
+                source={{ uri: profileData.ProfileImageUrl }} 
+                style={{ width: 60, height: 60, borderRadius: 30 }}
+              />
+            )}
+          </ProfileImage>
         </FirstProfileView>
         <SecondProfileView>
-          <NickNameShow>닉네임</NickNameShow>
-          <AccountText>카카오 계정</AccountText>
-          <AccountText>이메일 계정</AccountText>
+          <NickNameShow>{profileData ? profileData.nickName : '로딩 중...'}</NickNameShow>
+          <AccountText>{profileData ? profileData.name : '로딩 중...'}</AccountText>
+          <AccountText>{profileData ? profileData.email : '로딩 중...'}</AccountText>
         </SecondProfileView>
         <ThirdProfileView>
           <InviteBox onPress={() => ClickInviteBox()}>
@@ -459,16 +472,16 @@ const MyPage = ({ navigation }) => {
         <TitleView>
           <TitleText>계정</TitleText>
         </TitleView>
-        <TouchContent>
-          <ContentText>닉네임 설정</ContentText>
+        <TouchContent onPress={() => navigation.navigate('NicknameChange')}>
+          <ContentText>닉네임 변경</ContentText>
         </TouchContent>
-        <TouchContent>
+        <TouchContent onPress={handleImageChange}>
           <ContentText>프로필 이미지 변경</ContentText>
         </TouchContent>
         <TouchContent onPress={handleEmailChange}>
           <ContentText>이메일 변경</ContentText>
         </TouchContent>
-        <TouchContent>
+        <TouchContent onPress={handlePasswordChange}>
           <ContentText>비밀번호 변경</ContentText>
         </TouchContent>
       </SecondView>
@@ -536,7 +549,7 @@ const MyPage = ({ navigation }) => {
         <TitleView>
           <TitleText>기타</TitleText>
         </TitleView>
-        <TouchContent>
+        <TouchContent onPress={handleMemberOut}>
           <ContentText>회원 탈퇴</ContentText>
         </TouchContent>
         <TouchContent onPress={handleLogout}>

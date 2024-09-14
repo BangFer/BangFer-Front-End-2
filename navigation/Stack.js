@@ -5,7 +5,11 @@ import { FontAwesome } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
 
 import MainPage from '../screens/MainPage';
+import MemberOut from '../screens/MyPagePackage/MemberOut';
 import EmailChangeComponent from '../screens/MyPagePackage/EmailChange';
+import PasswordChangeComponent from '../screens/MyPagePackage/PasswordChange';
+import ProfileImageChange from '../screens/MyPagePackage/ProfileImageChange';
+import NicknameChange from '../screens/MyPagePackage/NicknameChange';
 import FreeBoard from '../screens/FreeBoardPackage/FreeBoard';
 import FreeBoardDetail from '../screens/FreeBoardPackage/FreeBoardDetail';
 import FreeBoardWrite from '../screens/FreeBoardPackage/FreeBoardWrite';
@@ -435,6 +439,10 @@ const StackNavigation = (navigation) => {
           component={Loading}
           options={{ headerShown: false }}
         />
+        <Stack.Screen name="MemberOut" component={MemberOut} />
+        <Stack.Screen name="PasswordChange" component={PasswordChangeComponent} />
+        <Stack.Screen name="ProfileImageChange" component={ProfileImageChange} />
+        <Stack.Screen name="NicknameChange" component={NicknameChange} />
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="SignUp" component={SignUp} />
         <Stack.Screen name="FindPwEmail" component={FindPwEmail} />

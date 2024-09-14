@@ -43,7 +43,7 @@ const EmailTextInput = styled.TextInput`
 const VerifyButton = styled.TouchableOpacity`
   height: 45px;
   width: 150px;
-  background-color: #fe6263;
+  background-color: #FFB056;
   border-radius: 10px;
   align-items: center;
   justify-content: center;
