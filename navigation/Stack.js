@@ -908,6 +908,7 @@ const StackNavigation = (navigation) => {
           name="TacticsDetail"
           component={TacticsDetail}
           options={{
+            title: '전술게시판',
             headerShown: true,
             headerTitleAlign: 'center',
             headerRight: () => (
