@@ -15,8 +15,8 @@ import {
 } from "../LoginPackage/TokenUtils";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useMutation } from "react-query";
-import { useFocusEffect } from '@react-navigation/native';
-import BlockListModal from './BlockListModal'; // 새 컴포넌트 import
+import { useFocusEffect } from "@react-navigation/native";
+import BlockListModal from "./BlockListModal"; // 새 컴포넌트 import
 
 import {
   Text,
@@ -233,40 +233,40 @@ const TouchForAcceptInvite = styled.TouchableOpacity`
 
 const ModalContainer = styled.View`
   flex: 1;
-  justifyContent: center;
-  alignItems: center;
-  backgroundColor: rgba(0, 0, 0, 0.5);
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.5);
 `;
 
 const ModalContent = styled.View`
-  backgroundColor: white;
+  background-color: white;
   padding: 20px;
-  borderRadius: 10px;
-  alignItems: center;
+  border-radius: 10px;
+  align-items: center;
   width: 80%;
 `;
 
 const ModalText = styled.Text`
-  fontSize: 16px;
-  textAlign: center;
-  marginBottom: 20px;
+  font-size: 16px;
+  text-align: center;
+  margin-bottom: 20px;
 `;
 
 const CloseButton = styled.TouchableOpacity`
   padding: 10px;
-  backgroundColor: #FFB056;
-  borderRadius: 5px;
+  background-color: #ffb056;
+  border-radius: 5px;
 `;
 
 const CloseButtonText = styled.Text`
   color: black;
-  fontWeight: bold;
+  font-weight: bold;
 `;
 
 const EmailText = styled.Text`
-  fontSize: 18px;
-  fontWeight: bold;
-  marginBottom: 10px;
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
 `;
 
 const showSuccessAccept = () => {
@@ -561,7 +561,6 @@ const MyPage = ({ navigation }) => {
 
   return (
     <Container>
-      <Modal animationType="slide" visible={isModalVisible} transparent={true}>
       <Modal
         animationType="fade"
         transparent={true}
@@ -570,12 +569,12 @@ const MyPage = ({ navigation }) => {
       >
         <ModalContainer>
           <ModalContent>
-            <EmailText>
-              bangfer2019@gmail.com
-            </EmailText>
+            <EmailText>bangfer2019@gmail.com</EmailText>
             <ModalText>
-              서비스를 이용하면서 발생하는 모든 문의사항은 위의 메일을 통해 저희 팀으로 연락해 주시기 바랍니다.{"\n\n"}
-              방구석퍼거슨은 여러분의 목소리에 귀 기울이고 신속하고 충분한 답변을 드릴 수 있도록 최선을 다하겠습니다.
+              서비스를 이용하면서 발생하는 모든 문의사항은 위의 메일을 통해 저희
+              팀으로 연락해 주시기 바랍니다.{"\n\n"}
+              방구석퍼거슨은 여러분의 목소리에 귀 기울이고 신속하고 충분한
+              답변을 드릴 수 있도록 최선을 다하겠습니다.
             </ModalText>
             <CloseButton onPress={() => setIsInquiryModalVisible(false)}>
               <CloseButtonText>닫기</CloseButtonText>
@@ -592,8 +591,10 @@ const MyPage = ({ navigation }) => {
         <ModalContainer>
           <ModalContent>
             <ModalText>
-              1. 마이페이지에서는 자신의 계정정보관리 및 추가 기능을 수행할 수 있습니다.{"\n\n"}
-              2. 계정정보관리에는 계정 및 프로필 정보 수정, 회원탈퇴, 로그아웃이 있습니다.{"\n\n"}
+              1. 마이페이지에서는 자신의 계정정보관리 및 추가 기능을 수행할 수
+              있습니다.{"\n\n"}
+              2. 계정정보관리에는 계정 및 프로필 정보 수정, 회원탈퇴, 로그아웃이
+              있습니다.{"\n\n"}
               3. 추가 기능에는 차단 관리, 문의하기 기능이 있습니다.
             </ModalText>
             <CloseButton onPress={() => setIsHelpModalVisible(false)}>
@@ -602,15 +603,11 @@ const MyPage = ({ navigation }) => {
           </ModalContent>
         </ModalContainer>
       </Modal>
-      <BlockListModal 
+      <BlockListModal
         isVisible={isBlockListModalVisible}
         onClose={() => setIsBlockListModalVisible(false)}
       />
-      <Modal
-        animationType="slide"
-        visible={isModalVisible}
-        transparent={true}
-      >
+      <Modal animationType="slide" visible={isModalVisible} transparent={true}>
         <ContainerModalView onPress={() => setIsModalVisible(false)}>
           <ModalView>
             <FirstModalView>
@@ -737,11 +734,12 @@ const MyPage = ({ navigation }) => {
           <TitleText>이용 안내</TitleText>
         </TitleView>
         <ViewContent
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}>
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
           <ContentText>앱 버전</ContentText>
           <ContentText style={{ color: "grey", marginRight: 10 }}>
             1.0.0
