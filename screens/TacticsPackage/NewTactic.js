@@ -576,7 +576,7 @@ const NewTactic = ({ navigation }) => {
             fontFamily: "JosefinSans-Regular",
             textDecorationLine: "none",
           }}
-          style={{ marginLeft: 170 }}
+          style={{ marginLeft: 120 }}
           onPress={(isChecked) => setAnnonymous(isChecked)}
         />
       </ViewForTextBar>

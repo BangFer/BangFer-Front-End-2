@@ -1292,7 +1292,7 @@ const MyTacticsDetail = ({ navigation, route }) => {
 
   const handleEdit = useCallback(
     (tacticId) => {
-      navigation.navigate("TacticEdit", { id: tacticId });
+      navigation.navigate("TacticEdit", { tacticId });
     },
     [navigation]
   );
@@ -1317,14 +1317,14 @@ const MyTacticsDetail = ({ navigation, route }) => {
         if (response && response.status === 204) {
           // 많은 API에서 삭제 성공 시 204 No Content를 반환합니다
           alert("게시글이 삭제되었습니다.");
-          navigation.navigate("MyFreeBoard");
+          navigation.navigate("MyTactics");
         } else if (response && response.data) {
           if (
             response.data.code === "No Content" ||
             response.data.code === "OK"
           ) {
             alert("게시글이 삭제되었습니다.");
-            navigation.navigate("MyFreeBoard");
+            navigation.navigate("MyTactics");
           } else {
             alert(
               "게시글 삭제에 실패했습니다: " +
@@ -2795,7 +2795,7 @@ const MyTacticsDetail = ({ navigation, route }) => {
                     name={data?.isLiked ? "heart" : "hearto"}
                     size={16}
                     color={data?.isLiked ? "#fe6263" : "#666"}
-                    marginLeft={235}
+                    marginLeft={190}
                   />
                   <Text style={{ color: "#666", fontSize: 12, marginLeft: 0 }}>
                     좋아요

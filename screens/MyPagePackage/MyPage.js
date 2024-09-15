@@ -4,11 +4,15 @@ import PrivacyButtonImage from "../../assets/Button5.png";
 import SettingButtonImage from "../../assets/Button6.png";
 import FriendButtonImage from "../../assets/Button7.png";
 import HelpButtonImage from "../../assets/Button8.png";
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from "react";
 import styled from "styled-components";
 import Feather from "@expo/vector-icons/Feather";
 import axios from "axios";
-import { verifyTokens, getTokenFromLocal, removeTokenFromLocal } from "../LoginPackage/TokenUtils";
+import {
+  verifyTokens,
+  getTokenFromLocal,
+  removeTokenFromLocal,
+} from "../LoginPackage/TokenUtils";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useMutation } from "react-query";
 import { useFocusEffect } from '@react-navigation/native';
@@ -83,6 +87,7 @@ const ThirdProfileView = styled.View`
   flex: 2;
   justify-content: center;
   align-items: center;
+  flex-direction: row;
 `;
 
 const InviteBox = styled.TouchableOpacity`
@@ -176,9 +181,28 @@ const ModalSeparator = styled.View`
   background-color: black;
 `;
 
+const NotiSeparator = styled.View`
+  width: 2px;
+  height: 100%;
+  background-color: black;
+`;
+
 const ViewForFlatList = styled.View`
   width: 100%;
   height: 40px;
+  flex-direction: row;
+`;
+
+const NotiFirstViewForFlatList = styled.View`
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+`;
+
+const NotiSecondViewForFlatList = styled.View`
+  flex: 3;
+  align-items: center;
+  justify-content: center;
   flex-direction: row;
 `;
 
@@ -302,6 +326,46 @@ const InviteAccept = async ({ inviteId }) => {
   }
 };
 
+const GetMyNotification = async () => {
+  const Token = await getTokenFromLocal();
+  const headers_config = {
+    "Content-Type": "application/json; charset=UTF-8",
+    "Authorization": "Bearer " + Token.accessToken,
+  };
+
+  try {
+    const res = await axios.post(
+      "http://13.125.14.94:8080/fcm/notification",
+      {},
+      {
+        headers: headers_config,
+      }
+    );
+    console.log("GetMyNotification의 response는", JSON.stringify(res.data));
+    return res.data.result;
+  } catch (error) {
+    console.error("GetMyNotification error:", error);
+
+    if (error.response) {
+      // 서버가 2xx 범위를 벗어나는 상태 코드로 응답한 경우
+      console.error(
+        "서버 응답 오류:",
+        error.response.status,
+        error.response.data
+      );
+      throw new Error(`서버 응답 오류: ${error.response.status}`);
+    } else if (error.request) {
+      // 요청이 전송되었지만 응답을 받지 못한 경우
+      console.error("서버로부터 응답이 없습니다.");
+      throw new Error("서버와의 통신 실패");
+    } else {
+      // 요청 설정 중 오류가 발생한 경우
+      console.error("요청 설정 오류:", error.message);
+      throw new Error("요청 설정 중 오류 발생");
+    }
+  }
+};
+
 const GetMyInvitation = async () => {
   const Token = await getTokenFromLocal();
 
@@ -339,9 +403,26 @@ const Item = ({ nickName, inviteId, onAccept, onReject }) => {
   );
 };
 
+const NotificationItem = ({ title, body }) => {
+  return (
+    <ViewForFlatList>
+      <NotiFirstViewForFlatList>
+        <TextForFlatList>{title}</TextForFlatList>
+      </NotiFirstViewForFlatList>
+      <NotiSeparator></NotiSeparator>
+      <NotiSecondViewForFlatList>
+        <TextForFlatList>{body}</TextForFlatList>
+      </NotiSecondViewForFlatList>
+    </ViewForFlatList>
+  );
+};
+
 const MyPage = ({ navigation }) => {
   const [profileData, setProfileData] = useState(null);
   const [inviteData, setInviteData] = useState([]);
+  const [notificationData, setNotificationData] = useState([]);
+  const [isNotificationModalVisible, setIsNotificationModalVisible] =
+    useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isInquiryModalVisible, setIsInquiryModalVisible] = useState(false);
   const [isHelpModalVisible, setIsHelpModalVisible] = useState(false);
@@ -350,14 +431,17 @@ const MyPage = ({ navigation }) => {
   const fetchProfileData = useCallback(async () => {
     try {
       const Token = await getTokenFromLocal();
-      const response = await axios.get('http://13.125.14.94:8080/accounts/profile/myProfile', {
-        headers: {
-          'Authorization': `Bearer ${Token.accessToken}`,
-        },
-      });
+      const response = await axios.get(
+        "http://13.125.14.94:8080/accounts/profile/myProfile",
+        {
+          headers: {
+            Authorization: `Bearer ${Token.accessToken}`,
+          },
+        }
+      );
       setProfileData(response.data.result);
     } catch (error) {
-      console.error('Error fetching profile data:', error);
+      console.error("Error fetching profile data:", error);
     }
   }, []);
 
@@ -368,7 +452,7 @@ const MyPage = ({ navigation }) => {
   );
 
   const handleImageChange = () => {
-    navigation.navigate('ProfileImageChange', { profileData });
+    navigation.navigate("ProfileImageChange", { profileData });
   };
 
   const handleInquiryPress = () => {
@@ -384,32 +468,31 @@ const MyPage = ({ navigation }) => {
   };
 
   const handleLogout = async () => {
-    Alert.alert(
-      "로그아웃",
-      "정말로 로그아웃 하시겠습니까?",
-      [
-        {
-          text: "취소",
-          style: "cancel"
-        },
-        {
-          text: "확인",
-          onPress: async () => {
-            try {
-              await removeTokenFromLocal();
-              navigation.reset({
-                index: 0,
-                routes: [{ name: 'Login' }],
-              });
-              ToastAndroid.show("로그아웃 되었습니다.", ToastAndroid.SHORT);
-            } catch (error) {
-              console.error("로그아웃 중 오류 발생:", error);
-              ToastAndroid.show("로그아웃 중 오류가 발생했습니다.", ToastAndroid.SHORT);
-            }
+    Alert.alert("로그아웃", "정말로 로그아웃 하시겠습니까?", [
+      {
+        text: "취소",
+        style: "cancel",
+      },
+      {
+        text: "확인",
+        onPress: async () => {
+          try {
+            await removeTokenFromLocal();
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "Login" }],
+            });
+            ToastAndroid.show("로그아웃 되었습니다.", ToastAndroid.SHORT);
+          } catch (error) {
+            console.error("로그아웃 중 오류 발생:", error);
+            ToastAndroid.show(
+              "로그아웃 중 오류가 발생했습니다.",
+              ToastAndroid.SHORT
+            );
           }
-        }
-      ]
-    );
+        },
+      },
+    ]);
   };
 
   const { mutate: InviteAcceptMutate } = useMutation(InviteAccept, {
@@ -443,16 +526,27 @@ const MyPage = ({ navigation }) => {
     setInviteData(transformedData);
   };
 
+  const fetchNotificationData = async () => {
+    const data = await GetMyNotification();
+    console.log(data);
+    const transformedData = data.map((item, index) => ({
+      id: (index + 1).toString(),
+      title: item.title,
+      body: item.body,
+    }));
+    setNotificationData(transformedData);
+  };
+
   const handleEmailChange = () => {
-    navigation.navigate('EmailChange');
+    navigation.navigate("EmailChange");
   };
 
   const handlePasswordChange = () => {
-    navigation.navigate('PasswordChange');
+    navigation.navigate("PasswordChange");
   };
 
   const handleMemberOut = () => {
-    navigation.navigate('MemberOut');
+    navigation.navigate("MemberOut");
   };
 
   const ClickInviteBox = () => {
@@ -460,8 +554,14 @@ const MyPage = ({ navigation }) => {
     fetchInviteData();
   };
 
+  const ClickNotificationBox = () => {
+    setIsNotificationModalVisible(true);
+    fetchNotificationData();
+  };
+
   return (
     <Container>
+      <Modal animationType="slide" visible={isModalVisible} transparent={true}>
       <Modal
         animationType="fade"
         transparent={true}
@@ -541,6 +641,38 @@ const MyPage = ({ navigation }) => {
           </ModalView>
         </ContainerModalView>
       </Modal>
+      <Modal
+        animationType="slide"
+        visible={isNotificationModalVisible}
+        transparent={true}
+      >
+        <ContainerModalView
+          onPress={() => setIsNotificationModalVisible(false)}
+        >
+          <ModalView>
+            <FirstModalView>
+              <TextForTitleInvite>알림목록</TextForTitleInvite>
+            </FirstModalView>
+            <ModalSeparator></ModalSeparator>
+            <SecondModalView>
+              <FlatList
+                data={notificationData}
+                renderItem={({ item }) => (
+                  <NotificationItem title={item.title} body={item.body} />
+                )}
+                keyExtractor={(item) => item.id}
+                ItemSeparatorComponent={ModalSeparator}
+                ListFooterComponent={ModalSeparator}
+                initialNumToRender={12}
+                nestedScrollEnabled={true}
+                maxToRenderPerBatch={10}
+                style={{ width: "100%", height: "100%" }}
+                removeClippedSubview="true"
+              />
+            </SecondModalView>
+          </ModalView>
+        </ContainerModalView>
+      </Modal>
       <FirstView>
         <FirstProfileView>
           <ProfileImage onPress={handleImageChange}>
@@ -553,11 +685,23 @@ const MyPage = ({ navigation }) => {
           </ProfileImage>
         </FirstProfileView>
         <SecondProfileView>
-          <NickNameShow>{profileData ? profileData.nickName : '로딩 중...'}</NickNameShow>
-          <AccountText>{profileData ? profileData.name : '로딩 중...'}</AccountText>
-          <AccountText>{profileData ? profileData.email : '로딩 중...'}</AccountText>
+          <NickNameShow>
+            {profileData ? profileData.nickName : "로딩 중..."}
+          </NickNameShow>
+          <AccountText>
+            {profileData ? profileData.name : "로딩 중..."}
+          </AccountText>
+          <AccountText>
+            {profileData ? profileData.email : "로딩 중..."}
+          </AccountText>
         </SecondProfileView>
         <ThirdProfileView>
+          <InviteBox
+            style={{ marginRight: 10 }}
+            onPress={() => ClickNotificationBox()}
+          >
+            <Feather name="bell" size={30} color="black" />
+          </InviteBox>
           <InviteBox onPress={() => ClickInviteBox()}>
             <Feather name="mail" size={30} color="black" />
           </InviteBox>
@@ -567,7 +711,7 @@ const MyPage = ({ navigation }) => {
         <TitleView>
           <TitleText>계정</TitleText>
         </TitleView>
-        <TouchContent onPress={() => navigation.navigate('NicknameChange')}>
+        <TouchContent onPress={() => navigation.navigate("NicknameChange")}>
           <ContentText>닉네임 변경</ContentText>
         </TouchContent>
         <TouchContent onPress={handleImageChange}>
