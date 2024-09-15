@@ -124,6 +124,11 @@ const TouchContent = styled.TouchableOpacity`
   justify-content: center;
 `;
 
+const ViewContent = styled.View`
+  flex: 1;
+  justify-content: center;
+`;
+
 const ContentText = styled.Text`
   font-size: 15px;
   margin-left: 10px;
@@ -450,8 +455,8 @@ const MyPage = ({ navigation }) => {
         <FirstProfileView>
           <ProfileImage onPress={handleImageChange}>
             {profileData && profileData.ProfileImageUrl && (
-              <Image 
-                source={{ uri: profileData.ProfileImageUrl }} 
+              <Image
+                source={{ uri: profileData.ProfileImageUrl }}
                 style={{ width: 60, height: 60, borderRadius: 30 }}
               />
             )}
@@ -526,18 +531,17 @@ const MyPage = ({ navigation }) => {
         <TitleView>
           <TitleText>이용 안내</TitleText>
         </TitleView>
-        <TouchContent
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
+        <ViewContent
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}>
           <ContentText>앱 버전</ContentText>
           <ContentText style={{ color: "grey", marginRight: 10 }}>
             1.0.0
           </ContentText>
-        </TouchContent>
+        </ViewContent>
         <TouchContent>
           <ContentText>문의하기</ContentText>
         </TouchContent>
