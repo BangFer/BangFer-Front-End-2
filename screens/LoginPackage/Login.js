@@ -26,6 +26,7 @@ import {
   shippingAddresses as getKakaoShippingAddresses,
   unlink,
 } from "@react-native-seoul/kakao-login";
+import EmailVerifyRecover from "./EmailVerifyRecover";
 
 const showFailLogin = () => {
   ToastAndroid.show(
@@ -79,7 +80,11 @@ const checkProfile = async (accessToken) => {
     );
     return true; // 프로필이 존재함
   } catch (error) {
-    if (error.response && error.response.data && error.response.data.code === "PROFILE403") {
+    if (
+      error.response &&
+      error.response.data &&
+      error.response.data.code === "PROFILE403"
+    ) {
       return false; // 프로필이 존재하지 않음
     }
     throw error; // 다른 에러의 경우 그대로 던짐
@@ -227,7 +232,7 @@ const Login = ({ navigation }) => {
           userId: data.result.userId,
         })
       );
-      
+
       try {
         const hasProfile = await checkProfile(data.result.accessToken);
         if (hasProfile) {
@@ -315,18 +320,28 @@ const Login = ({ navigation }) => {
               </TouchableOpacity>
             </View>
             <View style={styles.loginThirdView}>
-              <TouchableOpacity
-                style={styles.FindPWButton}
-                onPress={() => navigation.navigate("FindPwEmail")}
-              >
-                <Text style={styles.FindPwButtonText}>비밀번호 찾기</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.SignUpButton}
-                onPress={() => navigation.navigate("MiddleSignUp")}
-              >
-                <Text style={styles.SignUpButtonText}>회원가입</Text>
-              </TouchableOpacity>
+              <View styles={styles.loginFourthView}>
+                <TouchableOpacity
+                  style={styles.FindPWButton}
+                  onPress={() => navigation.navigate("FindPwEmail")}
+                >
+                  <Text style={styles.FindPwButtonText}>비밀번호 찾기</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.FindPWButton}
+                  onPress={() => navigation.navigate(EmailVerifyRecover)}
+                >
+                  <Text style={styles.FindPwButtonText}>탈퇴회원 복구</Text>
+                </TouchableOpacity>
+              </View>
+              <View styles={styles.loginFivthView}>
+                <TouchableOpacity
+                  style={styles.SignUpButton}
+                  onPress={() => navigation.navigate("MiddleSignUp")}
+                >
+                  <Text style={styles.SignUpButtonText}>회원가입</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </TouchableWithoutFeedback>
@@ -356,6 +371,14 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     justifyContent: "space-between",
+  },
+  loginFourthView: {
+    flex: 1,
+    backgroundColor: "red",
+  },
+  loginFivthView: {
+    flex: 1,
+    backgroundColor: "red",
   },
   loginScreenContainer: {
     width: "100%",

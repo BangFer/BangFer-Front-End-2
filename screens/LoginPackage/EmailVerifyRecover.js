@@ -14,6 +14,7 @@ import axios from "axios";
 import styled from "styled-components/native";
 import { useNavigation } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
+
 const showFailVerifyEmail = () => {
   ToastAndroid.show(
     "❌ 올바른 형식의 이메일을 입력해주세요.",
@@ -52,7 +53,7 @@ const EmailVerifySecondView = styled.View`
 const TitleText = styled.Text`
   font-size: 30px;
   font-weight: bold;
-  margin-top: 270px;
+  margin-top: 260px;
   text-decoration-line: underline;
 `;
 
@@ -112,6 +113,43 @@ const LoadingText = styled.Text`
   margin-top: 10px;
 `;
 
+const CheckEmail = async (IdValue) => {
+  const headers_config = {
+    "Content-Type": "application/json; charset=UTF-8",
+  };
+
+  console.log("아아" + IdValue);
+  const url = `http://13.125.14.94:8080/accounts/checkEmail?email=${encodeURIComponent(
+    IdValue
+  )}`;
+
+  try {
+    const res = await axios.get(url, {
+      headers: headers_config,
+    });
+    console.log("CheckEmail의 response는", JSON.stringify(res.data));
+    // JSON.stringify로 객체를 문자열로 변환
+    return res;
+  } catch (error) {
+    console.error("에러 발생:", error.message);
+    if (error.response) {
+      console.error("서버 응답 상태:", error.response.status);
+      console.error("서버 응답 헤더:", error.response.headers);
+      console.error("서버 응답 데이터:", error.response.data);
+
+      // USER417 에러 코드 확인
+      if (error.response.data && error.response.data.code === "USER417") {
+        throw new Error("USER417");
+      }
+    } else if (error.request) {
+      console.error("요청 정보:", error.request);
+    } else {
+      console.error("에러 설정:", error.config);
+    }
+    throw error;
+  }
+};
+
 const RequestEmail = async (email) => {
   console.log(email);
   try {
@@ -136,6 +174,38 @@ const RequestEmail = async (email) => {
   } catch (error) {
     console.error("Error Response : " + error.response);
     throw new Error("Failed to request Email");
+  }
+};
+
+const RecoverEmail = async (email) => {
+  console.log("놔놔" + email);
+  try {
+    const headers = {
+      "Content-type": "application/json; charset=UTF-8",
+      // "accessToken" 추가 필요
+    };
+    const url = "http://13.125.14.94:8080/accounts/recover/" + email;
+    console.log(url);
+    const response = await axios.post(url, null, { headers });
+
+    return response.data; // 반환할 데이터 형식에 맞게 수정
+  } catch (error) {
+    console.error("에러 발생:", error.message);
+    if (error.response) {
+      console.error("서버 응답 상태:", error.response.status);
+      console.error("서버 응답 헤더:", error.response.headers);
+      console.error("서버 응답 데이터:", error.response.data);
+
+      // USER417 에러 코드 확인
+      if (error.response.data && error.response.data.code === "USER417") {
+        throw new Error("USER417");
+      }
+    } else if (error.request) {
+      console.error("요청 정보:", error.request);
+    } else {
+      console.error("에러 설정:", error.config);
+    }
+    throw error;
   }
 };
 
@@ -167,7 +237,7 @@ const VerifyEmail = async ({ email, code }) => {
   }
 };
 
-const FindPwEmail = ({ navigation }) => {
+const EmailVerifyRecover = ({ navigation }) => {
   const [idValue, setIdValue] = useState("");
   const [codeValue, setCodeValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -197,7 +267,7 @@ const FindPwEmail = ({ navigation }) => {
     onSuccess: (data) => {
       console.log("성공", data);
       showSuccessVerify();
-      navigation.navigate("FindPw", { idValue });
+      navigation.navigate("SignUp", { idValue });
     },
     onError: (error) => {
       console.error("에러", error);
@@ -205,12 +275,31 @@ const FindPwEmail = ({ navigation }) => {
     },
   });
 
-  const handleVerifyCode = () => {
-    verifyEmailMutate({ email: idValue, code: codeValue });
+  const handleVerifyCode = async () => {
+    try {
+      await VerifyEmail({ email: idValue, code: codeValue });
+      await RecoverEmail(idValue);
+      ToastAndroid.show("✅ 회원 복구가 완료되었습니다.", ToastAndroid.SHORT);
+      navigation.navigate("Login");
+    } catch (error) {
+      ToastAndroid.show("❌ 탈퇴되지 않은 회원입니다.", ToastAndroid.SHORT);
+    }
   };
 
-  const handleRequestVerifyCode = () => {
-    requestEmailMutate(idValue);
+  const handleRequestVerifyCode = async () => {
+    try {
+      // CheckEmail이 성공적으로 완료되면 requestEmailMutate 실행
+      requestEmailMutate(idValue);
+    } catch (error) {
+      if (error.message === "USER417") {
+        console.log("USER417 에러 발생: 이미 존재하는 이메일입니다.");
+        ToastAndroid.show("❌ 이미 가입된 이메일입니다.", ToastAndroid.SHORT);
+        // 예: 사용자에게 알림을 표시하거나, UI를 업데이트하는 등
+      } else {
+        console.log("기타 에러 발생:", error);
+        // 다른 종류의 에러에 대한 처리
+      }
+    }
   };
 
   return (
@@ -257,4 +346,4 @@ const FindPwEmail = ({ navigation }) => {
   );
 };
 
-export default FindPwEmail;
+export default EmailVerifyRecover;

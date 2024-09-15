@@ -50,6 +50,7 @@ import AdminPlusBanggusukTeam from '../screens/BanggusukTeamPackage/AdminPlusBan
 import ModifyBanggusukTeam from '../screens/BanggusukTeamPackage/ModifyBanggusukTeam';
 import TacticsDetail from '../screens/TacticsPackage/TacticsDetail';
 import ShowProfile from '../screens/MyPagePackage/ShowProfile';
+import EmailVerifyRecover from '../screens/LoginPackage/EmailVerifyRecover';
 import {
   Text,
   View,
@@ -441,8 +442,14 @@ const StackNavigation = (navigation) => {
           options={{ headerShown: false }}
         />
         <Stack.Screen name="MemberOut" component={MemberOut} />
-        <Stack.Screen name="PasswordChange" component={PasswordChangeComponent} />
-        <Stack.Screen name="ProfileImageChange" component={ProfileImageChange} />
+        <Stack.Screen
+          name="PasswordChange"
+          component={PasswordChangeComponent}
+        />
+        <Stack.Screen
+          name="ProfileImageChange"
+          component={ProfileImageChange}
+        />
         <Stack.Screen name="NicknameChange" component={NicknameChange} />
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="SignUp" component={SignUp} />
@@ -586,7 +593,7 @@ const StackNavigation = (navigation) => {
             title: '내 전술',
           }}
         />
-          <Stack.Screen
+        <Stack.Screen
           name="MyTacticsDetail"
           component={MyTacticsDetail}
           options={{
@@ -816,6 +823,12 @@ const StackNavigation = (navigation) => {
             title: '검색 결과',
             headerTitleAlign: 'center',
           })}
+        />
+
+        <Stack.Screen
+          name="EmailVerifyRecover"
+          component={EmailVerifyRecover}
+          options={{ headerShown: false, headerTitleAlign: 'center' }}
         />
 
         <Stack.Screen
