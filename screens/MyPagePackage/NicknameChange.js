@@ -35,7 +35,7 @@ const SaveButton = styled.TouchableOpacity`
 `;
 
 const SaveButtonText = styled.Text`
-  color: white;
+  color: black;
   font-size: 16px;
   font-weight: bold;
 `;

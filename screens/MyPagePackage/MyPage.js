@@ -12,6 +12,7 @@ import { verifyTokens, getTokenFromLocal, removeTokenFromLocal } from "../LoginP
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useMutation } from "react-query";
 import { useFocusEffect } from '@react-navigation/native';
+import BlockListModal from './BlockListModal'; // 새 컴포넌트 import
 
 import {
   Text,
@@ -344,6 +345,7 @@ const MyPage = ({ navigation }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isInquiryModalVisible, setIsInquiryModalVisible] = useState(false);
   const [isHelpModalVisible, setIsHelpModalVisible] = useState(false);
+  const [isBlockListModalVisible, setIsBlockListModalVisible] = useState(false);
 
   const fetchProfileData = useCallback(async () => {
     try {
@@ -375,6 +377,10 @@ const MyPage = ({ navigation }) => {
 
   const handleHelpPress = () => {
     setIsHelpModalVisible(true);
+  };
+
+  const handleBlockListPress = () => {
+    setIsBlockListModalVisible(true);
   };
 
   const handleLogout = async () => {
@@ -496,6 +502,10 @@ const MyPage = ({ navigation }) => {
           </ModalContent>
         </ModalContainer>
       </Modal>
+      <BlockListModal 
+        isVisible={isBlockListModalVisible}
+        onClose={() => setIsBlockListModalVisible(false)}
+      />
       <Modal
         animationType="slide"
         visible={isModalVisible}
@@ -574,7 +584,7 @@ const MyPage = ({ navigation }) => {
         <TitleView>
           <TitleText>차단 관리</TitleText>
         </TitleView>
-        <TouchContent>
+        <TouchContent onPress={handleBlockListPress}>
           <ContentText>차단 목록</ContentText>
         </TouchContent>
       </ThirdView>
