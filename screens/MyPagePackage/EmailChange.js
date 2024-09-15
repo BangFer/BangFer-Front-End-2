@@ -51,7 +51,7 @@ const VerifyButton = styled.TouchableOpacity`
 `;
 
 const ButtonText = styled.Text`
-  color: #fff;
+  color: black;
   font-size: 24px;
   font-weight: bold;
 `;
