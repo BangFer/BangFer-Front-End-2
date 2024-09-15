@@ -206,6 +206,44 @@ const TouchForAcceptInvite = styled.TouchableOpacity`
   width: 20px;
 `;
 
+const ModalContainer = styled.View`
+  flex: 1;
+  justifyContent: center;
+  alignItems: center;
+  backgroundColor: rgba(0, 0, 0, 0.5);
+`;
+
+const ModalContent = styled.View`
+  backgroundColor: white;
+  padding: 20px;
+  borderRadius: 10px;
+  alignItems: center;
+  width: 80%;
+`;
+
+const ModalText = styled.Text`
+  fontSize: 16px;
+  textAlign: center;
+  marginBottom: 20px;
+`;
+
+const CloseButton = styled.TouchableOpacity`
+  padding: 10px;
+  backgroundColor: #FFB056;
+  borderRadius: 5px;
+`;
+
+const CloseButtonText = styled.Text`
+  color: black;
+  fontWeight: bold;
+`;
+
+const EmailText = styled.Text`
+  fontSize: 18px;
+  fontWeight: bold;
+  marginBottom: 10px;
+`;
+
 const showSuccessAccept = () => {
   ToastAndroid.show("✅ 초대 수락", ToastAndroid.LONG);
 };
@@ -303,9 +341,9 @@ const Item = ({ nickName, inviteId, onAccept, onReject }) => {
 const MyPage = ({ navigation }) => {
   const [profileData, setProfileData] = useState(null);
   const [inviteData, setInviteData] = useState([]);
-  const [isInformEnabled, setIsInformEnabled] = useState(false);
-  const [isDarkEnabled, setIsDarkEnabled] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isInquiryModalVisible, setIsInquiryModalVisible] = useState(false);
+  const [isHelpModalVisible, setIsHelpModalVisible] = useState(false);
 
   const fetchProfileData = useCallback(async () => {
     try {
@@ -329,6 +367,14 @@ const MyPage = ({ navigation }) => {
 
   const handleImageChange = () => {
     navigation.navigate('ProfileImageChange', { profileData });
+  };
+
+  const handleInquiryPress = () => {
+    setIsInquiryModalVisible(true);
+  };
+
+  const handleHelpPress = () => {
+    setIsHelpModalVisible(true);
   };
 
   const handleLogout = async () => {
@@ -408,14 +454,48 @@ const MyPage = ({ navigation }) => {
     fetchInviteData();
   };
 
-  const InformtoggleSwitch = () =>
-    setIsInformEnabled((previousState) => !previousState);
-
-  const DarktoggleSwitch = () =>
-    setIsDarkEnabled((previousState) => !previousState);
-
   return (
     <Container>
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={isInquiryModalVisible}
+        onRequestClose={() => setIsInquiryModalVisible(false)}
+      >
+        <ModalContainer>
+          <ModalContent>
+            <EmailText>
+              bangfer2019@gmail.com
+            </EmailText>
+            <ModalText>
+              서비스를 이용하면서 발생하는 모든 문의사항은 위의 메일을 통해 저희 팀으로 연락해 주시기 바랍니다.{"\n\n"}
+              방구석퍼거슨은 여러분의 목소리에 귀 기울이고 신속하고 충분한 답변을 드릴 수 있도록 최선을 다하겠습니다.
+            </ModalText>
+            <CloseButton onPress={() => setIsInquiryModalVisible(false)}>
+              <CloseButtonText>닫기</CloseButtonText>
+            </CloseButton>
+          </ModalContent>
+        </ModalContainer>
+      </Modal>
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={isHelpModalVisible}
+        onRequestClose={() => setIsHelpModalVisible(false)}
+      >
+        <ModalContainer>
+          <ModalContent>
+            <ModalText>
+              1. 마이페이지에서는 자신의 계정정보관리 및 추가 기능을 수행할 수 있습니다.{"\n\n"}
+              2. 계정정보관리에는 계정 및 프로필 정보 수정, 회원탈퇴, 로그아웃이 있습니다.{"\n\n"}
+              3. 추가 기능에는 차단 관리, 문의하기 기능이 있습니다.
+            </ModalText>
+            <CloseButton onPress={() => setIsHelpModalVisible(false)}>
+              <CloseButtonText>닫기</CloseButtonText>
+            </CloseButton>
+          </ModalContent>
+        </ModalContainer>
+      </Modal>
       <Modal
         animationType="slide"
         visible={isModalVisible}
@@ -492,39 +572,10 @@ const MyPage = ({ navigation }) => {
       </SecondView>
       <ThirdView>
         <TitleView>
-          <TitleText>앱 설정</TitleText>
+          <TitleText>차단 관리</TitleText>
         </TitleView>
-        <TouchContent
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <ContentText>알림 설정</ContentText>
-          <Switch
-            trackColor={{ false: "#767577", true: "#F7E11A" }}
-            thumbColor={isInformEnabled ? "#f4f3f4" : "#f4f3f4"}
-            onValueChange={InformtoggleSwitch}
-            value={isInformEnabled}
-            style={{ marginRight: 5, marginBottom: 5 }}
-          />
-        </TouchContent>
-        <TouchContent
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <ContentText>다크 모드</ContentText>
-          <Switch
-            trackColor={{ false: "#767577", true: "#F7E11A" }}
-            thumbColor={isDarkEnabled ? "#f4f3f4" : "#f4f3f4"}
-            onValueChange={DarktoggleSwitch}
-            value={isDarkEnabled}
-            style={{ marginRight: 5, marginBottom: 5 }}
-          />
+        <TouchContent>
+          <ContentText>차단 목록</ContentText>
         </TouchContent>
       </ThirdView>
       <FourthView>
@@ -542,10 +593,10 @@ const MyPage = ({ navigation }) => {
             1.0.0
           </ContentText>
         </ViewContent>
-        <TouchContent>
+        <TouchContent onPress={handleInquiryPress}>
           <ContentText>문의하기</ContentText>
         </TouchContent>
-        <TouchContent>
+        <TouchContent onPress={handleHelpPress}>
           <ContentText>도움말</ContentText>
         </TouchContent>
       </FourthView>
