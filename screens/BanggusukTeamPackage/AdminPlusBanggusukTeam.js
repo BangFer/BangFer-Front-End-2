@@ -70,14 +70,13 @@ const TextForNickNameInvite = styled.Text`
   color: #ff6262;
   font-size: 20px;
   text-align: center;
-
 `;
 
 const TouchForInviteNickName = styled.TouchableOpacity`
-  height: 50%;
+  height: 25%;
   width: 70%;
   border-radius: 5px;
-  background-color: #FF6262;
+  background-color: #ff6262;
   align-items: center;
   justify-content: center;
 `;
@@ -86,7 +85,7 @@ const TouchForInviteKaKao = styled.TouchableOpacity`
   height: 50%;
   width: 70%;
   border-radius: 5px;
-  background-color: #FF6262;
+  background-color: #ff6262;
   align-items: center;
   justify-content: center;
   margin-top: 15px;
@@ -272,7 +271,7 @@ const ViewForListPlayersReal = styled.View`
   height: 370px;
   align-items: center;
   border-width: 4px;
-  border-radius : 10px;
+  border-radius: 10px;
 `;
 
 const ViewForFlatList = styled.View`
@@ -722,7 +721,7 @@ const DirectorName = styled.TextInput`
   font-size: 17px;
   font-weight: bold;
   color: black;
-  text-align: left;  
+  text-align: left;
 `;
 
 const TacticName = styled.TextInput`
@@ -1171,8 +1170,12 @@ const AdminPlusBanggusukTeam = ({ navigation }) => {
             alignItems: "center",
           }}
         >
-          <Text style={{ marginLeft: 25, marginTop:5, marginBottom: -5 }}>팀명</Text>
-          <Text style={{ marginRight: 25, marginTop:5, marginBottom: -5 }}>리더명</Text>
+          <Text style={{ marginLeft: 25, marginTop: 5, marginBottom: -5 }}>
+            팀명
+          </Text>
+          <Text style={{ marginRight: 25, marginTop: 5, marginBottom: -5 }}>
+            리더명
+          </Text>
         </View>
         <ViewForTextBar>
           <TaticsName
@@ -1203,13 +1206,13 @@ const AdminPlusBanggusukTeam = ({ navigation }) => {
             >
               <ContainerModalView onPress={() => setinviteFriendVisible(false)}>
                 <ModalView>
-                  <ModalInviteFirstView>
+                  {/* <ModalInviteFirstView>
                     <TouchForInviteKaKao onPress={() => InviteKaKao()}>
                       <TextForInviteNickName>
                         카카오톡으로 초대
                       </TextForInviteNickName>
                     </TouchForInviteKaKao>
-                  </ModalInviteFirstView>
+                  </ModalInviteFirstView> */}
 
                   <ModalInviteSecondView>
                     <TouchForInviteNickName onPress={() => TouchNickName()}>
