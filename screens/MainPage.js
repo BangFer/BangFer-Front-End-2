@@ -4,7 +4,7 @@ import TatcticsButtonImage from "../assets/Button1.png";
 import BangusukTeamButtonImage from "../assets/Button2.png";
 import FreeBoardButtonImage from "../assets/Button3.png";
 import MypageButtonImage from "../assets/Button4.png";
-import React, { useEffect } from "react";
+import React from "react";
 import styled from "styled-components";
 import { useFocusEffect } from "@react-navigation/native";
 
@@ -19,6 +19,24 @@ import {
   BackHandler,
   Alert,
 } from "react-native";
+
+const TitleTextBANGUSUK = styled.Text`
+  font-size: 48px;
+  font-weight: 700;
+  color: black;
+  text-decoration-line: underline;
+  margin-top: -5px;
+  font-family: LexendDeca-Bold;
+`;
+
+const TitleTextFERGUSON = styled.Text`
+  font-size: 48px;
+  font-weight: 700;
+  color: #ff6262;
+  text-decoration-line: underline;
+  margin-bottom: 50px;
+  font-family: LexendDeca-Bold;
+`;
 
 const Container = styled.View`
   flex: 1;
@@ -61,22 +79,6 @@ const ForSortInFourthView = styled.View`
 const ForSortInFourthView1 = styled.View`
   align-items: center;
   justify-content: center;
-`;
-
-const TitleTextBANGUSUK = styled.Text`
-  font-size: 48px;
-  font-weight: 700;
-  color: black;
-  text-decoration-line: underline;
-  margin-top: -5px;
-`;
-
-const TitleTextFERGUSON = styled.Text`
-  font-size: 48px;
-  font-weight: 700;
-  color: black;
-  text-decoration-line: underline;
-  margin-bottom: 50px;
 `;
 
 const BackGroundImage = styled.Image`
@@ -150,6 +152,7 @@ const MainPage = ({ navigation }) => {
         BackHandler.removeEventListener("hardwareBackPress", onBackPress);
     }, [])
   );
+
   return (
     <ImageBackground
       source={require("../assets/Back2.png")}
