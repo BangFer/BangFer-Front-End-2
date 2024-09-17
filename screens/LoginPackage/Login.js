@@ -28,6 +28,18 @@ import {
 } from "@react-native-seoul/kakao-login";
 import EmailVerifyRecover from "./EmailVerifyRecover";
 import { verifyTokens, getTokenFromLocal } from "../LoginPackage/TokenUtils";
+import styled from "styled-components";
+
+const logoText = styled.Text`
+  font-size: 38px;
+  marginTop: 270,
+  font-weight: 700;
+  color: black;
+  text-decoration-line: underline;
+  margin-bottom: 50px;
+  font-family: LexendDeca-Bold;
+  textAlign: center;
+`;
 
 const showFailLogin = () => {
   ToastAndroid.show(
@@ -291,7 +303,7 @@ const Login = ({ navigation }) => {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.loginScreenContainer}>
             <View style={styles.loginFirstView}>
-              <Text style={styles.logoText}>LOGIN</Text>
+              <logoText>LOGIN</logoText>
             </View>
             <View style={styles.loginSecondView}>
               <TextInput
@@ -391,13 +403,6 @@ const styles = StyleSheet.create({
   loginScreenContainer: {
     width: "100%",
     height: "100%",
-  },
-  logoText: {
-    fontSize: 38,
-    marginTop: 270,
-    fontWeight: "bold",
-    textAlign: "center",
-    textDecorationLine: "underline",
   },
   loginFormView: {
     flex: 1,
