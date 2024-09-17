@@ -224,7 +224,6 @@ const RegisterText = styled.Text`
   font-size: 20px;
   color: white;
   justify-content: center;
-
 `;
 
 const ToggleButton = styled.TouchableOpacity`
@@ -244,7 +243,7 @@ const ViewForListPlayersReal = styled.View`
   height: 370px;
   align-items: center;
   border-width: 4px;
-  border-radius : 10px;
+  border-radius: 10px;
 `;
 
 const ViewForFlatList = styled.View`
@@ -344,8 +343,13 @@ const TouchForPlayerImage = styled.TouchableOpacity`
   width: 40px;
   height: 40px;
   border-radius: 50px;
-  background-color: grey;
+  background-color: ${(props) => (props.hasImage ? "transparent" : "grey")};
   margin-left: 10px;
+  overflow: hidden;
+`;
+const ProfileImage = styled.Image`
+  width: 100%;
+  height: 100%;
 `;
 
 const ViewForPickerContainer = styled.View`
@@ -356,11 +360,34 @@ const ViewForPickerContainer = styled.View`
   margin-left: 80px;
 `;
 
-const Item = ({ title, mainFormation, teamId, memberId, position }) => {
+const Item = ({
+  title,
+  mainFormation,
+  teamId,
+  memberId,
+  position,
+  userId,
+  navigation,
+}) => {
+  const [profileImage, setProfileImage] = useState(null);
+
   const [pickerValue, setPickerValue] = useState("");
   const [pickerItems, setPickerItems] = useState([]);
   const isInitialMount = useRef(true);
   const previousPosition = useRef(position);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const profileData = await GetProfile(userId);
+        setProfileImage(profileData.profileImageUrl);
+      } catch (error) {
+        console.error("프로필 가져오기 오류:", error);
+      }
+    };
+
+    fetchProfile();
+  }, [userId]);
 
   const updatePickerValue = useCallback(() => {
     const positionMap = {
@@ -536,7 +563,12 @@ const Item = ({ title, mainFormation, teamId, memberId, position }) => {
   return (
     <ViewForPlayer>
       <ViewForPlayerLeft>
-        <TouchForPlayerImage></TouchForPlayerImage>
+        <TouchForPlayerImage
+          hasImage={!!profileImage}
+          onPress={() => navigation.navigate("ShowProfile", { userId })}
+        >
+          {profileImage && <ProfileImage source={{ uri: profileImage }} />}
+        </TouchForPlayerImage>
         <ItemText>{title}</ItemText>
       </ViewForPlayerLeft>
       <ViewForPlayerRight>
@@ -635,7 +667,7 @@ const DirectorName = styled.TextInput`
   padding-left: 10px;
   font-size: 17px;
   font-weight: bold;
-  text-align: left;  
+  text-align: left;
 `;
 
 const TacticName = styled.TextInput`
@@ -656,10 +688,32 @@ const TacticsBackImage = styled.Image`
   z-index: -1;
 `;
 const TextForListPlayersTitle = styled.Text`
-font-size: 24px;
-font-weight: bold;
-margin-left: 10px;
+  font-size: 24px;
+  font-weight: bold;
+  margin-left: 10px;
 `;
+
+const GetProfile = async (userId) => {
+  const Token = await getTokenFromLocal();
+
+  const headers_config = {
+    "Content-Type": "application/json; charset=UTF-8",
+    "Authorization": "Bearer " + Token.accessToken,
+  };
+
+  const url = "http://13.125.14.94:8080/accounts/profile/" + userId;
+
+  try {
+    const res = await axios.get(url, {
+      headers: headers_config,
+    });
+    console.log("GetProfile의 response는", JSON.stringify(res.data));
+    // JSON.stringify로 객체를 문자열로 변환
+    return res.data.result;
+  } catch (error) {
+    console.error("Get Profile의 error는 " + error);
+  }
+};
 
 const InviteKaKao = async () => {
   try {
@@ -970,6 +1024,7 @@ const ModifyBanggusukTeam = ({ navigation }) => {
         title: item.memberNickName,
         memberId: item.memberId,
         position: item.position,
+        userId: item.userId,
       }));
 
       setTeamData(transformedData);
@@ -1165,8 +1220,12 @@ const ModifyBanggusukTeam = ({ navigation }) => {
             alignItems: "center",
           }}
         >
-     <Text style={{ marginLeft: 25, marginTop:5, marginBottom: -5 }}>팀명</Text>
-          <Text style={{ marginRight: 25, marginTop:5, marginBottom: -5 }}>리더명</Text>
+          <Text style={{ marginLeft: 25, marginTop: 5, marginBottom: -5 }}>
+            팀명
+          </Text>
+          <Text style={{ marginRight: 25, marginTop: 5, marginBottom: -5 }}>
+            리더명
+          </Text>
         </View>
         <ViewForTextBar>
           <TaticsName
@@ -1185,55 +1244,55 @@ const ModifyBanggusukTeam = ({ navigation }) => {
         </ViewForTextBar>
         <ViewForTacticBoard>
           <ViewForDropdown>
-          <Dropdown
-  style={{
-    backgroundColor: "#1E1E1E",
-    borderRadius: 10,
-    borderColor: "#333333",
-    borderWidth: 1,
-    marginBottom: 16,
-    height: 48,
-    width: "100%",
-    elevation: 5,
-  }}
-  placeholderStyle={{
-    color: "#FFFFFF",
-    paddingLeft: 16,
-    marginLeft: -5,
-  }}
-  selectedTextStyle={{
-    color: "#FFFFFF",
-    fontSize: 16,
-    paddingLeft: 16,
-    marginLeft: -5,
-  }}
-  itemContainerStyle={{
-    backgroundColor: "#2C2C2C",
-    borderBottomWidth: 1,
-    borderBottomColor: "#333333",
-  }}
-  itemTextStyle={{
-    color: "#FFFFFF",
-    fontSize: 16,
-  }}
-  data={items}
-  labelField="label"
-  valueField="value"
-  placeholder="전술 선택"
-  value={value}
-  onChange={(item) => {
-    onChange(item.value);
-    setValue(item.value);
-  }}
-  onFocus={() => setOpen(true)}
-  onBlur={() => setOpen(false)}
-  iconStyle={{
-    width: 20,
-    height: 20,
-  }}
-  iconColor="#BBBBBB"
-  activeColor="#3A3A3A"
-/>
+            <Dropdown
+              style={{
+                backgroundColor: "#1E1E1E",
+                borderRadius: 10,
+                borderColor: "#333333",
+                borderWidth: 1,
+                marginBottom: 16,
+                height: 48,
+                width: "100%",
+                elevation: 5,
+              }}
+              placeholderStyle={{
+                color: "#FFFFFF",
+                paddingLeft: 16,
+                marginLeft: -5,
+              }}
+              selectedTextStyle={{
+                color: "#FFFFFF",
+                fontSize: 16,
+                paddingLeft: 16,
+                marginLeft: -5,
+              }}
+              itemContainerStyle={{
+                backgroundColor: "#2C2C2C",
+                borderBottomWidth: 1,
+                borderBottomColor: "#333333",
+              }}
+              itemTextStyle={{
+                color: "#FFFFFF",
+                fontSize: 16,
+              }}
+              data={items}
+              labelField="label"
+              valueField="value"
+              placeholder="전술 선택"
+              value={value}
+              onChange={(item) => {
+                onChange(item.value);
+                setValue(item.value);
+              }}
+              onFocus={() => setOpen(true)}
+              onBlur={() => setOpen(false)}
+              iconStyle={{
+                width: 20,
+                height: 20,
+              }}
+              iconColor="#BBBBBB"
+              activeColor="#3A3A3A"
+            />
           </ViewForDropdown>
           <ViewForBoard>
             <TacticsBackImage source={TacticsBack} resizeMode={"stretch"} />
@@ -2088,6 +2147,8 @@ const ModifyBanggusukTeam = ({ navigation }) => {
                     teamId={teamId}
                     memberId={item.memberId}
                     position={item.position}
+                    userId={item.userId}
+                    navigation={navigation}
                   />
                 )}
                 keyExtractor={(item) => item.id}
