@@ -2686,7 +2686,7 @@ const TacticsDetail = ({ navigation, route }) => {
                           onPress={() =>
                             handleMidfielderPositionPress(
                               ThreePositionValue,
-                              "CAM"
+                              "LM"
                             )
                           }
                           style={{ marginLeft: 20, marginTop: 70 }}
@@ -2695,7 +2695,7 @@ const TacticsDetail = ({ navigation, route }) => {
                           onPress={() =>
                             handleMidfielderPositionPress(
                               FourPositionValue,
-                              "LM"
+                              "CAM"
                             )
                           }
                           style={{ marginTop: 10 }}
@@ -2715,7 +2715,7 @@ const TacticsDetail = ({ navigation, route }) => {
                           onPress={() =>
                             handleMidfielderPositionPress(
                               SixPositionValue,
-                              "RCM"
+                              "LCM"
                             )
                           }
                           style={{ marginLeft: 60 }}
@@ -2724,7 +2724,7 @@ const TacticsDetail = ({ navigation, route }) => {
                           onPress={() =>
                             handleMidfielderPositionPress(
                               SevenPositionValue,
-                              "LCM"
+                              "RCM"
                             )
                           }
                           style={{ marginRight: 60 }}

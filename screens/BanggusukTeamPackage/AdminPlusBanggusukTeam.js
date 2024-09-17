@@ -1900,13 +1900,13 @@ const AdminPlusBanggusukTeam = ({ navigation }) => {
                 >
                   <Midfielder
                     onPress={() =>
-                      handleMidfielderPositionPress(ThreePositionValue, "CAM")
+                      handleMidfielderPositionPress(ThreePositionValue, "LM")
                     }
                     style={{ marginLeft: 20, marginTop: 70 }}
                   ></Midfielder>
                   <Midfielder
                     onPress={() =>
-                      handleMidfielderPositionPress(FourPositionValue, "LM")
+                      handleMidfielderPositionPress(FourPositionValue, "CAM")
                     }
                     style={{ marginTop: 10 }}
                   ></Midfielder>
@@ -1920,13 +1920,13 @@ const AdminPlusBanggusukTeam = ({ navigation }) => {
                 <ViewForMidfielder style={{ height: "20%" }}>
                   <Midfielder
                     onPress={() =>
-                      handleMidfielderPositionPress(SixPositionValue, "RCM")
+                      handleMidfielderPositionPress(SixPositionValue, "LCM")
                     }
                     style={{ marginLeft: 60 }}
                   ></Midfielder>
                   <Midfielder
                     onPress={() =>
-                      handleMidfielderPositionPress(SevenPositionValue, "LCM")
+                      handleMidfielderPositionPress(SevenPositionValue, "RCM")
                     }
                     style={{ marginRight: 60 }}
                   ></Midfielder>
