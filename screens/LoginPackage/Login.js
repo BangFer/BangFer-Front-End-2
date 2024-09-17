@@ -27,6 +27,7 @@ import {
   unlink,
 } from "@react-native-seoul/kakao-login";
 import EmailVerifyRecover from "./EmailVerifyRecover";
+import { verifyTokens, getTokenFromLocal } from "../LoginPackage/TokenUtils";
 import styled from "styled-components";
 
 const logoText = styled.Text`
@@ -207,8 +208,12 @@ const Login = ({ navigation }) => {
           accessToken: data.result.accessToken,
           refreshToken: data.result.refreshToken,
           userId: data.result.userId,
+          fcmToken: fcmToken,
         })
       );
+
+      const Token = await getTokenFromLocal();
+      console.log(JSON.stringify(Token));
       showSuccessLogin();
 
       try {
@@ -242,8 +247,11 @@ const Login = ({ navigation }) => {
           accessToken: data.result.accessToken,
           refreshToken: data.result.refreshToken,
           userId: data.result.userId,
+          fcmToken: fcmToken,
         })
       );
+      const Token = await getTokenFromLocal();
+      console.log("로그인", JSON.stringify(Token));
 
       try {
         const hasProfile = await checkProfile(data.result.accessToken);
