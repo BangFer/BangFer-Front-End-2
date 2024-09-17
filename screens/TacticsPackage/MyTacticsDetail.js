@@ -38,6 +38,28 @@ import { verifyTokens, getTokenFromLocal } from "../LoginPackage/TokenUtils";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 
+const GetProfile = async (userId) => {
+  const Token = await getTokenFromLocal();
+
+  const headers_config = {
+    "Content-Type": "application/json; charset=UTF-8",
+    "Authorization": "Bearer " + Token.accessToken,
+  };
+
+  const url = "http://13.125.14.94:8080/accounts/profile/" + userId;
+
+  try {
+    const res = await axios.get(url, {
+      headers: headers_config,
+    });
+    console.log("GetProfile의 response는", JSON.stringify(res.data));
+    return res;
+  } catch (error) {
+    console.error("전체 오류 객체:", error.toJSON());
+    throw error; // 에러를 던져서 호출하는 쪽에서 처리할 수 있게 합니다.
+  }
+};
+
 const reportUser = async (reportedUserId, reportActivity) => {
   const token = await getTokenFromLocal();
   try {
@@ -155,15 +177,17 @@ const deleteComment = async (commentId) => {
   }
 };
 
-const UserInfo = ({ nickName }) => {
+const UserInfo = ({ nickName, profileImage }) => {
   return (
     <View style={styles.userInfoBox}>
       <View style={styles.userInfoImageBox}>
         <Image
           style={styles.userInfoImage}
-          source={{
-            uri: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQGujC5DzQ77Bi70CpaM3TlK-P_AkLr4ronKg&s",
-          }}
+          source={
+            profileImage
+              ? { uri: profileImage }
+              : require("../../assets/profileimg.jpg") // 기본 이미지 경로를 지정해주세요
+          }
         />
       </View>
       <Text style={styles.userInfoText}>{nickName}</Text>
@@ -238,6 +262,7 @@ const CommentItem = ({
   tacticId,
   showActionSheetWithOptions,
   token,
+  profileImage,
 }) => {
   console.log("CommentItem data:", JSON.stringify(data, null, 2));
 
@@ -367,7 +392,7 @@ const CommentItem = ({
   return (
     <View style={styles.commentBox}>
       <View style={styles.commentHeader}>
-        <UserInfo nickName={data.nickName || data.nickname} />
+      <UserInfo nickName={data.nickName || data.nickname} profileImage={profileImage} />
         <View style={styles.commentButtons}>
           <Pressable onPress={handleReplyPress} style={styles.replyButton}>
             <FontAwesome5 name="comment-dots" size={16} color="#fe6263" />
@@ -389,6 +414,7 @@ const CommentItem = ({
             isOwnComment={isOwnComment}
             showActionSheetWithOptions={showActionSheetWithOptions}
             token={token}
+            profileImage={profileImage}
           />
         ))}
     </View>
@@ -401,6 +427,7 @@ const ReCommentItem = ({
   isOwnComment,
   showActionSheetWithOptions,
   token,
+  profileImage,
 }) => {
   const getCommentId = () => {
     return data.commentId || data.tacticCommentId || data.id;
@@ -493,7 +520,7 @@ const ReCommentItem = ({
   return (
     <View style={[styles.commentBox, styles.reCommentBox]}>
       <View style={styles.commentHeader}>
-        <UserInfo nickName={data.nickName || data.nickname} />
+      <UserInfo nickName={data.nickName || data.nickname} profileImage={profileImage} />
         <Pressable onPress={handleMorePress} style={styles.replymoreButton}>
           <Entypo name="dots-three-vertical" size={16} color="black" />
         </Pressable>
@@ -1180,8 +1207,8 @@ const handleTacticCall = async (selectedTacticId, setters) => {
     };
 
     setters.setData(formattedTacticData);
-    setters.setMainText(tacticData.subTactic || "");
-    setters.setSubText(tacticData.tacticDetails || "");
+    setters.setMainText(tacticData.tacticDetails || "");
+    setters.setSubText(tacticData.subTactic || "");
     setters.setSlectedFormation(tacticData.mainFormation || "");
     setters.setTacticName(tacticData.tacticName || "");
     setters.setannonymous(tacticData.anonymous || false);
@@ -1360,7 +1387,7 @@ const MyTacticsDetail = ({ navigation, route }) => {
     navigation.setOptions({
       headerRight: () => (
         <Pressable onPress={onPress}>
-          <Entypo name="dots-three-vertical" size={16} color="black" />
+          <Entypo name="dots-three-vertical" size={20} color="black" />
         </Pressable>
       ),
     });
@@ -1387,6 +1414,7 @@ const MyTacticsDetail = ({ navigation, route }) => {
       tacticId={route.params.tacticId}
       showActionSheetWithOptions={showActionSheetWithOptions}
       token={token}
+      profileImage={profileImage}
     />
   );
 
@@ -1532,7 +1560,7 @@ const MyTacticsDetail = ({ navigation, route }) => {
     navigation.setOptions({
       headerRight: () => (
         <Pressable onPress={onPress}>
-          <Entypo name="dots-three-vertical" size={16} color="black" />
+          <Entypo name="dots-three-vertical" size={20} color="black" />
         </Pressable>
       ),
     });
@@ -1757,6 +1785,24 @@ const MyTacticsDetail = ({ navigation, route }) => {
       });
     }
   }, [tacticData]);
+
+  const [profileImage, setProfileImage] = useState(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        if (data && data.userId) {
+          const profileData = await GetProfile(data.userId);
+          setProfileImage(profileData.data.result.profileImageUrl);
+        }
+      } catch (error) {
+        console.error("프로필 가져오기 오류:", error);
+      }
+    };
+
+    fetchProfile();
+  }, [data.userId]);
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -2784,23 +2830,23 @@ const MyTacticsDetail = ({ navigation, route }) => {
                   </Text>
                 </View>
                 <Pressable
-                  style={[
-                    styles.button,
-                    styles.likeButton,
-                    { marginLeft: -10 },
-                  ]}
-                  onPress={handleToggleLike}
-                >
-                  <AntDesign
-                    name={data?.isLiked ? "heart" : "hearto"}
-                    size={16}
-                    color={data?.isLiked ? "#fe6263" : "#666"}
-                    marginLeft={190}
-                  />
-                  <Text style={{ color: "#666", fontSize: 12, marginLeft: 0 }}>
-                    좋아요
-                  </Text>
-                </Pressable>
+  style={[styles.button, styles.likeButton, { marginLeft: -10 }]}
+  onPress={handleToggleLike}
+>
+  <AntDesign
+    name={data.isLiked ? "heart" : "hearto"}
+    size={16}
+    color={data.isLiked ? "#ff6262" : "#666"}
+    marginLeft={70}
+  />
+  <Text style={{ 
+    color: data.isLiked ? "#ff6262" : "#666", 
+    fontSize: 12, 
+    marginLeft: 0 
+  }}>
+    {data.isLiked ? "좋아요" : "좋아요"}
+  </Text>
+</Pressable>
               </View>
               <View style={styles.barContainer}>
                 <View style={[styles.bar, { marginTop: 15, width: "100%" }]} />
@@ -2847,7 +2893,7 @@ const MyTacticsDetail = ({ navigation, route }) => {
             </Pressable>
           )}
           <Pressable style={styles.sendButton} onPress={handlePressSendComment}>
-            <Entypo name="triangle-right" size={24} color="#FF6262" />
+            <Entypo name="triangle-right" size={28} color="#FF6262" />
           </Pressable>
         </View>
       </KeyboardAvoidingView>

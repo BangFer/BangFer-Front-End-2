@@ -201,23 +201,22 @@ const toggleLike = async (boardId, setData) => {
         },
       }
     );
-    console.log(response.data.code)
-    console.log(response.data.message)
-    if (response.data.code == 'OK') {
+    console.log(response.data.code);
+    console.log(response.data.message);
+    if (response.data.code == "OK") {
       // 서버로부터 업데이트된 좋아요 정보를 받아옵니다
       const updatedLikeInfo = await GetBoardDetail(boardId);
 
       // 상태를 업데이트합니다
-      setData(prevData => ({
+      setData((prevData) => ({
         ...prevData,
         isLiked: updatedLikeInfo.isLiked,
-        likeCount: updatedLikeInfo.likeCount
+        likeCount: updatedLikeInfo.likeCount,
       }));
 
       // 게시글 데이터를 다시 받아와서 상태를 업데이트합니다
       // const updatedBoardData = await GetBoardDetail(boardId);
       // setData(updatedBoardData);
-      
     }
   } catch (error) {
     console.error("Error toggling like:", error);
@@ -714,7 +713,7 @@ const MyFreeBoardDetail = ({ navigation, route }) => {
     navigation.setOptions({
       headerRight: () => (
         <Pressable onPress={onPress}>
-          <Entypo name="dots-three-vertical" size={16} color="black" />
+          <Entypo name="dots-three-vertical" size={20} color="black" />
         </Pressable>
       ),
     });
@@ -800,7 +799,7 @@ const MyFreeBoardDetail = ({ navigation, route }) => {
                   <AntDesign
                     name={data.isLiked ? "heart" : "hearto"}
                     size={16}
-                    color={data.isLiked ? "#fe6263" : "#666"}
+                    color={data.isLiked ? "#6CD163" : "#666"}
                     marginLeft={235}
                   />
                   <Text style={{ color: "#666", fontSize: 12, marginLeft: 0 }}>
@@ -828,7 +827,7 @@ const MyFreeBoardDetail = ({ navigation, route }) => {
     onChangeText={setCommentText}
   />
   <Pressable style={styles.sendButton} onPress={handlePressSendComment}>
-    <Entypo name="triangle-right" size={24} color="#6CD163" />
+    <Entypo name="triangle-right" size={28} color="#6CD163" />
   </Pressable>
   {replyingTo && (
     <Pressable style={styles.cancelReplyButton} onPress={() => {
