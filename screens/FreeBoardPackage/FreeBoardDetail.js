@@ -182,11 +182,12 @@ const GetBoardDetail = async (boardId) => {
     console.log("Board detail response:", response.data);
 
     // 댓글과 대댓글 구조화
-    const structuredComments = response.data.result.commentList
-    .map((comment) => ({
-      ...comment,
-      replies: comment.children,
-    }));
+    const structuredComments = response.data.result.commentList.map(
+      (comment) => ({
+        ...comment,
+        replies: comment.children,
+      })
+    );
 
     return {
       ...response.data.result,
@@ -273,6 +274,7 @@ const CommentItem = ({
   setReplyingTo,
   token,
   profileImage,
+  userProfiles,
 }) => {
   const [showReplyInput, setShowReplyInput] = useState(false);
   const [replyText, setReplyText] = useState("");
@@ -378,7 +380,10 @@ const CommentItem = ({
   return (
     <View style={styles.commentBox}>
       <View style={styles.commentHeader}>
-      <UserInfo nickName={data.nickName || data.nickname} profileImage={profileImage} />
+        <UserInfo
+          nickName={data.nickName || data.nickname}
+          profileImage={profileImage}
+        />
         <View style={styles.commentButtons}>
           <Pressable onPress={handleReplyPress} style={styles.replyButton}>
             <FontAwesome5 name="comment-dots" size={16} color="#6CD163" />
@@ -404,8 +409,8 @@ const CommentItem = ({
           </Pressable>
         </View>
       )}
-      {data.replies &&
-        data.replies.map((reply) => (
+      {data.children &&
+        data.children.map((reply) => (
           <ReCommentItem
             key={`reply-${reply.commentId}`}
             data={reply}
@@ -413,7 +418,8 @@ const CommentItem = ({
             isOwnComment={isOwnComment}
             showActionSheetWithOptions={showActionSheetWithOptions}
             token={token}
-            profileImage={profileImage}
+            profileImage={userProfiles[reply.userId]}
+            userProfiles={userProfiles}
           />
         ))}
     </View>
@@ -427,6 +433,7 @@ const ReCommentItem = ({
   showActionSheetWithOptions,
   token,
   profileImage,
+  userProfiles,
 }) => {
   const handleMorePress = () => {
     const reportOptions = [
@@ -506,7 +513,10 @@ const ReCommentItem = ({
   return (
     <View style={[styles.commentBox, styles.reCommentBox]}>
       <View style={styles.commentHeader}>
-      <UserInfo nickName={data.nickName || data.nickname} profileImage={profileImage} />
+        <UserInfo
+          nickName={data.nickName || data.nickname}
+          profileImage={profileImage}
+        />
         <Pressable onPress={handleMorePress} style={styles.replymoreButton}>
           <Entypo name="dots-three-vertical" size={16} color="black" />
         </Pressable>
@@ -519,6 +529,9 @@ const ReCommentItem = ({
 };
 
 const FreeBoardDetail = ({ navigation, route }) => {
+  const [userProfiles, setUserProfiles] = useState({});
+  const [writerProfileImage, setWriterProfileImage] = useState(null);
+
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [commentText, setCommentText] = useState("");
@@ -657,7 +670,8 @@ const FreeBoardDetail = ({ navigation, route }) => {
       showActionSheetWithOptions={showActionSheetWithOptions}
       setReplyingTo={setReplyingTo}
       token={token}
-      profileImage={profileImage}
+      profileImage={userProfiles[item.userId]}
+      userProfiles={userProfiles}
     />
   );
 
@@ -785,6 +799,53 @@ const FreeBoardDetail = ({ navigation, route }) => {
         const boardData = await GetBoardDetail(route.params.id);
         console.log("Fetched board data:", boardData);
         setData(boardData);
+
+        // 댓글 작성자들의 프로필 이미지 가져오기
+        try {
+          const writerProfileData = await GetProfile(boardData.writerId);
+          setWriterProfileImage(
+            writerProfileData.data.result.profileImageUrl || null
+          );
+        } catch (error) {
+          console.error(
+            `Error fetching profile for writer ${boardData.writerId}:`,
+            error
+          );
+          setWriterProfileImage(null);
+        }
+        const profiles = {};
+        for (const comment of boardData.commentList) {
+          if (!profiles[comment.userId]) {
+            try {
+              const profileData = await GetProfile(comment.userId);
+              profiles[comment.userId] =
+                profileData.data.result.profileImageUrl || null;
+            } catch (error) {
+              console.error(
+                `Error fetching profile for user ${comment.userId}:`,
+                error
+              );
+              profiles[comment.userId] = null;
+            }
+          }
+          // 대댓글에 대해서도 동일한 작업 수행
+          for (const reply of comment.children || []) {
+            if (!profiles[reply.userId]) {
+              try {
+                const profileData = await GetProfile(reply.userId);
+                profiles[reply.userId] =
+                  profileData.data.result.profileImageUrl || null;
+              } catch (error) {
+                console.error(
+                  `Error fetching profile for user ${reply.userId}:`,
+                  error
+                );
+                profiles[reply.userId] = null;
+              }
+            }
+          }
+        }
+        setUserProfiles(profiles);
       } catch (error) {
         console.error("Error fetching board detail:", error);
       } finally {
@@ -794,7 +855,6 @@ const FreeBoardDetail = ({ navigation, route }) => {
 
     fetchBoardDetail();
   }, [route.params.id]);
-
   // 이미지 클릭 핸들러 추가
   const handleImagePress = (imageUrl) => {
     setSelectedImage(imageUrl);
@@ -829,21 +889,23 @@ const FreeBoardDetail = ({ navigation, route }) => {
 
   const [profileImage, setProfileImage] = useState(null);
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        if (data && data.userId) {
-          const profileData = await GetProfile(data.userId);
-          setProfileImage(profileData.data.result.profileImageUrl);
-        }
-      } catch (error) {
-        console.error("프로필 가져오기 오류:", error);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchProfile = async () => {
+  //     try {
+  //       console.log("우하하" + JSON.stringify(data));
+  //       console.log("우하히" + data.writerId);
+  //       if (data && data.writerId) {
+  //         const profileData = await GetProfile(data.writerId);
+  //         console.log("헤이" + JSON.stringify(profileData));
+  //         setProfileImage(profileData.data.result.profileImageUrl);
+  //       }
+  //     } catch (error) {
+  //       console.error("프로필 가져오기 오류:", error);
+  //     }
+  //   };
 
-    fetchProfile();
-  }, [data]);
-
+  //   fetchProfile();
+  // }, [data]);
 
   if (loading) {
     return (
@@ -868,7 +930,10 @@ const FreeBoardDetail = ({ navigation, route }) => {
         style={{ flex: 1 }}
         ListHeaderComponent={
           <View style={styles.itemContainer}>
-            <UserInfo nickName={data.writerNickName} />
+            <UserInfo
+              nickName={data.writerNickName}
+              profileImage={writerProfileImage}
+            />
             <View style={{ marginTop: 12 }}>
               <Text style={styles.title}>{data.boardTitle}</Text>
               <Text style={styles.contents}>{data.boardContent}</Text>
@@ -919,7 +984,7 @@ const FreeBoardDetail = ({ navigation, route }) => {
                     name={data.isLiked ? "heart" : "hearto"}
                     size={16}
                     color={data.isLiked ? "#6CD163" : "#666"}
-                    marginLeft={235}
+                    marginLeft={185}
                   />
                   <Text style={{ color: "#666", fontSize: 12, marginLeft: 0 }}>
                     좋아요

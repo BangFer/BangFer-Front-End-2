@@ -14,19 +14,21 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AntDesign, Entypo } from "@expo/vector-icons";
 import { useActionSheet } from "@expo/react-native-action-sheet";
-import axios from 'axios';
+import axios from "axios";
 import { getTokenFromLocal } from "../LoginPackage/TokenUtils";
 import { FontAwesome5 } from "@expo/vector-icons";
-import { Alert } from 'react-native';
+import { Alert } from "react-native";
 
 // 신고 함수
 const reportUser = async (reportedUserId, reportActivity) => {
   const token = await getTokenFromLocal();
   try {
-    console.log(`Reporting user: ${reportedUserId} for activity: ${reportActivity}`);
+    console.log(
+      `Reporting user: ${reportedUserId} for activity: ${reportActivity}`
+    );
     const response = await axios.post(
       `http://13.125.14.94:8080/report/user/${reportedUserId}?reportActivity=${reportActivity}`,
-      {},  // 빈 객체를 body로 전송
+      {}, // 빈 객체를 body로 전송
       {
         headers: {
           "Content-Type": "application/json; charset=UTF-8",
@@ -94,13 +96,17 @@ const createReply = async (boardId, parentCommentId, commentText) => {
 
 const handleReply = async (parentCommentId, replyText) => {
   try {
-    const newReply = await createReply(route.params.id, parentCommentId, replyText);
-    setData(prevData => {
-      const updatedComments = prevData.commentList.map(comment => {
+    const newReply = await createReply(
+      route.params.id,
+      parentCommentId,
+      replyText
+    );
+    setData((prevData) => {
+      const updatedComments = prevData.commentList.map((comment) => {
         if (comment.commentId === parentCommentId) {
           return {
             ...comment,
-            replies: [...(comment.replies || []), newReply]
+            replies: [...(comment.replies || []), newReply],
           };
         }
         return comment;
@@ -108,7 +114,7 @@ const handleReply = async (parentCommentId, replyText) => {
       return {
         ...prevData,
         commentList: updatedComments,
-        commentCount: prevData.commentCount + 1
+        commentCount: prevData.commentCount + 1,
       };
     });
   } catch (error) {
@@ -123,7 +129,7 @@ const deleteComment = async (commentId) => {
       `http://13.125.14.94:8080/board/comment/${commentId}`,
       {
         headers: {
-          "Authorization": "Bearer " + token.accessToken,
+          Authorization: "Bearer " + token.accessToken,
         },
       }
     );
@@ -150,16 +156,19 @@ const GetBoardDetail = async (boardId) => {
     );
 
     console.log("Board detail response:", response.data);
-    
+
     // 댓글과 대댓글 구조화
-    const structuredComments = response.data.result.commentList.filter(comment => !comment.deleted).map(comment => ({
-      ...comment,
-      replies: comment.children.filter(reply => !reply.deleted)
-    }));
+    const structuredComments = response.data.result.commentList
+      .filter((comment) => !comment.deleted)
+      .map((comment) => ({
+        ...comment,
+        replies: comment.children.filter((reply) => !reply.deleted),
+      }));
 
     return {
       ...response.data.result,
-      commentList: structuredComments
+      commentList: structuredComments,
+      writerId: response.data.result.writerId, // 작성자 ID 추가
     };
   } catch (error) {
     console.error("Error fetching board detail:", error);
@@ -171,16 +180,17 @@ const GetBoardDetail = async (boardId) => {
     throw error;
   }
 };
-
-const UserInfo = ({ nickName }) => {
+const UserInfo = ({ nickName, profileImage }) => {
   return (
     <View style={styles.userInfoBox}>
       <View style={styles.userInfoImageBox}>
         <Image
           style={styles.userInfoImage}
-          source={{
-            uri: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQGujC5DzQ77Bi70CpaM3TlK-P_AkLr4ronKg&s",
-          }}
+          source={
+            profileImage
+              ? { uri: profileImage }
+              : require("../../assets/profileimg.jpg") // 기본 이미지 경로를 지정해주세요
+          }
         />
       </View>
       <Text style={styles.userInfoText}>{nickName}</Text>
@@ -230,35 +240,40 @@ const toggleLike = async (boardId, setData) => {
   }
 };
 
-
-
-const CommentItem = ({ data, onReply, onDelete, isOwnComment, boardId, showActionSheetWithOptions, setReplyingTo, token }) => {
+const CommentItem = ({
+  data,
+  onReply,
+  onDelete,
+  isOwnComment,
+  boardId,
+  showActionSheetWithOptions,
+  setReplyingTo,
+  token,
+  profileImage,
+  userProfiles,
+}) => {
   const [showReplyInput, setShowReplyInput] = useState(false);
-  const [replyText, setReplyText] = useState('');
+  const [replyText, setReplyText] = useState("");
 
   const handleReplyPress = () => {
-    Alert.alert(
-      "대댓글",
-      "대댓글을 다시겠습니까?",
-      [
-        {
-          text: "아니오",
-          style: "cancel"
+    Alert.alert("대댓글", "대댓글을 다시겠습니까?", [
+      {
+        text: "아니오",
+        style: "cancel",
+      },
+      {
+        text: "예",
+        onPress: () => {
+          setReplyingTo(data.commentId);
         },
-        { 
-          text: "예", 
-          onPress: () => {
-            setReplyingTo(data.commentId);
-          }
-        }
-      ]
-    );
+      },
+    ]);
   };
 
   const handleSendReply = () => {
     if (replyText.trim()) {
       onReply(data.commentId, replyText);
-      setReplyText('');
+      setReplyText("");
       setShowReplyInput(false);
     }
   };
@@ -303,7 +318,10 @@ const CommentItem = ({ data, onReply, onDelete, isOwnComment, boardId, showActio
               async (reportIndex) => {
                 if (reportIndex !== reportOptions.length) {
                   try {
-                    const result = await reportUser(data.userId, reportActivities[reportIndex]);
+                    const result = await reportUser(
+                      data.userId,
+                      reportActivities[reportIndex]
+                    );
                     alert("신고가 접수되었습니다.");
                   } catch (error) {
                     alert("신고 처리 중 오류가 발생했습니다.");
@@ -333,7 +351,7 @@ const CommentItem = ({ data, onReply, onDelete, isOwnComment, boardId, showActio
   return (
     <View style={styles.commentBox}>
       <View style={styles.commentHeader}>
-        <UserInfo nickName={data.nickName} />
+        <UserInfo nickName={data.nickName} profileImage={profileImage} />
         <View style={styles.commentButtons}>
           <Pressable onPress={handleReplyPress} style={styles.replyButton}>
             <FontAwesome5 name="comment-dots" size={16} color="#6CD163" />
@@ -359,21 +377,30 @@ const CommentItem = ({ data, onReply, onDelete, isOwnComment, boardId, showActio
           </Pressable>
         </View>
       )}
-      {data.replies && data.replies.map(reply => (
-        <ReCommentItem
-          key={`reply-${reply.commentId}`}
-          data={reply}
-          onDelete={onDelete}
-          isOwnComment={isOwnComment}
-          showActionSheetWithOptions={showActionSheetWithOptions}
-          token={token}
-        />
-      ))}
+      {data.replies &&
+        data.replies.map((reply) => (
+          <ReCommentItem
+            key={`reply-${reply.commentId}`}
+            data={reply}
+            onDelete={onDelete}
+            isOwnComment={isOwnComment}
+            showActionSheetWithOptions={showActionSheetWithOptions}
+            token={token}
+            profileImage={userProfiles[reply.userId]}
+          />
+        ))}
     </View>
   );
 };
 
-const ReCommentItem = ({ data, onDelete, isOwnComment, showActionSheetWithOptions, token }) => {
+const ReCommentItem = ({
+  data,
+  onDelete,
+  isOwnComment,
+  showActionSheetWithOptions,
+  token,
+  profileImage,
+}) => {
   const handleMorePress = () => {
     const reportOptions = [
       "욕설/비하",
@@ -414,7 +441,10 @@ const ReCommentItem = ({ data, onDelete, isOwnComment, showActionSheetWithOption
               async (reportIndex) => {
                 if (reportIndex !== reportOptions.length) {
                   try {
-                    const result = await reportUser(data.userId, reportActivities[reportIndex]);
+                    const result = await reportUser(
+                      data.userId,
+                      reportActivities[reportIndex]
+                    );
                     alert("신고가 접수되었습니다.");
                   } catch (error) {
                     alert("신고 처리 중 오류가 발생했습니다.");
@@ -444,7 +474,7 @@ const ReCommentItem = ({ data, onDelete, isOwnComment, showActionSheetWithOption
   return (
     <View style={[styles.commentBox, styles.reCommentBox]}>
       <View style={styles.commentHeader}>
-        <UserInfo nickName={data.nickName} />
+        <UserInfo nickName={data.nickName} profileImage={profileImage} />
         <Pressable onPress={handleMorePress} style={styles.replymoreButton}>
           <Entypo name="dots-three-vertical" size={16} color="black" />
         </Pressable>
@@ -455,8 +485,32 @@ const ReCommentItem = ({ data, onDelete, isOwnComment, showActionSheetWithOption
     </View>
   );
 };
+const GetProfile = async (userId) => {
+  const Token = await getTokenFromLocal();
+
+  const headers_config = {
+    "Content-Type": "application/json; charset=UTF-8",
+    "Authorization": "Bearer " + Token.accessToken,
+  };
+
+  const url = "http://13.125.14.94:8080/accounts/profile/" + userId;
+
+  try {
+    const res = await axios.get(url, {
+      headers: headers_config,
+    });
+    console.log("GetProfile의 response는", JSON.stringify(res.data));
+    return res;
+  } catch (error) {
+    console.error("전체 오류 객체:", error.toJSON());
+    throw error;
+  }
+};
 
 const MyFreeBoardDetail = ({ navigation, route }) => {
+  const [userProfiles, setUserProfiles] = useState({});
+  const [authorProfileImage, setAuthorProfileImage] = useState(null);
+
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [commentText, setCommentText] = useState("");
@@ -464,7 +518,6 @@ const MyFreeBoardDetail = ({ navigation, route }) => {
   const [selectedImage, setSelectedImage] = useState(null); // 선택된 이미지 상태 추가
   const [token, setToken] = useState(null);
   const [replyingTo, setReplyingTo] = useState(null);
-
 
   const { showActionSheetWithOptions } = useActionSheet();
 
@@ -476,7 +529,7 @@ const MyFreeBoardDetail = ({ navigation, route }) => {
       alert("신고 처리 중 오류가 발생했습니다.");
     }
   };
-  
+
   const handleBlock = async () => {
     try {
       const result = await blockUser(data.writerId);
@@ -485,12 +538,12 @@ const MyFreeBoardDetail = ({ navigation, route }) => {
       alert("차단 처리 중 오류가 발생했습니다.");
     }
   };
-  
+
   const onPress = useCallback(() => {
     const options = ["수정", "삭제", "취소"];
     const destructiveButtonIndex = 1;
     const cancelButtonIndex = 2;
-  
+
     showActionSheetWithOptions(
       {
         options,
@@ -513,35 +566,40 @@ const MyFreeBoardDetail = ({ navigation, route }) => {
     );
   }, [data, handleEdit, handleDelete, showActionSheetWithOptions]);
 
+  const handleEdit = useCallback(
+    (boardId) => {
+      navigation.navigate("FreeBoardUpdate", { id: boardId });
+    },
+    [navigation]
+  );
 
-  const handleEdit = useCallback((boardId) => {
-    navigation.navigate("FreeBoardUpdate", { id: boardId });
-  }, [navigation]);
+  const handleDelete = useCallback(
+    async (boardId) => {
+      try {
+        const token = await getTokenFromLocal();
+        const response = await axios.delete(
+          `http://13.125.14.94:8080/board/${boardId}`,
+          {
+            headers: {
+              "Content-Type": "application/json; charset=UTF-8",
+              "Authorization": "Bearer " + token.accessToken,
+            },
+          }
+        );
 
- const handleDelete = useCallback(async (boardId) => {
-    try {
-      const token = await getTokenFromLocal();
-      const response = await axios.delete(
-        `http://13.125.14.94:8080/board/${boardId}`,
-        {
-          headers: {
-            "Content-Type": "application/json; charset=UTF-8",
-            "Authorization": "Bearer " + token.accessToken,
-          },
+        if (response.data.code === "No Content") {
+          alert("게시글이 삭제되었습니다.");
+          navigation.navigate("MyFreeBoard");
+        } else {
+          alert("게시글 삭제에 실패했습니다: " + response.data.message);
         }
-      );
-
-      if (response.data.code === 'No Content') {
-        alert("게시글이 삭제되었습니다.");
-        navigation.navigate("MyFreeBoard");
-      } else {
-        alert("게시글 삭제에 실패했습니다: " + response.data.message);
+      } catch (error) {
+        console.error("Error deleting board:", error);
+        alert("게시글 삭제 중 오류가 발생했습니다.");
       }
-    } catch (error) {
-      console.error("Error deleting board:", error);
-      alert("게시글 삭제 중 오류가 발생했습니다.");
-    }
-  }, [navigation]);
+    },
+    [navigation]
+  );
 
   useEffect(() => {
     navigation.setOptions({
@@ -575,6 +633,8 @@ const MyFreeBoardDetail = ({ navigation, route }) => {
       showActionSheetWithOptions={showActionSheetWithOptions}
       setReplyingTo={setReplyingTo}
       token={token}
+      profileImage={userProfiles[item.userId]}
+      userProfiles={userProfiles}
     />
   );
 
@@ -583,11 +643,11 @@ const MyFreeBoardDetail = ({ navigation, route }) => {
       alert("댓글을 입력해주세요.");
       return;
     }
-  
+
     try {
       const token = await getTokenFromLocal();
       let response;
-      
+
       if (replyingTo) {
         // 대댓글 작성
         response = await axios.post(
@@ -613,35 +673,38 @@ const MyFreeBoardDetail = ({ navigation, route }) => {
           }
         );
       }
-  
-      if (response.data.code === 'OK') {
+
+      if (response.data.code === "OK") {
         const newComment = response.data.result;
-        setData(prevData => {
+        setData((prevData) => {
           let updatedCommentList;
           if (replyingTo) {
             // 대댓글 추가
-            updatedCommentList = prevData.commentList.map(comment => 
+            updatedCommentList = prevData.commentList.map((comment) =>
               comment.commentId === replyingTo
-                ? { 
-                    ...comment, 
+                ? {
+                    ...comment,
                     replies: [
-                      ...(comment.replies || []), 
-                      {...newComment, parentCommentId: replyingTo}
-                    ] 
+                      ...(comment.replies || []),
+                      { ...newComment, parentCommentId: replyingTo },
+                    ],
                   }
                 : comment
             );
           } else {
             // 일반 댓글 추가
-            updatedCommentList = [...prevData.commentList, {...newComment, replies: []}];
+            updatedCommentList = [
+              ...prevData.commentList,
+              { ...newComment, replies: [] },
+            ];
           }
           return {
             ...prevData,
             commentList: updatedCommentList,
-            commentCount: prevData.commentCount + 1
+            commentCount: prevData.commentCount + 1,
           };
         });
-  
+
         setCommentText("");
         setReplyingTo(null);
         Keyboard.dismiss();
@@ -657,15 +720,23 @@ const MyFreeBoardDetail = ({ navigation, route }) => {
   const handleDeleteComment = async (commentId) => {
     try {
       await deleteComment(commentId);
-      setData(prevData => {
-        const updatedComments = prevData.commentList.map(comment => {
+      setData((prevData) => {
+        const updatedComments = prevData.commentList.map((comment) => {
           if (comment.commentId === commentId) {
-            return { ...comment, deleted: true, commentText: "삭제된 댓글입니다." };
+            return {
+              ...comment,
+              deleted: true,
+              commentText: "삭제된 댓글입니다.",
+            };
           }
           if (comment.replies) {
-            const updatedReplies = comment.replies.map(reply => {
+            const updatedReplies = comment.replies.map((reply) => {
               if (reply.commentId === commentId) {
-                return { ...reply, deleted: true, commentText: "삭제된 댓글입니다." };
+                return {
+                  ...reply,
+                  deleted: true,
+                  commentText: "삭제된 댓글입니다.",
+                };
               }
               return reply;
             });
@@ -691,23 +762,56 @@ const MyFreeBoardDetail = ({ navigation, route }) => {
         const boardData = await GetBoardDetail(route.params.id);
         console.log("Fetched board data:", boardData);
         setData(boardData);
+
+        // 작성자 프로필 이미지 가져오기
+        try {
+          const authorProfileData = await GetProfile(boardData.writerId);
+          setAuthorProfileImage(
+            authorProfileData.data.result.profileImageUrl || null
+          );
+        } catch (error) {
+          console.error("Error fetching author profile:", error);
+          setAuthorProfileImage(null);
+        }
+
+        const profiles = {};
+        const fetchProfiles = async (comments) => {
+          for (const comment of comments) {
+            if (!profiles[comment.userId]) {
+              try {
+                const profileData = await GetProfile(comment.userId);
+                profiles[comment.userId] =
+                  profileData.data.result.profileImageUrl || null;
+              } catch (error) {
+                console.error(
+                  `Error fetching profile for user ${comment.userId}:`,
+                  error
+                );
+                profiles[comment.userId] = null;
+              }
+            }
+            if (comment.replies) {
+              await fetchProfiles(comment.replies);
+            }
+          }
+        };
+
+        await fetchProfiles(boardData.commentList);
+        setUserProfiles(profiles);
       } catch (error) {
         console.error("Error fetching board detail:", error);
       } finally {
         setLoading(false);
       }
     };
-  
+
     fetchBoardDetail();
   }, [route.params.id]);
-
   // 이미지 클릭 핸들러 추가
   const handleImagePress = (imageUrl) => {
     setSelectedImage(imageUrl);
     setModalVisible(true);
   };
-
-
 
   useEffect(() => {
     navigation.setOptions({
@@ -720,23 +824,19 @@ const MyFreeBoardDetail = ({ navigation, route }) => {
   }, [data, onPress]);
 
   const handleReplyPress = (commentId) => {
-    Alert.alert(
-      "대댓글",
-      "대댓글을 다시겠습니까?",
-      [
-        {
-          text: "아니오",
-          style: "cancel"
+    Alert.alert("대댓글", "대댓글을 다시겠습니까?", [
+      {
+        text: "아니오",
+        style: "cancel",
+      },
+      {
+        text: "예",
+        onPress: () => {
+          setReplyingTo(commentId);
+          setCommentText(`@${data.nickName} `);
         },
-        { 
-          text: "예", 
-          onPress: () => {
-            setReplyingTo(commentId);
-            setCommentText(`@${data.nickName} `);
-          }
-        }
-      ]
-    );
+      },
+    ]);
   };
 
   if (loading) {
@@ -762,7 +862,10 @@ const MyFreeBoardDetail = ({ navigation, route }) => {
         style={{ flex: 1 }}
         ListHeaderComponent={
           <View style={styles.itemContainer}>
-            <UserInfo nickName={data.writerNickName} />
+            <UserInfo
+              nickName={data.writerNickName}
+              profileImage={authorProfileImage}
+            />
             <View style={{ marginTop: 12 }}>
               <Text style={styles.title}>{data.boardTitle}</Text>
               <Text style={styles.contents}>{data.boardContent}</Text>
@@ -770,7 +873,10 @@ const MyFreeBoardDetail = ({ navigation, route }) => {
               {data.images?.length > 0 && (
                 <View style={styles.imageBox}>
                   {data.images.map((image, index) => (
-                    <Pressable key={image.imageId} onPress={() => handleImagePress(image.boardImageUrl)}>
+                    <Pressable
+                      key={image.imageId}
+                      onPress={() => handleImagePress(image.boardImageUrl)}
+                    >
                       <Image
                         style={styles.image}
                         source={{ uri: image.boardImageUrl }}
@@ -782,12 +888,22 @@ const MyFreeBoardDetail = ({ navigation, route }) => {
 
               <View style={[styles.bar, { marginTop: 20 }]} />
               <View style={styles.buttonBox}>
-                  <FontAwesome5 name="comment-dots" size={16} color="#6CD163" marginRight={5}/>
-                  <Text style={{ color: "#666", fontSize: 14 }}>
-                    {data.commentCount}
-                  </Text>
+                <FontAwesome5
+                  name="comment-dots"
+                  size={16}
+                  color="#6CD163"
+                  marginRight={5}
+                />
+                <Text style={{ color: "#666", fontSize: 14 }}>
+                  {data.commentCount}
+                </Text>
                 <View style={styles.button}>
-                  <FontAwesome5 name="thumbs-up" size={16} color="#6CD163" marginLeft={15} />
+                  <FontAwesome5
+                    name="thumbs-up"
+                    size={16}
+                    color="#6CD163"
+                    marginLeft={15}
+                  />
                   <Text style={{ color: "#666", fontSize: 14 }}>
                     {data.likeCount}
                   </Text>
@@ -800,7 +916,7 @@ const MyFreeBoardDetail = ({ navigation, route }) => {
                     name={data.isLiked ? "heart" : "hearto"}
                     size={16}
                     color={data.isLiked ? "#6CD163" : "#666"}
-                    marginLeft={235}
+                    marginLeft={185}
                   />
                   <Text style={{ color: "#666", fontSize: 12, marginLeft: 0 }}>
                     좋아요
@@ -818,26 +934,31 @@ const MyFreeBoardDetail = ({ navigation, route }) => {
         }
         renderItem={renderCommentItem}
         keyExtractor={(item) => `comment-${item.commentId}`}
+      />
+      <View style={styles.commentInputContainer}>
+        <TextInput
+          placeholder={
+            replyingTo ? "대댓글을 입력하세요." : "댓글을 입력하세요."
+          }
+          style={styles.commentInput}
+          value={commentText}
+          onChangeText={setCommentText}
         />
-   <View style={styles.commentInputContainer}>
-  <TextInput
-    placeholder={replyingTo ? "대댓글을 입력하세요." : "댓글을 입력하세요."}
-    style={styles.commentInput}
-    value={commentText}
-    onChangeText={setCommentText}
-  />
-  <Pressable style={styles.sendButton} onPress={handlePressSendComment}>
-    <Entypo name="triangle-right" size={28} color="#6CD163" />
-  </Pressable>
-  {replyingTo && (
-    <Pressable style={styles.cancelReplyButton} onPress={() => {
-      setReplyingTo(null);
-      setCommentText("");
-    }}>
-      <Text style={styles.cancelReplyText}>취소</Text>
-    </Pressable>
-  )}
-</View>
+        <Pressable style={styles.sendButton} onPress={handlePressSendComment}>
+          <Entypo name="triangle-right" size={28} color="#6CD163" />
+        </Pressable>
+        {replyingTo && (
+          <Pressable
+            style={styles.cancelReplyButton}
+            onPress={() => {
+              setReplyingTo(null);
+              setCommentText("");
+            }}
+          >
+            <Text style={styles.cancelReplyText}>취소</Text>
+          </Pressable>
+        )}
+      </View>
 
       {/* 이미지 확대를 위한 모달 추가 */}
       {selectedImage && (
@@ -967,15 +1088,15 @@ const styles = StyleSheet.create({
   reCommentBox: {
     marginLeft: 20,
     borderLeftWidth: 1,
-    borderLeftColor: '#ddd',
+    borderLeftColor: "#ddd",
   },
   commentHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   commentButtons: {
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   replyButton: {
     padding: 5,
@@ -989,28 +1110,28 @@ const styles = StyleSheet.create({
     marginRight: -20,
   },
   replyInputContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginTop: 10,
   },
   replyInput: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 5,
     padding: 5,
   },
   sendReplyButton: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 5,
     marginLeft: 5,
-    backgroundColor: '#fe6263',
+    backgroundColor: "#fe6263",
     borderRadius: 5,
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   commentInputContainer: {
     backgroundColor: "#fff",
@@ -1048,7 +1169,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   cancelReplyText: {
-    color: '#6CD163',
+    color: "#6CD163",
   },
 });
 

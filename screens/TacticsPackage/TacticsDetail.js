@@ -263,7 +263,8 @@ const CommentItem = ({
   tacticId,
   showActionSheetWithOptions,
   token,
-  profileImage
+  profileImage,
+  userProfiles,
 }) => {
   console.log("CommentItem data:", JSON.stringify(data, null, 2));
 
@@ -393,7 +394,10 @@ const CommentItem = ({
   return (
     <View style={styles.commentBox}>
       <View style={styles.commentHeader}>
-      <UserInfo nickName={data.nickName || data.nickname} profileImage={profileImage} />
+        <UserInfo
+          nickName={data.nickName || data.nickname}
+          profileImage={profileImage}
+        />
         <View style={styles.commentButtons}>
           <Pressable onPress={handleReplyPress} style={styles.replyButton}>
             <FontAwesome5 name="comment-dots" size={16} color="#fe6263" />
@@ -415,7 +419,8 @@ const CommentItem = ({
             isOwnComment={isOwnComment}
             showActionSheetWithOptions={showActionSheetWithOptions}
             token={token}
-            profileImage={profileImage}
+            profileImage={userProfiles[reply.userId]}
+            userProfiles={userProfiles}
           />
         ))}
     </View>
@@ -429,6 +434,7 @@ const ReCommentItem = ({
   showActionSheetWithOptions,
   token,
   profileImage,
+  userProfiles,
 }) => {
   const getCommentId = () => {
     return data.commentId || data.tacticCommentId || data.id;
@@ -521,7 +527,10 @@ const ReCommentItem = ({
   return (
     <View style={[styles.commentBox, styles.reCommentBox]}>
       <View style={styles.commentHeader}>
-      <UserInfo nickName={data.nickName || data.nickname} profileImage={profileImage} />
+        <UserInfo
+          nickName={data.nickName || data.nickname}
+          profileImage={profileImage}
+        />
         <Pressable onPress={handleMorePress} style={styles.replymoreButton}>
           <Entypo name="dots-three-vertical" size={16} color="black" />
         </Pressable>
@@ -1280,6 +1289,7 @@ const handleTacticCall = async (selectedTacticId, setters) => {
 };
 
 const TacticsDetail = ({ navigation, route }) => {
+  const [userProfiles, setUserProfiles] = useState({});
   const [data, setData] = useState({
     comments: [],
     commentCnt: 0,
@@ -1454,7 +1464,8 @@ const TacticsDetail = ({ navigation, route }) => {
       tacticId={route.params.tacticId}
       showActionSheetWithOptions={showActionSheetWithOptions}
       token={token}
-      profileImage={profileImage}
+      profileImage={userProfiles[item.userId]}
+      userProfiles={userProfiles}
     />
   );
 
@@ -1754,6 +1765,31 @@ const TacticsDetail = ({ navigation, route }) => {
         setElevenPositionValue(
           tacticData.positionDetail[10].positionDescription
         );
+
+        const profiles = {};
+        const fetchProfiles = async (comments) => {
+          for (const comment of comments) {
+            if (!profiles[comment.userId]) {
+              try {
+                const profileData = await GetProfile(comment.userId);
+                profiles[comment.userId] =
+                  profileData.data.result.profileImageUrl || null;
+              } catch (error) {
+                console.error(
+                  `Error fetching profile for user ${comment.userId}:`,
+                  error
+                );
+                profiles[comment.userId] = null;
+              }
+            }
+            if (comment.children) {
+              await fetchProfiles(comment.children);
+            }
+          }
+        };
+
+        await fetchProfiles(tacticData.comments);
+        setUserProfiles(profiles);
 
         // 댓글 데이터 구조 확인
         if (tacticData.comments && tacticData.comments.length > 0) {
