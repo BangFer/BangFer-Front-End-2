@@ -44,7 +44,7 @@ const App = () => {
           body: remoteMessage.notification?.body,
           android: {
             channelId: channelId,
-            smallIcon: 'profileimg',
+            smallIcon: 'bangferlogo',
           },
         });
       }
