@@ -170,8 +170,8 @@ const TouchForOutButton = styled.TouchableOpacity`
 
 const ViewforModalText = styled.View`
   flex: 5;
-  align-items: center;
-  justify-content: center;
+  /* align-items: center; */
+  /* justify-content: center; */
 `;
 
 const ViewforModalPosition = styled.View`
@@ -1266,7 +1266,9 @@ const AdminPlusBanggusukTeam = ({ navigation }) => {
                     <TextForOutModal>추방하기</TextForOutModal>
                   </ViewforModalPosition>
 
-                  <ViewforModalText>
+                  <ViewforModalText
+                    style={{ alignItems: "center", justifyContent: "center" }}
+                  >
                     <TextForRealOutModal>
                       해당 유저를 추방하시겠습니까?
                     </TextForRealOutModal>
