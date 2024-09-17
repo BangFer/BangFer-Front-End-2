@@ -206,10 +206,10 @@ const TextBox = styled.TextInput`
 `;
 
 const Title = styled.Text`
-font-size: 20px;
-font-weight: bold;
-margin-bottom: 5px;
-color: white;
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: white;
 `;
 
 const RegisterButton = styled.TouchableOpacity`
@@ -245,8 +245,7 @@ const ViewForListPlayersReal = styled.View`
   height: 370px;
   align-items: center;
   border-width: 4px;
-  border-radius : 10px;
-
+  border-radius: 10px;
 `;
 
 const ViewForFlatList = styled.View`
@@ -635,28 +634,28 @@ const TouchForPlusPlayer = styled.TouchableOpacity`
 `;
 
 const TaticsName = styled.TextInput`
-height: 35px;
-width: 165px;
-border-width: 4px;
-margin-left: 24px;
-border-radius: 10px;
-padding-left: 10px;
-font-size: 17px;
-font-weight: bold;
-color: black;
+  height: 35px;
+  width: 165px;
+  border-width: 4px;
+  margin-left: 24px;
+  border-radius: 10px;
+  padding-left: 10px;
+  font-size: 17px;
+  font-weight: bold;
+  color: black;
 `;
 
 const DirectorName = styled.TextInput`
-height: 35px;
-width: 100px;
-border-width: 4px;
-margin-right: 24px;
-border-radius: 10px;
-padding-left: 10px;
-font-size: 17px;
-font-weight: bold;
-color: black;
-text-align: left;  
+  height: 35px;
+  width: 100px;
+  border-width: 4px;
+  margin-right: 24px;
+  border-radius: 10px;
+  padding-left: 10px;
+  font-size: 17px;
+  font-weight: bold;
+  color: black;
+  text-align: left;
 `;
 
 const TacticName = styled.TextInput`
@@ -677,9 +676,9 @@ const TacticsBackImage = styled.Image`
   z-index: -1;
 `;
 const TextForListPlayersTitle = styled.Text`
-font-size: 24px;
-font-weight: bold;
-margin-left: 10px;
+  font-size: 24px;
+  font-weight: bold;
+  margin-left: 10px;
 `;
 
 const InviteKaKao = async () => {
@@ -1033,8 +1032,12 @@ const UserPlusBanggusukTeam = ({ navigation }) => {
             alignItems: "center",
           }}
         >
-          <Text style={{ marginLeft: 25, marginTop:5, marginBottom: -5 }}>팀명</Text>
-          <Text style={{ marginRight: 25, marginTop:5, marginBottom: -5 }}>리더명</Text>
+          <Text style={{ marginLeft: 25, marginTop: 5, marginBottom: -5 }}>
+            팀명
+          </Text>
+          <Text style={{ marginRight: 25, marginTop: 5, marginBottom: -5 }}>
+            리더명
+          </Text>
         </View>
         <ViewForTextBar>
           <TaticsName
@@ -1720,13 +1723,13 @@ const UserPlusBanggusukTeam = ({ navigation }) => {
                 >
                   <Midfielder
                     onPress={() =>
-                      handleMidfielderPositionPress(ThreePositionValue, "CAM")
+                      handleMidfielderPositionPress(ThreePositionValue, "LM")
                     }
                     style={{ marginLeft: 20, marginTop: 70 }}
                   ></Midfielder>
                   <Midfielder
                     onPress={() =>
-                      handleMidfielderPositionPress(FourPositionValue, "LM")
+                      handleMidfielderPositionPress(FourPositionValue, "CAM")
                     }
                     style={{ marginTop: 10 }}
                   ></Midfielder>
@@ -1740,13 +1743,13 @@ const UserPlusBanggusukTeam = ({ navigation }) => {
                 <ViewForMidfielder style={{ height: "20%" }}>
                   <Midfielder
                     onPress={() =>
-                      handleMidfielderPositionPress(SixPositionValue, "RCM")
+                      handleMidfielderPositionPress(SixPositionValue, "LCM")
                     }
                     style={{ marginLeft: 60 }}
                   ></Midfielder>
                   <Midfielder
                     onPress={() =>
-                      handleMidfielderPositionPress(SevenPositionValue, "LCM")
+                      handleMidfielderPositionPress(SevenPositionValue, "RCM")
                     }
                     style={{ marginRight: 60 }}
                   ></Midfielder>
@@ -1926,8 +1929,7 @@ const UserPlusBanggusukTeam = ({ navigation }) => {
             alignItems: "flex-end",
             justifyContent: "center",
           }}
-        >
-        </View>
+        ></View>
       </ScrollView>
     </Container>
   );

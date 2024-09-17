@@ -336,8 +336,8 @@ const RegisterTactic = async ({
       tacticName: tacticName,
       anonymous: annonymous,
       mainFormation: mainFormation,
-      tacticDetails: tacticDetails,
-      subTactic: subTactic,
+      tacticDetails: subTactic,
+      subTactic: tacticDetails,
       positionDetails: positionDetails,
     };
 
@@ -1784,14 +1784,14 @@ const NewTactic = ({ navigation }) => {
               >
                 <Midfielder
                   onPress={() => {
-                    handleAttackerPositionPress("CAM");
+                    handleAttackerPositionPress("LM");
                     setIsMidfielderModalVisible1();
                   }}
                   style={{ marginLeft: 20, marginTop: 70 }}
                 ></Midfielder>
                 <Midfielder
                   onPress={() => {
-                    handleAttackerPositionPress("LM");
+                    handleAttackerPositionPress("CAM");
                     setIsMidfielderModalVisible2();
                   }}
                   style={{ marginTop: 10 }}
@@ -1807,14 +1807,14 @@ const NewTactic = ({ navigation }) => {
               <ViewForMidfielder style={{ height: "20%" }}>
                 <Midfielder
                   onPress={() => {
-                    handleAttackerPositionPress("RCM");
+                    handleAttackerPositionPress("LCM");
                     setIsMidfielderModalVisible4();
                   }}
                   style={{ marginLeft: 60 }}
                 ></Midfielder>
                 <Midfielder
                   onPress={() => {
-                    handleAttackerPositionPress("LCM");
+                    handleAttackerPositionPress("RCM");
                     setIsMidfielderModalVisible6();
                   }}
                   style={{ marginRight: 60 }}

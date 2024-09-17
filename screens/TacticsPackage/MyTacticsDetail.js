@@ -1216,8 +1216,8 @@ const handleTacticCall = async (selectedTacticId, setters) => {
     };
 
     setters.setData(formattedTacticData);
-    setters.setMainText(tacticData.tacticDetails || "");
-    setters.setSubText(tacticData.subTactic || "");
+    setters.setMainText(tacticData.subTactic || "");
+    setters.setSubText(tacticData.tacticDetails || "");
     setters.setSlectedFormation(tacticData.mainFormation || "");
     setters.setTacticName(tacticData.tacticName || "");
     setters.setannonymous(tacticData.anonymous || false);
@@ -2634,7 +2634,7 @@ const MyTacticsDetail = ({ navigation, route }) => {
                           onPress={() =>
                             handleMidfielderPositionPress(
                               ThreePositionValue,
-                              "CAM"
+                              "LM"
                             )
                           }
                           style={{ marginLeft: 20, marginTop: 70 }}
@@ -2643,7 +2643,7 @@ const MyTacticsDetail = ({ navigation, route }) => {
                           onPress={() =>
                             handleMidfielderPositionPress(
                               FourPositionValue,
-                              "LM"
+                              "CAM"
                             )
                           }
                           style={{ marginTop: 10 }}
@@ -2663,7 +2663,7 @@ const MyTacticsDetail = ({ navigation, route }) => {
                           onPress={() =>
                             handleMidfielderPositionPress(
                               SixPositionValue,
-                              "RCM"
+                              "LCM"
                             )
                           }
                           style={{ marginLeft: 60 }}
@@ -2672,7 +2672,7 @@ const MyTacticsDetail = ({ navigation, route }) => {
                           onPress={() =>
                             handleMidfielderPositionPress(
                               SevenPositionValue,
-                              "LCM"
+                              "RCM"
                             )
                           }
                           style={{ marginRight: 60 }}
