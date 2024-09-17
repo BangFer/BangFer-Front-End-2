@@ -450,6 +450,21 @@ const Item = ({
         items = [
           { label: "ST", value: "1" },
           { label: "LAM", value: "2" },
+          { label: "RAM", value: "3" },
+          { label: "LCM", value: "4" },
+          { label: "CM", value: "5" },
+          { label: "RCM", value: "6" },
+          { label: "LB", value: "7" },
+          { label: "LCB", value: "8" },
+          { label: "RCB", value: "9" },
+          { label: "RB", value: "10" },
+          { label: "GK", value: "11" },
+        ];
+        break;
+      case "4-2-3-1":
+        items = [
+          { label: "ST", value: "1" },
+          { label: "LAM", value: "2" },
           { label: "CAM", value: "3" },
           { label: "RAM", value: "4" },
           { label: "LDM", value: "5" },
