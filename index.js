@@ -32,7 +32,7 @@ const onMessageReceived = async (message) => {
         body: notification.body,
         android: {
           channelId: channelId,
-          smallIcon: 'profileimg',
+          smallIcon: 'bangferlogo',
           importance: AndroidImportance.HIGH,
           tag: 'custom_notification',
           pressAction: {
