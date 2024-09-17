@@ -27,18 +27,17 @@ import {
   unlink,
 } from "@react-native-seoul/kakao-login";
 import EmailVerifyRecover from "./EmailVerifyRecover";
-import { verifyTokens, getTokenFromLocal } from "../LoginPackage/TokenUtils";
-import styled from "styled-components";
+import styled from "styled-components/native"
 
-const logoText = styled.Text`
+const LogoText = styled.Text`
   font-size: 38px;
-  marginTop: 270,
+  margin-top: 270px;
   font-weight: 700;
   color: black;
   text-decoration-line: underline;
   margin-bottom: 50px;
   font-family: LexendDeca-Bold;
-  textAlign: center;
+  text-align: center;
 `;
 
 const showFailLogin = () => {
@@ -208,12 +207,8 @@ const Login = ({ navigation }) => {
           accessToken: data.result.accessToken,
           refreshToken: data.result.refreshToken,
           userId: data.result.userId,
-          fcmToken: fcmToken,
         })
       );
-
-      const Token = await getTokenFromLocal();
-      console.log(JSON.stringify(Token));
       showSuccessLogin();
 
       try {
@@ -247,11 +242,8 @@ const Login = ({ navigation }) => {
           accessToken: data.result.accessToken,
           refreshToken: data.result.refreshToken,
           userId: data.result.userId,
-          fcmToken: fcmToken,
         })
       );
-      const Token = await getTokenFromLocal();
-      console.log("로그인", JSON.stringify(Token));
 
       try {
         const hasProfile = await checkProfile(data.result.accessToken);
@@ -303,7 +295,7 @@ const Login = ({ navigation }) => {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.loginScreenContainer}>
             <View style={styles.loginFirstView}>
-              <logoText>LOGIN</logoText>
+            <LogoText>LOGIN</LogoText>
             </View>
             <View style={styles.loginSecondView}>
               <TextInput
@@ -381,6 +373,7 @@ const styles = StyleSheet.create({
     flex: 1.9,
     alignItems: "center",
     justifyContent: "center",
+    top: 60,
   },
   loginSecondView: {
     flex: 1.25,
