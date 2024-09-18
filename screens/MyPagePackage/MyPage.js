@@ -163,6 +163,12 @@ const FirstModalView = styled.View`
   align-items: center;
 `;
 
+const FirstNotiModalView = styled.View`
+  flex: 0.8;
+  justify-content: center;
+  align-items: center;
+`;
+
 const SecondModalView = styled.View`
   flex: 5;
   justify-content: center;
@@ -193,6 +199,12 @@ const ViewForFlatList = styled.View`
   flex-direction: row;
 `;
 
+const ViewForNotiFlatList = styled.View`
+  width: 100%;
+  height: 80px;
+  flex-direction: row;
+`;
+
 const NotiFirstViewForFlatList = styled.View`
   flex: 1;
   justify-content: center;
@@ -203,6 +215,22 @@ const NotiSecondViewForFlatList = styled.View`
   flex: 3;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
+`;
+
+const NotiThirdViewForFlatList = styled.View`
+  flex: 4;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+`;
+
+const NotiFourthViewForFlatList = styled.View`
+  flex: 1;
+  width: 100%;
+  align-items: center;
+  justify-content: flex-end;
   flex-direction: row;
 `;
 
@@ -403,17 +431,24 @@ const Item = ({ nickName, inviteId, onAccept, onReject }) => {
   );
 };
 
-const NotificationItem = ({ title, body }) => {
+const NotificationItem = ({ title, body, createdAt }) => {
   return (
-    <ViewForFlatList>
+    <ViewForNotiFlatList>
       <NotiFirstViewForFlatList>
         <TextForFlatList>{title}</TextForFlatList>
       </NotiFirstViewForFlatList>
       <NotiSeparator></NotiSeparator>
       <NotiSecondViewForFlatList>
-        <TextForFlatList>{body}</TextForFlatList>
+        <NotiThirdViewForFlatList>
+          <TextForFlatList style={{ fontSize: 12 }}>{body}</TextForFlatList>
+        </NotiThirdViewForFlatList>
+        <NotiFourthViewForFlatList>
+          <TextForFlatList style={{ fontSize: 8, marginRight: 10 }}>
+            {createdAt}
+          </TextForFlatList>
+        </NotiFourthViewForFlatList>
       </NotiSecondViewForFlatList>
-    </ViewForFlatList>
+    </ViewForNotiFlatList>
   );
 };
 
@@ -529,11 +564,25 @@ const MyPage = ({ navigation }) => {
   const fetchNotificationData = async () => {
     const data = await GetMyNotification();
     console.log(data);
-    const transformedData = data.map((item, index) => ({
-      id: (index + 1).toString(),
-      title: item.title,
-      body: item.body,
-    }));
+    const transformedData = data.map((item, index) => {
+      // createdAt 문자열을 Date 객체로 변환
+      const date = new Date(item.createdAt);
+
+      // 날짜와 시간을 원하는 형식으로 포맷팅
+      const formattedDate = `${date.getFullYear()}-${String(
+        date.getMonth() + 1
+      ).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")} ${String(
+        date.getHours()
+      ).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+
+      console.log(formattedDate);
+      return {
+        id: (index + 1).toString(),
+        title: item.title,
+        body: item.body,
+        createdAt: formattedDate, // 새로 포맷팅된 날짜 추가
+      };
+    });
     setNotificationData(transformedData);
   };
 
@@ -646,21 +695,25 @@ const MyPage = ({ navigation }) => {
         <ContainerModalView
           onPress={() => setIsNotificationModalVisible(false)}
         >
-          <ModalView>
-            <FirstModalView>
+          <ModalView style={{ height: "70%" }}>
+            <FirstNotiModalView>
               <TextForTitleInvite>알림목록</TextForTitleInvite>
-            </FirstModalView>
+            </FirstNotiModalView>
             <ModalSeparator></ModalSeparator>
             <SecondModalView>
               <FlatList
                 data={notificationData}
                 renderItem={({ item }) => (
-                  <NotificationItem title={item.title} body={item.body} />
+                  <NotificationItem
+                    title={item.title}
+                    body={item.body}
+                    createdAt={item.createdAt}
+                  />
                 )}
                 keyExtractor={(item) => item.id}
                 ItemSeparatorComponent={ModalSeparator}
                 ListFooterComponent={ModalSeparator}
-                initialNumToRender={12}
+                initialNumToRender={5}
                 nestedScrollEnabled={true}
                 maxToRenderPerBatch={10}
                 style={{ width: "100%", height: "100%" }}

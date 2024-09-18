@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import {
   View,
   Text,
@@ -52,7 +52,7 @@ const ButtonText = styled.Text`
 const ThumbsRankButton = styled.TouchableOpacity`
   padding: 5px 10px;
   border-radius: 5px;
-  background-color: #6CD163;
+  background-color: #6cd163;
   margin-left: 10px;
 
   align-items: center;
@@ -62,7 +62,7 @@ const ThumbsRankButton = styled.TouchableOpacity`
 const CommentsRankButton = styled.TouchableOpacity`
   padding: 5px 10px;
   border-radius: 5px;
-  background-color: #6CD163;
+  background-color: #6cd163;
   margin-left: 10px;
 
   align-items: center;
@@ -90,6 +90,7 @@ const GetBoardData = async ({ page, size }) => {
       params: params,
     });
 
+    console.log(response.data.result);
     // 서버 응답 구조에 맞게 수정
     return response.data.result;
   } catch (error) {
@@ -98,13 +99,25 @@ const GetBoardData = async ({ page, size }) => {
   }
 };
 
-const BoardItem = ({ data, handlePress }) => {
+const BoardItem = ({ data, handlePress, userId }) => {
+  // userId와 data.userId가 같은지 확인
+  const isTitleGreen = data.userId === userId;
+  console.log(userId);
+  console.log(data.userId);
+
   return (
     <Pressable
       style={styles.itemContainer}
       onPress={() => handlePress(data._id)}
     >
-      <Text style={styles.title}>{data.title}</Text>
+      <Text
+        style={[
+          styles.title,
+          isTitleGreen && { color: "#6CD163" }, // 조건이 true일 때 초록색으로 변경
+        ]}
+      >
+        {data.title}
+      </Text>
       <View style={styles.infoContainer}>
         <View style={styles.iconContainer}>
           <View style={styles.commentContainer}>
@@ -128,9 +141,26 @@ const FreeBoard = ({ navigation }) => {
   const [size, setSize] = useState(10);
   const [sortBy, setSortBy] = useState("id");
   const [isLoading, setIsLoading] = useState(false);
+  const [userId, setUserId] = useState("");
 
   // 여기에 useInfiniteQuery 훅을 사용합니다
+  useEffect(() => {
+    const getUserIdFromToken = async () => {
+      try {
+        const token = await getTokenFromLocal();
+        if (token && token.userId) {
+          setUserId(token.userId);
+          console.log("User ID set:", token.userId);
+        } else {
+          console.log("User ID not found in token");
+        }
+      } catch (error) {
+        console.error("Error getting user ID from token:", error);
+      }
+    };
 
+    getUserIdFromToken();
+  }, []);
   const handleSort = useCallback(
     async (type) => {
       setIsLoading(true);
@@ -208,11 +238,13 @@ const FreeBoard = ({ navigation }) => {
           comments: item.commentCount,
           director: item.writerNickName,
           likes: item.likeCount,
+          userId: item.userId,
         }}
         handlePress={handlePressGoDetail}
+        userId={userId}
       />
     ),
-    [handlePressGoDetail]
+    [handlePressGoDetail, userId]
   );
 
   if (queryLoading) {
@@ -230,15 +262,21 @@ const FreeBoard = ({ navigation }) => {
           <RankIconInFirstView>
             <FontAwesome6 name="ranking-star" size={24} color="#6CD163" />
           </RankIconInFirstView>
-          <ThumbsRankButton onPress={() => handleSort('likes')} disabled={isLoading}>
-            {isLoading && sortBy === 'likes' ? (
+          <ThumbsRankButton
+            onPress={() => handleSort("likes")}
+            disabled={isLoading}
+          >
+            {isLoading && sortBy === "likes" ? (
               <ActivityIndicator color="#6CD163" size="small" />
             ) : (
               <ButtonText>공감순</ButtonText>
             )}
           </ThumbsRankButton>
-          <CommentsRankButton onPress={() => handleSort('comments')} disabled={isLoading}>
-            {isLoading && sortBy === 'comments' ? (
+          <CommentsRankButton
+            onPress={() => handleSort("comments")}
+            disabled={isLoading}
+          >
+            {isLoading && sortBy === "comments" ? (
               <ActivityIndicator color="#6CD163" size="small" />
             ) : (
               <ButtonText>댓글순</ButtonText>
@@ -251,7 +289,9 @@ const FreeBoard = ({ navigation }) => {
         style={styles.container}
         data={sortedData}
         renderItem={renderBoardItem}
-        keyExtractor={(item) => item.id?.toString() ?? `fallback-${Math.random()}`}
+        keyExtractor={(item) =>
+          item.id?.toString() ?? `fallback-${Math.random()}`
+        }
         onEndReached={() => {
           if (hasNextPage) {
             fetchNextPage();
@@ -263,7 +303,11 @@ const FreeBoard = ({ navigation }) => {
           refetch();
         }}
         refreshing={isLoading}
-        ListEmptyComponent={<Text>No data available</Text>}
+        ListEmptyComponent={
+          <View style={styles.noDataContainer}>
+            <Text style={styles.noDataText}>데이터가 없습니다.</Text>
+          </View>
+        }
       />
     </Container>
   );
@@ -314,6 +358,17 @@ const styles = StyleSheet.create({
   directorText: {
     fontSize: 14,
     color: "#666",
+  },
+  noDataContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  noDataText: {
+    fontSize: 16,
+    color: "#666",
+    textAlign: "center",
   },
 });
 

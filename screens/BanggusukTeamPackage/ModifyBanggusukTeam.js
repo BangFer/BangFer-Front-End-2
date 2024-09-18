@@ -353,11 +353,11 @@ const ProfileImage = styled.Image`
 `;
 
 const ViewForPickerContainer = styled.View`
-  width: 115px;
+  width: 120px;
   height: 100%;
   justifycontent: center;
   alignitems: center;
-  margin-left: 80px;
+  margin-left: 60px;
 `;
 
 const Item = ({
