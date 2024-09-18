@@ -534,17 +534,47 @@ const StackNavigation = (navigation) => {
                     </MenuTrigger>
                     <MenuOptions
                       customStyles={{
-                        optionsContainer: { width: 70, height: 60 },
+                        optionsContainer: {
+                          width: 80,
+                          height: 65,
+                        },
+                        optionWrapper: {
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                        },
                       }}
                     >
                       <MenuOption
                         onSelect={() => navigateToNewTactic(navigation)}
-                        text="전술 생성"
-                      />
+                        customStyles={{
+                          optionWrapper: {
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                          },
+                        }}
+                      >
+                        <Text style={{ fontSize: 17, textAlign: 'center' }}>
+                          전술 생성
+                        </Text>
+                      </MenuOption>
                       <MenuOption
                         onSelect={() => navigateToMyTactics(navigation)}
+                        customStyles={{
+                          optionWrapper: {
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                          },
+                        }}
                       >
-                        <Text style={{ color: 'red' }}>내 전술</Text>
+                        <Text
+                          style={{
+                            color: 'red',
+                            fontSize: 17,
+                            textAlign: 'center',
+                          }}
+                        >
+                          내 전술
+                        </Text>
                       </MenuOption>
                     </MenuOptions>
                   </Menu>
@@ -735,17 +765,47 @@ const StackNavigation = (navigation) => {
                     </MenuTrigger>
                     <MenuOptions
                       customStyles={{
-                        optionsContainer: { width: 70, height: 60 },
+                        optionsContainer: {
+                          width: 80,
+                          height: 65,
+                        },
+                        optionWrapper: {
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                        },
                       }}
                     >
                       <MenuOption
                         onSelect={() => navigateToFreeBoardWrite(navigation)}
-                        text="글 쓰기"
-                      />
+                        customStyles={{
+                          optionWrapper: {
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                          },
+                        }}
+                      >
+                        <Text style={{ fontSize: 17, textAlign: 'center' }}>
+                          글 쓰기
+                        </Text>
+                      </MenuOption>
                       <MenuOption
                         onSelect={() => navigateToMyFreeBoard(navigation)}
+                        customStyles={{
+                          optionWrapper: {
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                          },
+                        }}
                       >
-                        <Text style={{ color: 'black' }}>내가 쓴 글</Text>
+                        <Text
+                          style={{
+                            color: 'black',
+                            fontSize: 17,
+                            textAlign: 'center',
+                          }}
+                        >
+                          내가 쓴 글
+                        </Text>
                       </MenuOption>
                     </MenuOptions>
                   </Menu>
