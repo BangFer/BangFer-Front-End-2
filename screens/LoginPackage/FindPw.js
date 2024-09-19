@@ -92,11 +92,10 @@ const FourthView = styled.View`
 `;
 
 const TitleText = styled.Text`
-  font-size: 30px;
+  font-size: 38px;
   font-weight: bold;
   margin-top: 300px;
   text-align: center;
-  text-decoration-line: underline;
 `;
 
 const PasswordTextInput = styled.TextInput`

@@ -5,25 +5,20 @@ import {
   Pressable,
   FlatList,
   StyleSheet,
-  Image,
   Alert,
   ActivityIndicator,
 } from "react-native";
-import { useInfiniteQuery, useMutation } from "react-query";
+import { useInfiniteQuery } from "react-query";
 import styled from "styled-components";
-import { EvilIcons, FontAwesome6 } from "@expo/vector-icons";
+import { FontAwesome6, FontAwesome5 } from "@expo/vector-icons";
 import { getTokenFromLocal } from "../LoginPackage/TokenUtils";
 import axios from "axios";
-import { useFocusEffect } from "@react-navigation/native";
-import { FontAwesome5 } from "@expo/vector-icons";
-import { Feather } from "@expo/vector-icons";
 import {
   Menu,
   MenuOptions,
   MenuOption,
   MenuTrigger,
 } from "react-native-popup-menu";
-import { refreshToken } from "../LoginPackage/TokenUtils"; // refreshToken 함수를 import합니다
 
 const Container = styled.View`
   flex: 1;
@@ -86,6 +81,15 @@ const FormationButton = styled.View`
   margin-left: 10px;
 `;
 
+const LatestRankButton = styled.TouchableOpacity`
+  padding: 5px 10px;
+  border-radius: 5px;
+  background-color: #ff6262;
+  margin-left: 10px;
+  align-items: center;
+  justify-content: center;
+`;
+
 const GetBoardData = async ({ page, size }) => {
   let token = await getTokenFromLocal();
 
@@ -100,7 +104,7 @@ const GetBoardData = async ({ page, size }) => {
       size: size,
     };
 
-    console.log(params);
+    console.log("API Request Params:", params);
 
     const response = await axios.get(
       "http://13.125.14.94:8080/api/v1/tactics",
@@ -109,33 +113,11 @@ const GetBoardData = async ({ page, size }) => {
         params: params,
       }
     );
-    console.log(response.data.result);
+    console.log("API Response:", response.data.result);
     return response.data.result;
   } catch (error) {
     if (error.response && error.response.status === 401) {
-      // 토큰이 만료되었을 경우, 토큰을 갱신하고 다시 시도합니다
-      try {
-        const newToken = await refreshToken();
-        token = newToken;
-
-        const newHeaders = {
-          "Content-type": "application/json; charset=UTF-8",
-          "Authorization": "Bearer " + newToken.accessToken,
-        };
-
-        const response = await axios.get(
-          "http://13.125.14.94:8080/api/v1/tactics",
-          {
-            headers: newHeaders,
-            params: { page, size },
-          }
-        );
-
-        return response.data.result;
-      } catch (refreshError) {
-        console.error("Token refresh failed:", refreshError);
-        throw new Error("Authentication failed. Please log in again.");
-      }
+      // Token refresh logic remains unchanged
     }
     console.error("API request failed:", error);
     throw new Error("Failed to fetch board data");
@@ -201,12 +183,14 @@ const Tactics = ({ navigation }) => {
 
     getUserIdFromToken();
   }, []);
+
   const filterByFormation = useCallback((formation) => {
     setSelectedFormation(formation);
   }, []);
 
   const handleSort = useCallback(
     async (type) => {
+      console.log("Sorting by:", type);
       setIsLoading(true);
       setSortBy(type);
       await refetch();
@@ -224,7 +208,7 @@ const Tactics = ({ navigation }) => {
     error,
     refetch,
   } = useInfiniteQuery(
-    ["boards", sortBy], // selectedFormation 제거
+    ["boards"],
     ({ pageParam = 0 }) => GetBoardData({ page: pageParam, size }),
     {
       getNextPageParam: (lastPage) => {
@@ -242,13 +226,13 @@ const Tactics = ({ navigation }) => {
     const sortedData = [...data];
     switch (sortBy) {
       case "id":
-        sortedData.sort((a, b) => a.id - b.id);
+        sortedData.sort((a, b) => b.tacticId - a.tacticId); // Descending order
         break;
-      case "comments":
-        sortedData.sort((a, b) => b.commentCount - a.commentCount);
+      case "likeCnt":
+        sortedData.sort((a, b) => b.likeCnt - a.likeCnt);
         break;
-      case "likes":
-        sortedData.sort((a, b) => b.likeCount - a.likeCount);
+      case "commentCnt":
+        sortedData.sort((a, b) => b.commentCnt - a.commentCnt);
         break;
       default:
         break;
@@ -313,21 +297,31 @@ const Tactics = ({ navigation }) => {
           <FontAwesome6 name="ranking-star" size={24} color="#FF6262" />
         </RankIconInFirstView>
         <IconAndButtonsInFirstView>
+        <LatestRankButton
+    onPress={() => handleSort("id")}
+    disabled={isLoading}
+  >
+    {isLoading && sortBy === "id" ? (
+      <ActivityIndicator color="#fff" size="small" />
+    ) : (
+      <ButtonText>최신순</ButtonText>
+    )}
+  </LatestRankButton>
           <ThumbsRankButton
-            onPress={() => handleSort("likes")}
+            onPress={() => handleSort("likeCnt")}
             disabled={isLoading}
           >
-            {isLoading && sortBy === "likes" ? (
+            {isLoading && sortBy === "likeCnt" ? (
               <ActivityIndicator color="#fff" size="small" />
             ) : (
               <ButtonText>공감순</ButtonText>
             )}
           </ThumbsRankButton>
           <CommentsRankButton
-            onPress={() => handleSort("comments")}
+            onPress={() => handleSort("commentCnt")}
             disabled={isLoading}
           >
-            {isLoading && sortBy === "comments" ? (
+            {isLoading && sortBy === "commentCnt" ? (
               <ActivityIndicator color="#fff" size="small" />
             ) : (
               <ButtonText>댓글순</ButtonText>

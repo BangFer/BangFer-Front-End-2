@@ -32,9 +32,8 @@ import styled from "styled-components/native"
 const LogoText = styled.Text`
   font-size: 38px;
   margin-top: 270px;
-  font-weight: 700;
+  font-weight: bold;
   color: black;
-  text-decoration-line: underline;
   margin-bottom: 50px;
   font-family: LexendDeca-Bold;
   text-align: center;

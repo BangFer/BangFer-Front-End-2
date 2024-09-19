@@ -51,10 +51,9 @@ const EmailVerifySecondView = styled.View`
 `;
 
 const TitleText = styled.Text`
-  font-size: 30px;
+  font-size: 38px;
   font-weight: bold;
   margin-top: 260px;
-  text-decoration-line: underline;
 `;
 
 const EmailTextInput = styled.TextInput`

@@ -32,11 +32,10 @@ const SecondView = styled.View`
 `;
 
 const TitleText = styled.Text`
-  font-size: 30px;
+  font-size: 38px;
   font-weight: bold;
   margin-top: 290px;
   text-align: center;
-  text-decoration-line: underline;
 `;
 
 const KaKaoSignUpButton = styled.TouchableOpacity`
