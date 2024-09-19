@@ -200,11 +200,10 @@ const styles = StyleSheet.create({
   },
 
   logoText: {
-    fontSize: 30,
+    fontSize: 38,
     fontWeight: "bold",
     marginTop: 280,
     textAlign: "center",
-    textDecorationLine: "underline",
   },
 
   SignUpTextInput: {

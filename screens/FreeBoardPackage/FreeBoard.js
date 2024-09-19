@@ -69,6 +69,15 @@ const CommentsRankButton = styled.TouchableOpacity`
   justify-content: center;
 `;
 
+const LatestRankButton = styled.TouchableOpacity`
+  padding: 5px 10px;
+  border-radius: 5px;
+  background-color: #6cd163;
+  margin-left: 10px;
+  align-items: center;
+  justify-content: center;
+`;
+
 const GetBoardData = async ({ page, size }) => {
   const token = await getTokenFromLocal();
 
@@ -262,6 +271,16 @@ const FreeBoard = ({ navigation }) => {
           <RankIconInFirstView>
             <FontAwesome6 name="ranking-star" size={24} color="#6CD163" />
           </RankIconInFirstView>
+          <LatestRankButton
+    onPress={() => handleSort("id")}
+    disabled={isLoading}
+  >
+    {isLoading && sortBy === "id" ? (
+      <ActivityIndicator color="#fff" size="small" />
+    ) : (
+      <ButtonText>최신순</ButtonText>
+    )}
+  </LatestRankButton>
           <ThumbsRankButton
             onPress={() => handleSort("likes")}
             disabled={isLoading}
