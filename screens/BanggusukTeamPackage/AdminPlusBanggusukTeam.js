@@ -947,13 +947,9 @@ const KickOutMember = async ({ KickOutMemberId, teamId }) => {
     console.log("what member " + KickOutMemberId);
     console.log("what Team" + teamId);
 
-    const response = await axios.delete(
-      url,
-
-      {
-        headers: headers,
-      }
-    );
+    const response = await axios.delete(url, {
+      headers: headers,
+    });
 
     return response.data; // 반환할 데이터 형식에 맞게 수정
   } catch (error) {

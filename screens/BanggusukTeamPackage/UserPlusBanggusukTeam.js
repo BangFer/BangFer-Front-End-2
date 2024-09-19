@@ -1068,7 +1068,11 @@ const UserPlusBanggusukTeam = ({ navigation }) => {
         </ViewForTextBar>
         <ViewForTacticBoard>
           <ViewForDropdown>
-            <TacticName value={tacticName}></TacticName>
+            <TacticName
+              value={tacticName}
+              pointerEvents="none"
+              editable={false}
+            ></TacticName>
           </ViewForDropdown>
           <ViewForBoard>
             <TacticsBackImage source={TacticsBack} resizeMode={"stretch"} />
