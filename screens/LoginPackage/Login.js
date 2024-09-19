@@ -31,12 +31,10 @@ import styled from "styled-components/native"
 
 const LogoText = styled.Text`
   font-size: 38px;
-  margin-top: 270px;
   font-weight: bold;
   color: black;
-  margin-bottom: 50px;
-  font-family: LexendDeca-Bold;
   text-align: center;
+  margin-top: 20px;
 `;
 
 const showFailLogin = () => {

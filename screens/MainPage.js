@@ -26,7 +26,6 @@ const TitleTextBANGUSUK = styled.Text`
   color: black;
   text-decoration-line: underline;
   margin-top: -5px;
-  font-family: LexendDeca-Bold;
 `;
 
 const TitleTextFERGUSON = styled.Text`
@@ -63,7 +62,6 @@ const ThirdViewForTitleText = styled.View`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  top: 25;
 `;
 
 const FourthViewForButtons = styled.View`
