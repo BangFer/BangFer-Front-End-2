@@ -211,7 +211,7 @@ const FreeBoard = ({ navigation }) => {
     const sortedData = [...data];
     switch (sortBy) {
       case "id":
-        sortedData.sort((a, b) => a.id - b.id);
+        sortedData.sort((a, b) => b.id - a.id); // Descending order
         break;
       case "comments":
         sortedData.sort((a, b) => b.commentCount - a.commentCount);
