@@ -39,6 +39,22 @@ import { verifyTokens, getTokenFromLocal } from "../LoginPackage/TokenUtils";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 
+const TacticCopyButton = styled.TouchableOpacity`
+  width: 110px;
+  height: 30px;
+  align-items: center;
+  justify-content: center;
+  margin-left: 10px;
+  background-color: #fe6263;
+  border-radius: 5px;
+`;
+
+const TacticCopyText = styled.Text`
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+`;
+
 const GetProfile = async (userId) => {
   const Token = await getTokenFromLocal();
 
@@ -823,20 +839,6 @@ const SubmitButton = styled.TouchableOpacity`
   position: absolute; /* 절대 위치 설정 */
   top: 10px; /* 위쪽 여백 설정 */
   right: 10px; /* 오른쪽 여백 설정 */
-`;
-
-const TacticCopyButton = styled.TouchableOpacity`
-  width: 100px;
-  height: 22px;
-  align-items: center;
-  justify-content: center;
-  margin-left: 10px;
-`;
-
-const TacticCopyText = styled.Text`
-  color: grey;
-  font-size: 16px;
-  font-weight: bold;
 `;
 
 const Item = ({ title }) => {
@@ -2902,8 +2904,9 @@ const TacticsDetail = ({ navigation, route }) => {
                   size={16}
                   color="#fe6263"
                   marginRight={5}
+                  marginTop={7}
                 />
-                <Text style={{ color: "#666", fontSize: 14 }}>
+                <Text style={{ color: "#666", fontSize: 14, marginTop:5 }}>
                   {data?.commentCnt ?? 0}
                 </Text>
                 <View style={styles.button}>
@@ -2916,10 +2919,10 @@ const TacticsDetail = ({ navigation, route }) => {
                   <Text style={{ color: "#666", fontSize: 14 }}>
                     {data?.likeCnt ?? 0}
                   </Text>
-                  <TacticCopyButton onPress={handleTacticCopy}>
-                    <TacticCopyText>전술 가져오기</TacticCopyText>
-                  </TacticCopyButton>
                 </View>
+                <TacticCopyButton onPress={handleTacticCopy}>
+    <TacticCopyText>전술 가져오기</TacticCopyText>
+      </TacticCopyButton>
                 <Pressable
                   style={[
                     styles.button,
