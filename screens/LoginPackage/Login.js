@@ -27,14 +27,16 @@ import {
   unlink,
 } from "@react-native-seoul/kakao-login";
 import EmailVerifyRecover from "./EmailVerifyRecover";
-import styled from "styled-components/native"
+import styled from "styled-components/native";
 
 const LogoText = styled.Text`
   font-size: 38px;
-  font-weight: bold;
+  margin-top: 150px;
+  font-weight: 700;
   color: black;
+  text-decoration-line: underline;
+  font-family: LexendDeca-Bold;
   text-align: center;
-  margin-top: 20px;
 `;
 
 const showFailLogin = () => {
@@ -292,7 +294,7 @@ const Login = ({ navigation }) => {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.loginScreenContainer}>
             <View style={styles.loginFirstView}>
-            <LogoText>LOGIN</LogoText>
+              <LogoText>LOGIN</LogoText>
             </View>
             <View style={styles.loginSecondView}>
               <TextInput
