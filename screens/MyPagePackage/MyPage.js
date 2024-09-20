@@ -175,6 +175,18 @@ const SecondModalView = styled.View`
   align-items: center;
 `;
 
+const ThirdModalView = styled.View`
+  flex: 0.6;
+  justify-content: center;
+  align-items: center;
+`;
+
+const InviteThirdModalView = styled.View`
+  flex: 1.3;
+  justify-content: center;
+  align-items: center;
+`;
+
 const TextForTitleInvite = styled.Text`
   font-size: 25px;
   text-decoration: underline;
@@ -656,9 +668,14 @@ const MyPage = ({ navigation }) => {
         isVisible={isBlockListModalVisible}
         onClose={() => setIsBlockListModalVisible(false)}
       />
-      <Modal animationType="slide" visible={isModalVisible} transparent={true}>
+      <Modal
+        animationType="slide"
+        visible={isModalVisible}
+        transparent={true}
+        onRequestClose={() => setIsModalVisible(false)}
+      >
         <ContainerModalView onPress={() => setIsModalVisible(false)}>
-          <ModalView>
+          <ModalView style={{ height: "40%" }}>
             <FirstModalView>
               <TextForTitleInvite>초대목록</TextForTitleInvite>
             </FirstModalView>
@@ -684,6 +701,12 @@ const MyPage = ({ navigation }) => {
                 removeClippedSubview="true"
               />
             </SecondModalView>
+            <ModalSeparator></ModalSeparator>
+            <InviteThirdModalView>
+              <CloseButton onPress={() => setIsModalVisible(false)}>
+                <CloseButtonText>닫기</CloseButtonText>
+              </CloseButton>
+            </InviteThirdModalView>
           </ModalView>
         </ContainerModalView>
       </Modal>
@@ -691,10 +714,9 @@ const MyPage = ({ navigation }) => {
         animationType="slide"
         visible={isNotificationModalVisible}
         transparent={true}
+        onRequestClose={() => setIsNotificationModalVisible(false)}
       >
-        <ContainerModalView
-          onPress={() => setIsNotificationModalVisible(false)}
-        >
+        <ContainerModalView>
           <ModalView style={{ height: "70%" }}>
             <FirstNotiModalView>
               <TextForTitleInvite>알림목록</TextForTitleInvite>
@@ -720,6 +742,12 @@ const MyPage = ({ navigation }) => {
                 removeClippedSubview="true"
               />
             </SecondModalView>
+            <ModalSeparator></ModalSeparator>
+            <ThirdModalView>
+              <CloseButton onPress={() => setIsNotificationModalVisible(false)}>
+                <CloseButtonText>닫기</CloseButtonText>
+              </CloseButton>
+            </ThirdModalView>
           </ModalView>
         </ContainerModalView>
       </Modal>
